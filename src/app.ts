@@ -22,10 +22,9 @@ app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
 
-
 app.get<{}, MessageResponse>('/', (req, res) => {
   res.json({
-    message: '🦄🌈✨👋🌎🌍🌏✨🌈🦄',
+    message: '🦄🌈✨👋🌎🌍🌏✨🌈🦄'
   });
 });
 
