@@ -1,10 +1,12 @@
 import { promisePool } from '../../database/db';
 import { GetUser, PostUser, PutUser, User } from '../../interfaces/User';
 import { ResultSetHeader } from 'mysql2';
-import CustomError from '../classes/CustomError';
+import CustomError from '../../classes/CustomError';
 
 const getAllUsers = async (): Promise<User[]> => {
-  const [rows] = await promisePool.query<GetUser[]>('SELECT * FROM users');
+  const [rows] = await promisePool.query<GetUser[]>(
+    'SELECT id, email, username FROM users'
+  );
 
   if (rows.length === 0) {
     throw new CustomError('No users found', 404);
@@ -15,7 +17,7 @@ const getAllUsers = async (): Promise<User[]> => {
 
 const getUser = async (id: number): Promise<User> => {
   const [rows] = await promisePool.query<GetUser[]>(
-    'SELECT * FROM users WHERE id = ?',
+    'SELECT id, email, username FROM users WHERE id = ?',
     [id]
   );
 
@@ -61,14 +63,22 @@ const deleteUser = async (id: number): Promise<boolean> => {
 };
 
 const getUserLogin = async (email: string): Promise<User> => {
+  // ensure the password column is always returned as `password`
   const [rows] = await promisePool.query<GetUser[]>(
-    'SELECT * FROM users WHERE email = ?',
+    'SELECT id, email, username, role, password FROM users WHERE email = ?',
     [email]
   );
   if (rows.length === 0) {
     throw new CustomError('Invalid email or password', 401);
   }
-  return rows[0];
+
+  const user = rows[0];
+  // defensive fallback in case the column casing differs
+  if (!user.password && (user as any).PASSWORD) {
+    user.password = (user as any).PASSWORD;
+  }
+
+  return user;
 };
 
 export { getAllUsers, getUser, postUser, putUser, deleteUser, getUserLogin };

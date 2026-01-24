@@ -8,6 +8,7 @@ passport.use(
   new Strategy(async (username, password, done) => {
     try {
       const user = await getUserLogin(username);
+
       if (!user) {
         return done(null, false);
       }
