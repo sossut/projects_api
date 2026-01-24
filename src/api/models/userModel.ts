@@ -29,18 +29,29 @@ const getUser = async (id: number): Promise<User> => {
 };
 
 const postUser = async (userData: PostUser): Promise<number> => {
-  const [headers] = await promisePool.execute<ResultSetHeader>(
-    'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-    [userData.username, userData.email, userData.password]
-  );
-  if (headers.affectedRows === 0) {
-    throw new CustomError('Failed to create user', 500);
+  try {
+    const [headers] = await promisePool.execute<ResultSetHeader>(
+      'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+      [userData.username, userData.email, userData.password]
+    );
+    if (headers.affectedRows === 0) {
+      throw new CustomError('Failed to create user', 500);
+    }
+    return headers.insertId;
+  } catch (err: any) {
+    // MySQL duplicate entry error
+    if (err && err.code === 'ER_DUP_ENTRY') {
+      throw new CustomError('Email already exists', 400);
+    }
+    throw err;
   }
-  return headers.insertId;
 };
 
 const putUser = async (userData: PutUser, id: number): Promise<boolean> => {
-  const sql = promisePool.format('SELECT * FROM users WHERE id = ?', [id]);
+  const sql = promisePool.format('UPDATE users SET ? WHERE id = ?', [
+    userData,
+    id
+  ]);
   if (userData.role) {
     throw new CustomError('Can not be updated via this endpoint', 400);
   }
@@ -63,7 +74,6 @@ const deleteUser = async (id: number): Promise<boolean> => {
 };
 
 const getUserLogin = async (email: string): Promise<User> => {
-  // ensure the password column is always returned as `password`
   const [rows] = await promisePool.query<GetUser[]>(
     'SELECT id, email, username, role, password FROM users WHERE email = ?',
     [email]

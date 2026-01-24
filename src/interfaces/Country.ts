@@ -4,7 +4,7 @@ import { Continent } from './Continent';
 interface Country {
   id: number;
   name: string;
-  code: string;
+  code?: string | null;
   continentId: number | Continent;
 }
 

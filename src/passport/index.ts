@@ -5,9 +5,9 @@ import bcrypt from 'bcryptjs';
 import { getUserLogin } from '../api/models/userModel';
 
 passport.use(
-  new Strategy(async (username, password, done) => {
+  new Strategy({ usernameField: 'email' }, async (email, password, done) => {
     try {
-      const user = await getUserLogin(username);
+      const user = await getUserLogin(email);
 
       if (!user) {
         return done(null, false);

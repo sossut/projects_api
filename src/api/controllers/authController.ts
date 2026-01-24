@@ -1,18 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import jwt from 'jsonwebtoken';
+import { validationResult } from 'express-validator';
 import passport from '../../passport';
 import CustomError from '../../classes/CustomError';
 import { User } from '../../interfaces/User';
+import { throwIfValidationErrors } from '../../utils/utilities';
 
 const login = (req: Request, res: Response, next: NextFunction) => {
-  console.log(req.body.username, req.body.password);
+  const errors = validationResult(req);
+  throwIfValidationErrors(errors);
+
   passport.authenticate(
     'local',
     { session: false },
     (err: Error, user: Partial<User>) => {
       if (err || !user) {
-        next(new CustomError('Invalid username/password', 200));
+        next(new CustomError('Invalid username/password', 401));
         return;
       }
       req.login(user, { session: false }, (error) => {

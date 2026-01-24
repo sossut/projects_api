@@ -3,7 +3,7 @@ import { RowDataPacket } from 'mysql2';
 interface Continent {
   id: number;
   name: string;
-  code?: string;
+  code?: string | null;
 }
 
 interface GetContinent extends RowDataPacket, Continent {}

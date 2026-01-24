@@ -31,6 +31,8 @@ const userGet = async (
   next: NextFunction
 ) => {
   try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
     const user: User = await getUser(req.params.id as number);
     res.json(user);
   } catch (err) {
@@ -52,10 +54,11 @@ const userPost = async (
 
     const user = await postUser(req.body);
     if (user) {
-      res.json({
+      const response: MessageResponse = {
         message: 'User created successfully',
-        userId: user
-      });
+        id: user
+      };
+      res.json(response);
     }
   } catch (err) {
     next(err);
@@ -93,6 +96,8 @@ const userDelete = async (
   next: NextFunction
 ) => {
   try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
     const u = req.user as User;
     if (u.id !== req.params.id && u.role !== 'admin') {
       throw new CustomError('Unauthorized', 403);
