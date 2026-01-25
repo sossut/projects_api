@@ -26,6 +26,14 @@ const getCity = async (id: number): Promise<City> => {
   return rows[0];
 };
 
+const checkCityExistsByName = async (name: string): Promise<number> => {
+  const [rows] = await promisePool.query<GetCity[]>(
+    'SELECT id FROM cities WHERE name = ?',
+    [name]
+  );
+  return rows.length > 0 ? (rows[0].id as number) : 0;
+};
+
 const postCity = async (cityData: PostCity): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     'INSERT INTO cities (name, search_area_id) VALUES (?, ?)',
@@ -60,4 +68,11 @@ const deleteCity = async (id: number): Promise<boolean> => {
   return true;
 };
 
-export { getAllCities, getCity, postCity, putCity, deleteCity };
+export {
+  getAllCities,
+  getCity,
+  checkCityExistsByName,
+  postCity,
+  putCity,
+  deleteCity
+};

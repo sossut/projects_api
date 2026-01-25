@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/indent */
 import { RowDataPacket } from 'mysql2';
 import { Project } from './Project';
 

@@ -34,7 +34,7 @@ const checkCountryExistsByName = async (name: string): Promise<number> => {
     'SELECT id FROM countries WHERE name = ?',
     [name]
   );
-  return rows.length > 0 ? rows[0].id : 0;
+  return rows.length > 0 ? (rows[0].id as number) : 0;
 };
 const postCountry = async (countryData: PostCountry): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(

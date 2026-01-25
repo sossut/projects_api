@@ -3,11 +3,11 @@ import { Country } from './Country';
 import { Continent } from './Continent';
 
 interface SearchArea {
-  id: number;
+  id?: number;
   name: string;
   lastSearchedAt: Date;
-  continent: Continent;
-  country: Country;
+  continent?: Continent;
+  country?: Country;
   countryId: number | Country;
 }
 

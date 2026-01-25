@@ -13,6 +13,7 @@ export function errorHandler(
   err: Error & { status?: number },
   req: Request,
   res: Response<ErrorResponse>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction
 ) {
   const statusCode =

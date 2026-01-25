@@ -60,6 +60,12 @@ const searchAreaPost = async (
     const errors = validationResult(req);
     console.log('Validation errors:', errors.array());
     throwIfValidationErrors(errors);
+    if (!req.body.continent || !req.body.country) {
+      throw new CustomError(
+        'Continent and Country information are required',
+        400
+      );
+    }
     const continentExists = await checkContinentExistsByName(
       req.body.continent.name
     );

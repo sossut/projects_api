@@ -13,6 +13,8 @@ interface Project {
   buildingHeightMeters?: number;
   buildingHeightFloors?: number;
   buildingTypeId?: number | BuildingType;
+  buildingType?: BuildingType;
+  buildingUse?: string[];
   budgetEur?: number;
   glassFacade?: 'yes' | 'no' | 'unknown';
   facadeBasis?:
@@ -21,7 +23,7 @@ interface Project {
     | 'architectural_specs'
     | 'mixed'
     | 'unknown';
-  status:
+  status?:
     | 'planned'
     | 'approved'
     | 'proposed'
@@ -29,8 +31,16 @@ interface Project {
     | 'under_construction';
   lastVerifiedDate?: Date;
   confidenceScore?: 'low' | 'medium' | 'high';
-  isActive: boolean;
-  projectKey: string; //lower(trim(name)) + "|" + lower(trim(city)) + "|" + lower(trim(country))
+  isActive?: boolean;
+  projectKey?: string; //lower(trim(name)) + "|" + lower(trim(city)) + "|" + lower(trim(country))
+  location?: {
+    continent: string;
+    address: string;
+    country: string;
+    city: string;
+    metroArea: string; //same as search area,
+    postcode?: string;
+  };
 }
 
 interface GetProject extends RowDataPacket, Project {}

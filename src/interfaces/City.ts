@@ -2,7 +2,7 @@ import { RowDataPacket } from 'mysql2';
 import { SearchArea } from './SearchArea';
 
 interface City {
-  id: number;
+  id?: number;
   name: string;
   searchAreaId: number | SearchArea;
 }

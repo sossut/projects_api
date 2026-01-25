@@ -1,7 +1,7 @@
 import { RowDataPacket } from 'mysql2';
 
 interface Continent {
-  id: number;
+  id?: number;
   name: string;
   code?: string | null;
 }

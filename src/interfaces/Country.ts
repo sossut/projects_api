@@ -2,7 +2,7 @@ import { RowDataPacket } from 'mysql2';
 import { Continent } from './Continent';
 
 interface Country {
-  id: number;
+  id?: number;
   name: string;
   code?: string | null;
   continentId: number | Continent;

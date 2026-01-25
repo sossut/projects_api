@@ -31,7 +31,7 @@ const checkContinentExistsByName = async (name: string): Promise<number> => {
     'SELECT id FROM continents WHERE name = ?',
     [name]
   );
-  return rows.length > 0 ? rows[0].id : 0;
+  return rows.length > 0 ? (rows[0].id as number) : 0;
 };
 
 const postContinent = async (continentData: PostContinent): Promise<number> => {

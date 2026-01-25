@@ -3,10 +3,10 @@ import { Point } from 'geojson';
 import { City } from './City';
 
 interface Address {
-  id: number;
+  id?: number;
   address: string;
-  location: Point;
-  postcode: string;
+  location?: Point | null;
+  postcode?: string | null;
   cityId: number | City;
 }
 
