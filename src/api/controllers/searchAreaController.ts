@@ -96,6 +96,7 @@ const searchAreaPost = async (
     if (!searchAreaId) {
       throw new CustomError('Failed to create search area', 500);
     }
+
     const response: MessageResponse = {
       message: 'Search area created successfully',
       id: searchAreaId
