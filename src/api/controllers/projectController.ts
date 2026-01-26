@@ -5,7 +5,8 @@ import {
   putProject,
   deleteProject,
   getAllProjects,
-  getProject
+  getProject,
+  checkIfProjectExistsByKey
 } from '../models/projectModel';
 import { Request, Response, NextFunction } from 'express';
 import { PostProject, Project } from '../../interfaces/Project';
@@ -41,6 +42,28 @@ import {
 } from '../models/buildingUseModel';
 import { postProjectBuildingUse } from '../models/projectBuildingUse';
 import { ProjectBuildingUse } from '../../interfaces/ProjectBuildingUse';
+import { postProjectWebsite } from '../models/projectWebsite';
+import {
+  checkDeveloperExistsByName,
+  postDeveloper
+} from '../models/developerModel';
+import { Developer } from '../../interfaces/Developer';
+import { postProjectDeveloper } from '../models/projectDeveloper';
+import {
+  checkArchitectExistsByName,
+  postArchitect
+} from '../models/architectModel';
+import { Architect } from '../../interfaces/Architect';
+import { postProjectArchitect } from '../models/projectArchitect';
+import { Contractor } from '../../interfaces/Contractor';
+import {
+  checkContractorExistsByName,
+  postContractor
+} from '../models/contractorModel';
+import { postProjectContractor } from '../models/projectContractor';
+import { ProjectMedia } from '../../interfaces/ProjectMedia';
+import { postProjectMedia } from '../models/projectMediaModel';
+import { postSourceLink } from '../models/sourceLinkModel';
 
 const projectListGet = async (
   req: Request,
@@ -77,9 +100,15 @@ const projectPost = async (
   next: NextFunction
 ) => {
   try {
-    //FIRST CHECK IF PROJECT EXIST WITH PROJECT KEY!!!!!!!!
-    //!!!!!!!!!!!!
-    //!!!!!!!!!!
+    const checkProjectKey = await checkIfProjectExistsByKey(
+      req.body.projectKey as string
+    );
+    if (checkProjectKey) {
+      throw new CustomError(
+        'Project with the same project key already exists',
+        400
+      );
+    }
 
     const user = req.user as User;
     if (user.role !== 'admin') {
@@ -179,12 +208,30 @@ const projectPost = async (
 
     const project: Project = {
       name: req.body.name,
-      expectedDateText: req.body.expectedDateText,
-
+      expectedDateText: req.body.expectedCompletionWindow?.expected,
+      earliestDate: req.body.expectedCompletionWindow?.earliest
+        ? new Date(req.body.expectedCompletionWindow.earliest)
+        : undefined,
+      latestDate: req.body.expectedCompletionWindow?.latest
+        ? new Date(req.body.expectedCompletionWindow.latest)
+        : undefined,
       addressId: addressId,
-      buildingTypeId: buildingTypeId
+      buildingTypeId: buildingTypeId,
+      status: req.body.status,
+      budgetEur: req.body.budgetEur,
+      glassFacade: req.body.glassFacade,
+      facadeBasis: req.body.facadeBasis,
+      lastVerifiedDate: req.body.lastVerifiedDate,
+      confidenceScore: req.body.confidenceScore,
+      isActive: req.body.isActive,
+      projectKey: req.body.projectKey,
+      buildingHeightMeters: req.body.buildingHeightMeters,
+      buildingHeightFloors: req.body.buildingHeightFloors
     };
     const projectId = await postProject(project);
+    for (const url of req.body.projectWebsites || []) {
+      await postProjectWebsite({ projectId: projectId, url: url });
+    }
     for (const bu of req.body.buildingUse || []) {
       const buildingUseExists = await checkBuildingUseExistsByName(bu);
       let buildingUseId = buildingUseExists;
@@ -200,6 +247,91 @@ const projectPost = async (
       };
       await postProjectBuildingUse(projectBuildingUse);
     }
+    for (const developer of req.body.developers || []) {
+      const developerExists = await checkDeveloperExistsByName(developer.name);
+      let developerId = developerExists;
+      if (developerExists === 0) {
+        const d: Developer = {
+          name: developer.name,
+          website: developer.website,
+          countryId: null,
+          email: developer.contact?.email,
+          phone: developer.contact?.phone
+        };
+        developerId = await postDeveloper(d);
+      }
+      if (developerId === 0) {
+        throw new CustomError('Failed to create developer', 500);
+      }
+      await postProjectDeveloper({
+        projectId: projectId,
+        developerId: developerId
+      });
+    }
+    for (const architect of req.body.architects || []) {
+      const architectExists = await checkArchitectExistsByName(architect.name);
+      let architectId = architectExists;
+      if (architectExists === 0) {
+        const a: Architect = {
+          name: architect.name,
+          website: architect.website,
+          countryId: null,
+          email: architect.contact?.email,
+          phone: architect.contact?.phone
+        };
+        architectId = await postArchitect(a);
+      }
+      if (architectId === 0) {
+        throw new CustomError('Failed to create architect', 500);
+      }
+      await postProjectArchitect({
+        projectId: projectId,
+        architectId: architectId
+      });
+    }
+    for (const contractor of req.body.contractors || []) {
+      const contractorExists = await checkContractorExistsByName(
+        contractor.name
+      );
+      let contractorId = contractorExists;
+      if (contractorExists === 0) {
+        const c: Contractor = {
+          name: contractor.name,
+          website: contractor.website,
+          countryId: null,
+          email: contractor.contact?.email,
+          phone: contractor.contact?.phone
+        };
+        contractorId = await postContractor(c);
+      }
+      if (contractorId === 0) {
+        throw new CustomError('Failed to create contractor', 500);
+      }
+      await postProjectContractor({
+        projectId: projectId,
+        contractorId: contractorId
+      });
+    }
+    for (const media of req.body.media || []) {
+      const mediaData: ProjectMedia = {
+        url: media.url,
+        projectId: projectId,
+        title: media.title,
+        mediaType: media.mediaType
+      };
+      // filename will be generated automatically when downloading the media
+      await postProjectMedia(mediaData);
+    }
+    for (const source of req.body.sources || []) {
+      await postSourceLink({
+        projectId: projectId,
+        url: source.url,
+        sourceType: source.sourceType,
+        publisher: source.publisher,
+        accessedAt: source.accessedAt
+      });
+    }
+
     if (projectId) {
       const response: MessageResponse = {
         message: 'Project created successfully',

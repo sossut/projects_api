@@ -31,6 +31,14 @@ const getDeveloper = async (id: number): Promise<Developer> => {
   return rows[0];
 };
 
+const checkDeveloperExistsByName = async (name: string): Promise<number> => {
+  const [rows] = await promisePool.query<GetDeveloper[]>(
+    'SELECT id FROM developers WHERE name = ?',
+    [name]
+  );
+  return rows.length > 0 ? (rows[0].id as number) : 0;
+};
+
 const postDeveloper = async (developerData: PostDeveloper): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     'INSERT INTO developers (name, country_id, website, phone, email) VALUES (?, ?, ?, ?, ?)',
@@ -77,6 +85,7 @@ const deleteDeveloper = async (id: number): Promise<boolean> => {
 export {
   getAllDevelopers,
   getDeveloper,
+  checkDeveloperExistsByName,
   postDeveloper,
   putDeveloper,
   deleteDeveloper

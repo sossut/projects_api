@@ -2,6 +2,11 @@
 import { RowDataPacket } from 'mysql2';
 import { Address } from './Address';
 import { BuildingType } from './BuildingType';
+import { Developer } from './Developer';
+import { Architect } from './Architect';
+import { Contractor } from './Contractor';
+import { ProjectMedia } from './ProjectMedia';
+import { SourceLink } from './SourceLink';
 
 interface Project {
   id?: number;
@@ -10,6 +15,11 @@ interface Project {
   expectedDateText?: string;
   earliestDate?: Date;
   latestDate?: Date;
+  expectedCompletionWindow?: {
+    expected?: string;
+    earliest?: string;
+    latest?: string;
+  };
   buildingHeightMeters?: number;
   buildingHeightFloors?: number;
   buildingTypeId?: number | BuildingType;
@@ -41,6 +51,12 @@ interface Project {
     metroArea: string; //same as search area,
     postcode?: string;
   };
+  projectWebsites?: string[];
+  developers?: Developer[];
+  architects?: Architect[];
+  contractors?: Contractor[];
+  media?: ProjectMedia[];
+  sources?: SourceLink[];
 }
 
 interface GetProject extends RowDataPacket, Project {}

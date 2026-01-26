@@ -218,6 +218,17 @@ const getProject = async (id: number): Promise<Project> => {
   }
   return rows[0];
 };
+
+const checkIfProjectExistsByKey = async (
+  projectKey: string
+): Promise<boolean> => {
+  const [rows] = await promisePool.query<GetProject[]>(
+    'SELECT id FROM projects WHERE project_key = ?',
+    [projectKey]
+  );
+  return true ? rows.length > 0 : false;
+};
+
 const postProject = async (projectData: PostProject): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     `INSERT INTO projects
@@ -275,4 +286,11 @@ const deleteProject = async (id: number): Promise<boolean> => {
   return true;
 };
 
-export { getAllProjects, getProject, postProject, putProject, deleteProject };
+export {
+  getAllProjects,
+  getProject,
+  checkIfProjectExistsByKey,
+  postProject,
+  putProject,
+  deleteProject
+};

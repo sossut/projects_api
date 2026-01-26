@@ -2,12 +2,16 @@ import { RowDataPacket } from 'mysql2';
 import { Country } from './Country';
 
 interface Architect {
-  id: number;
+  id?: number;
   name: string;
   website?: string;
-  countryId: number | Country;
+  countryId?: number | Country | null;
   email?: string;
   phone?: string;
+  contact?: {
+    email?: string;
+    phone?: string;
+  };
 }
 
 interface GetArchitect extends RowDataPacket, Architect {}

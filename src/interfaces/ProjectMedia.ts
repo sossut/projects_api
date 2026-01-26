@@ -3,7 +3,7 @@ import { RowDataPacket } from 'mysql2';
 import { Project } from './Project';
 
 interface ProjectMedia {
-  id: number;
+  id?: number;
   url: string;
   projectId: number | Project;
   title: string;

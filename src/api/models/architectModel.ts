@@ -31,6 +31,14 @@ const getArchitect = async (id: number): Promise<Architect> => {
   return rows[0];
 };
 
+const checkArchitectExistsByName = async (name: string): Promise<number> => {
+  const [rows] = await promisePool.query<GetArchitect[]>(
+    'SELECT id FROM architects WHERE name = ?',
+    [name]
+  );
+  return rows.length > 0 ? (rows[0].id as number) : 0;
+};
+
 const postArchitect = async (architectData: PostArchitect): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     'INSERT INTO architects (name, website, phone, email, country_id) VALUES (?, ?, ?, ?, ?)',
@@ -77,6 +85,7 @@ const deleteArchitect = async (id: number): Promise<boolean> => {
 export {
   getAllArchitects,
   getArchitect,
+  checkArchitectExistsByName,
   postArchitect,
   putArchitect,
   deleteArchitect

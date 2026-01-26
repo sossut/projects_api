@@ -2,12 +2,16 @@ import { RowDataPacket } from 'mysql2';
 import { Country } from './Country';
 
 interface Contractor {
-  id: number;
+  id?: number;
   name: string;
-  countryId?: number | Country;
+  countryId?: number | Country | null;
   website?: string;
   email?: string;
   phone?: string;
+  contact?: {
+    email?: string;
+    phone?: string;
+  };
 }
 
 interface GetContractor extends RowDataPacket, Contractor {}

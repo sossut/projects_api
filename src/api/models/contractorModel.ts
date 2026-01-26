@@ -31,6 +31,14 @@ const getContractor = async (id: number): Promise<Contractor> => {
   return rows[0];
 };
 
+const checkContractorExistsByName = async (name: string): Promise<number> => {
+  const [rows] = await promisePool.query<GetContractor[]>(
+    'SELECT id FROM contractors WHERE name = ?',
+    [name]
+  );
+  return rows.length > 0 ? (rows[0].id as number) : 0;
+};
+
 const postContractor = async (
   contractorData: PostContractor
 ): Promise<number> => {
@@ -77,6 +85,7 @@ const deleteContractor = async (id: number): Promise<boolean> => {
 export {
   getAllContractors,
   getContractor,
+  checkContractorExistsByName,
   postContractor,
   putContractor,
   deleteContractor
