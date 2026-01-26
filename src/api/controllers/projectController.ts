@@ -21,10 +21,10 @@ import {
 } from '../models/continentModel';
 import { checkCountryExistsByName, postCountry } from '../models/countryModel';
 import {
-  checkSearchAreaExistsByName,
-  postSearchArea
+  checkMetroAreaExistsByName,
+  postMetroArea
 } from '../models/searchAreaModel';
-import { SearchArea } from '../../interfaces/SearchArea';
+import { MetroArea } from '../../interfaces/MetroArea';
 import { Continent } from '../../interfaces/Continent';
 import { Country } from '../../interfaces/Country';
 import { Address } from '../../interfaces/Address';
@@ -100,245 +100,268 @@ const projectPost = async (
   next: NextFunction
 ) => {
   try {
-    const checkProjectKey = await checkIfProjectExistsByKey(
-      req.body.projectKey as string
-    );
-    if (checkProjectKey) {
-      throw new CustomError(
-        'Project with the same project key already exists',
-        400
+    const createdProjectIds: number[] = [];
+    const skippedProjects: string[] = [];
+
+    for (const proj of req.body.projects || []) {
+      if (!proj.name || !proj.location) {
+        throw new CustomError('Project name and location are required', 400);
+      }
+      const pK = (proj.name.trim().toLowerCase() +
+        '|' +
+        proj.location.city.trim().toLowerCase() +
+        '|' +
+        proj.location.country.trim().toLowerCase()) as string;
+
+      const checkProjectKey = await checkIfProjectExistsByKey(pK);
+      if (checkProjectKey) {
+        skippedProjects.push(pK);
+        continue;
+      }
+
+      // const user = req.user as User;
+      // if (user.role !== 'admin') {
+      //   throw new CustomError('Unauthorized', 401);
+      // }
+      const errors = validationResult(req);
+      throwIfValidationErrors(errors);
+      if (!proj.location) {
+        throw new CustomError('Location is required', 400);
+      }
+      const continentExists = await checkContinentExistsByName(
+        proj.location.continent
       );
-    }
-
-    const user = req.user as User;
-    if (user.role !== 'admin') {
-      throw new CustomError('Unauthorized', 401);
-    }
-    const errors = validationResult(req);
-    throwIfValidationErrors(errors);
-    if (!req.body.location) {
-      throw new CustomError('Location is required', 400);
-    }
-    const continentExists = await checkContinentExistsByName(
-      req.body.location.continent
-    );
-    let continentID = continentExists;
-    const continent: Continent = {
-      name: req.body.location.continent as string,
-      code: null
-    };
-    if (continentExists === 0) {
-      continentID = await postContinent(continent);
-    }
-    if (continentID === 0) {
-      throw new CustomError('Failed to create continent', 500);
-    }
-
-    const countryExists = await checkCountryExistsByName(
-      req.body.location.country
-    );
-    let countryID = countryExists;
-    const country: Country = {
-      name: req.body.location.country as string,
-      code: null,
-      continentId: continentID
-    };
-
-    if (countryExists === 0) {
-      countryID = await postCountry(country);
-    }
-
-    if (countryID === 0) {
-      throw new CustomError('Failed to create country', 500);
-    }
-    const timeNow = new Date(Date.now());
-    req.body.lastVerifiedDate = timeNow;
-    const searchArea: SearchArea = {
-      name: req.body.location.metroArea,
-      countryId: countryID,
-      lastSearchedAt: timeNow
-    };
-    const searchAreaExists = await checkSearchAreaExistsByName(
-      req.body.location.metroArea
-    );
-    let searchAreaId = searchAreaExists;
-    if (searchAreaExists === 0) {
-      searchAreaId = await postSearchArea(searchArea);
-    }
-
-    if (searchAreaId === 0) {
-      throw new CustomError('Failed to create search area', 500);
-    }
-
-    const cityExists = await checkCityExistsByName(req.body.location.city);
-    let cityId = cityExists;
-    const city: City = {
-      name: req.body.location.city,
-      searchAreaId: searchAreaId
-    };
-    if (cityExists === 0) {
-      cityId = await postCity(city);
-    }
-    if (cityId === 0) {
-      throw new CustomError('Failed to create city', 500);
-    }
-
-    const address: Address = {
-      address: req.body.location.address,
-      location: null,
-      postcode: req.body.location.postcode,
-      cityId: cityId
-    };
-
-    const addressId = await postAddress(address);
-    if (!addressId) {
-      throw new CustomError('Failed to create address', 500);
-    }
-
-    const buildingTypeExists = await checkBuildingTypeExistsByName(
-      req.body.buildingType as string
-    );
-    let buildingTypeId = buildingTypeExists;
-    const buildingType: BuildingType = {
-      buildingType: req.body.buildingType as string
-    };
-    if (buildingTypeExists === 0) {
-      buildingTypeId = await postBuildingType(buildingType);
-    }
-
-    const project: Project = {
-      name: req.body.name,
-      expectedDateText: req.body.expectedCompletionWindow?.expected,
-      earliestDate: req.body.expectedCompletionWindow?.earliest
-        ? new Date(req.body.expectedCompletionWindow.earliest)
-        : undefined,
-      latestDate: req.body.expectedCompletionWindow?.latest
-        ? new Date(req.body.expectedCompletionWindow.latest)
-        : undefined,
-      addressId: addressId,
-      buildingTypeId: buildingTypeId,
-      status: req.body.status,
-      budgetEur: req.body.budgetEur,
-      glassFacade: req.body.glassFacade,
-      facadeBasis: req.body.facadeBasis,
-      lastVerifiedDate: req.body.lastVerifiedDate,
-      confidenceScore: req.body.confidenceScore,
-      isActive: req.body.isActive,
-      projectKey: req.body.projectKey,
-      buildingHeightMeters: req.body.buildingHeightMeters,
-      buildingHeightFloors: req.body.buildingHeightFloors
-    };
-    const projectId = await postProject(project);
-    for (const url of req.body.projectWebsites || []) {
-      await postProjectWebsite({ projectId: projectId, url: url });
-    }
-    for (const bu of req.body.buildingUse || []) {
-      const buildingUseExists = await checkBuildingUseExistsByName(bu);
-      let buildingUseId = buildingUseExists;
-      if (buildingUseExists === 0) {
-        buildingUseId = await postBuildingUse({ buildingUse: bu });
-      }
-      if (buildingUseId === 0) {
-        throw new CustomError('Failed to create building use', 500);
-      }
-      const projectBuildingUse: ProjectBuildingUse = {
-        projectId: projectId,
-        buildingUseId: buildingUseId
+      let continentID = continentExists;
+      const continent: Continent = {
+        name: proj.location.continent as string,
+        code: null
       };
-      await postProjectBuildingUse(projectBuildingUse);
-    }
-    for (const developer of req.body.developers || []) {
-      const developerExists = await checkDeveloperExistsByName(developer.name);
-      let developerId = developerExists;
-      if (developerExists === 0) {
-        const d: Developer = {
-          name: developer.name,
-          website: developer.website,
-          countryId: null,
-          email: developer.contact?.email,
-          phone: developer.contact?.phone
-        };
-        developerId = await postDeveloper(d);
+      if (continentExists === 0) {
+        continentID = await postContinent(continent);
       }
-      if (developerId === 0) {
-        throw new CustomError('Failed to create developer', 500);
+      if (continentID === 0) {
+        throw new CustomError('Failed to create continent', 500);
       }
-      await postProjectDeveloper({
-        projectId: projectId,
-        developerId: developerId
-      });
-    }
-    for (const architect of req.body.architects || []) {
-      const architectExists = await checkArchitectExistsByName(architect.name);
-      let architectId = architectExists;
-      if (architectExists === 0) {
-        const a: Architect = {
-          name: architect.name,
-          website: architect.website,
-          countryId: null,
-          email: architect.contact?.email,
-          phone: architect.contact?.phone
-        };
-        architectId = await postArchitect(a);
-      }
-      if (architectId === 0) {
-        throw new CustomError('Failed to create architect', 500);
-      }
-      await postProjectArchitect({
-        projectId: projectId,
-        architectId: architectId
-      });
-    }
-    for (const contractor of req.body.contractors || []) {
-      const contractorExists = await checkContractorExistsByName(
-        contractor.name
+
+      const countryExists = await checkCountryExistsByName(
+        proj.location.country
       );
-      let contractorId = contractorExists;
-      if (contractorExists === 0) {
-        const c: Contractor = {
-          name: contractor.name,
-          website: contractor.website,
-          countryId: null,
-          email: contractor.contact?.email,
-          phone: contractor.contact?.phone
-        };
-        contractorId = await postContractor(c);
-      }
-      if (contractorId === 0) {
-        throw new CustomError('Failed to create contractor', 500);
-      }
-      await postProjectContractor({
-        projectId: projectId,
-        contractorId: contractorId
-      });
-    }
-    for (const media of req.body.media || []) {
-      const mediaData: ProjectMedia = {
-        url: media.url,
-        projectId: projectId,
-        title: media.title,
-        mediaType: media.mediaType
+      let countryID = countryExists;
+      const country: Country = {
+        name: proj.location.country as string,
+        code: null,
+        continentId: continentID
       };
-      // filename will be generated automatically when downloading the media
-      await postProjectMedia(mediaData);
-    }
-    for (const source of req.body.sources || []) {
-      await postSourceLink({
-        projectId: projectId,
-        url: source.url,
-        sourceType: source.sourceType,
-        publisher: source.publisher,
-        accessedAt: source.accessedAt
-      });
+
+      if (countryExists === 0) {
+        countryID = await postCountry(country);
+      }
+
+      if (countryID === 0) {
+        throw new CustomError('Failed to create country', 500);
+      }
+      const timeNow = new Date(Date.now());
+      proj.lastVerifiedDate = timeNow;
+      const metroArea: MetroArea = {
+        name: proj.location.metroArea,
+        countryId: countryID,
+        lastSearchedAt: timeNow
+      };
+      const metroAreaExists = await checkMetroAreaExistsByName(
+        proj.location.metroArea
+      );
+      let metroAreaId = metroAreaExists;
+      if (metroAreaExists === 0) {
+        metroAreaId = await postMetroArea(metroArea);
+      }
+
+      if (metroAreaId === 0) {
+        throw new CustomError('Failed to create metro area', 500);
+      }
+
+      const cityExists = await checkCityExistsByName(proj.location.city);
+      let cityId = cityExists;
+      const city: City = {
+        name: proj.location.city,
+        metroAreaId: metroAreaId
+      };
+      if (cityExists === 0) {
+        cityId = await postCity(city);
+      }
+      if (cityId === 0) {
+        throw new CustomError('Failed to create city', 500);
+      }
+
+      const address: Address = {
+        address: proj.location.address,
+        location: null,
+        postcode: proj.location.postcode,
+        cityId: cityId
+      };
+
+      const addressId = await postAddress(address);
+      if (!addressId) {
+        throw new CustomError('Failed to create address', 500);
+      }
+
+      const buildingTypeExists = await checkBuildingTypeExistsByName(
+        proj.buildingType as string
+      );
+      let buildingTypeId = buildingTypeExists;
+      const buildingType: BuildingType = {
+        buildingType: proj.buildingType as string
+      };
+      if (buildingTypeExists === 0) {
+        buildingTypeId = await postBuildingType(buildingType);
+      }
+
+      const project: Project = {
+        name: proj.name,
+        expectedDateText: proj.expectedCompletionWindow?.expected,
+        earliestDate: proj.expectedCompletionWindow?.earliest
+          ? new Date(proj.expectedCompletionWindow.earliest)
+          : undefined,
+        latestDate: proj.expectedCompletionWindow?.latest
+          ? new Date(proj.expectedCompletionWindow.latest)
+          : undefined,
+        addressId: addressId,
+        buildingTypeId: buildingTypeId,
+        status: proj.status,
+        budgetEur: proj.budgetEur,
+        glassFacade: proj.glassFacade,
+        facadeBasis: proj.facadeBasis,
+        lastVerifiedDate: proj.lastVerifiedDate,
+        confidenceScore: proj.confidenceScore,
+        isActive: proj.isActive,
+        projectKey: (proj.name.trim().toLowerCase() +
+          '|' +
+          proj.location.city.trim().toLowerCase() +
+          '|' +
+          proj.location.country.trim().toLowerCase()) as string,
+        buildingHeightMeters: proj.buildingHeightMeters,
+        buildingHeightFloors: proj.buildingHeightFloors
+      };
+      console.log(project);
+      const projectId = await postProject(project);
+      for (const url of proj.projectWebsites || []) {
+        await postProjectWebsite({ projectId: projectId, url: url });
+      }
+      for (const bu of proj.buildingUse || []) {
+        const buildingUseExists = await checkBuildingUseExistsByName(bu);
+        let buildingUseId = buildingUseExists;
+        if (buildingUseExists === 0) {
+          buildingUseId = await postBuildingUse({ buildingUse: bu });
+        }
+        if (buildingUseId === 0) {
+          throw new CustomError('Failed to create building use', 500);
+        }
+        const projectBuildingUse: ProjectBuildingUse = {
+          projectId: projectId,
+          buildingUseId: buildingUseId
+        };
+        await postProjectBuildingUse(projectBuildingUse);
+      }
+      for (const developer of proj.developers || []) {
+        const developerExists = await checkDeveloperExistsByName(
+          developer.name
+        );
+        let developerId = developerExists;
+        if (developerExists === 0) {
+          const d: Developer = {
+            name: developer.name,
+            website: developer.website,
+            countryId: null,
+            email: developer.contact?.email,
+            phone: developer.contact?.phone
+          };
+          developerId = await postDeveloper(d);
+        }
+        if (developerId === 0) {
+          throw new CustomError('Failed to create developer', 500);
+        }
+        await postProjectDeveloper({
+          projectId: projectId,
+          developerId: developerId
+        });
+      }
+      for (const architect of proj.architects || []) {
+        const architectExists = await checkArchitectExistsByName(
+          architect.name
+        );
+        let architectId = architectExists;
+        if (architectExists === 0) {
+          const a: Architect = {
+            name: architect.name,
+            website: architect.website,
+            countryId: null,
+            email: architect.contact?.email,
+            phone: architect.contact?.phone
+          };
+          architectId = await postArchitect(a);
+        }
+        if (architectId === 0) {
+          throw new CustomError('Failed to create architect', 500);
+        }
+        await postProjectArchitect({
+          projectId: projectId,
+          architectId: architectId
+        });
+      }
+      for (const contractor of proj.contractors || []) {
+        const contractorExists = await checkContractorExistsByName(
+          contractor.name
+        );
+        let contractorId = contractorExists;
+        if (contractorExists === 0) {
+          const c: Contractor = {
+            name: contractor.name,
+            website: contractor.website,
+            countryId: null,
+            email: contractor.contact?.email,
+            phone: contractor.contact?.phone
+          };
+          contractorId = await postContractor(c);
+        }
+        if (contractorId === 0) {
+          throw new CustomError('Failed to create contractor', 500);
+        }
+        await postProjectContractor({
+          projectId: projectId,
+          contractorId: contractorId
+        });
+      }
+      for (const media of proj.media || []) {
+        const mediaData: ProjectMedia = {
+          url: media.url,
+          projectId: projectId,
+          title: media.title ?? null,
+          mediaType: media.mediaType
+        };
+        // filename will be generated automatically when downloading the media
+        await postProjectMedia(mediaData);
+      }
+      for (const source of proj.sources || []) {
+        console.log(source);
+        await postSourceLink({
+          projectId: projectId,
+          url: source.url,
+          sourceType: source.sourceType,
+          publisher: source.publisher,
+          accessedAt: source.accessedAt
+        });
+      }
+
+      if (projectId) {
+        createdProjectIds.push(projectId);
+      }
     }
 
-    if (projectId) {
-      const response: MessageResponse = {
-        message: 'Project created successfully',
-        id: projectId
-      };
-      res.json(response);
-    }
+    const response: MessageResponse = {
+      message: `Created ${createdProjectIds.length} projects${skippedProjects.length > 0 ? `, skipped ${skippedProjects.length} duplicates` : ''}`,
+      ids: createdProjectIds,
+      skipped: skippedProjects.length > 0 ? skippedProjects : undefined
+    };
+    res.json(response);
   } catch (err) {
     next(err);
   }

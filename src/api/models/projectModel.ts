@@ -21,7 +21,7 @@ const getAllProjects = async (): Promise<Project[]> => {
       JSON_OBJECT(
         'id', cities.id,
         'name', cities.name,
-        'searchAreaId', cities.search_area_id
+        'metroAreaId', cities.search_area_id
       ) AS city,
        JSON_OBJECT(
         'id', countries.id,
@@ -32,7 +32,7 @@ const getAllProjects = async (): Promise<Project[]> => {
         'id', search_areas.id,
         'name', search_areas.name,
         'countryId', search_areas.country_id
-      ) AS searchArea
+      ) AS metroArea
     ) AS address,
      building_types.building_type AS buildingType,
     CONCAT('[', GROUP_CONCAT(
@@ -124,7 +124,7 @@ const getProject = async (id: number): Promise<Project> => {
       JSON_OBJECT(
         'id', cities.id,
         'name', cities.name,
-        'searchAreaId', cities.search_area_id
+        'metroAreaId', cities.search_area_id
       ) AS city,
        JSON_OBJECT(
         'id', countries.id,
@@ -135,7 +135,7 @@ const getProject = async (id: number): Promise<Project> => {
         'id', search_areas.id,
         'name', search_areas.name,
         'countryId', search_areas.country_id
-      ) AS searchArea
+      ) AS metroArea
     ) AS address,
      building_types.building_type AS buildingType,
     CONCAT('[', GROUP_CONCAT(
@@ -230,7 +230,7 @@ const checkIfProjectExistsByKey = async (
 };
 
 const postProject = async (projectData: PostProject): Promise<number> => {
-  const [headers] = await promisePool.execute<ResultSetHeader>(
+  const sql = promisePool.format(
     `INSERT INTO projects
     (name, address_id, expected_date_text, earliest_date, latest_date, building_height_meters,
     building_height_floors, building_type_id, budget_eur, glass_facade,
@@ -253,6 +253,32 @@ const postProject = async (projectData: PostProject): Promise<number> => {
       projectData.confidenceScore,
       projectData.isActive,
       projectData.projectKey
+    ]
+  );
+  console.log(sql);
+  const [headers] = await promisePool.execute<ResultSetHeader>(
+    `INSERT INTO projects
+    (name, address_id, expected_date_text, earliest_date, latest_date, building_height_meters,
+    building_height_floors, building_type_id, budget_eur, glass_facade,
+    facade_basis, status, last_verified_date, confidence_score, is_active, project_key)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      projectData.name,
+      projectData.addressId,
+      projectData.expectedDateText ?? null,
+      projectData.earliestDate ?? null,
+      projectData.latestDate ?? null,
+      projectData.buildingHeightMeters ?? null,
+      projectData.buildingHeightFloors ?? null,
+      projectData.buildingTypeId ?? null,
+      projectData.budgetEur ?? null,
+      projectData.glassFacade ?? null,
+      projectData.facadeBasis ?? null,
+      projectData.status ?? null,
+      projectData.lastVerifiedDate ?? null,
+      projectData.confidenceScore ?? null,
+      projectData.isActive ?? null,
+      projectData.projectKey ?? null
     ]
   );
   if (headers.affectedRows === 0) {

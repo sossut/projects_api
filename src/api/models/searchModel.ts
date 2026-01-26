@@ -14,7 +14,7 @@ const getAllSearches = async (): Promise<Search[]> => {
   const [rows] = await promisePool.query<GetSearch[]>(
     `SELECT 
       id, 
-      search_area_id AS searchAreaId, 
+      search_area_id AS metroAreaId, 
       type_param AS typeParam,
       started_at AS startedAt, 
       finished_at AS finishedAt, 
@@ -31,7 +31,7 @@ const getSearch = async (id: number): Promise<Search> => {
   const [rows] = await promisePool.query<GetSearch[]>(
     `SELECT 
       id,
-      search_area_id AS searchAreaId, 
+      search_area_id AS metroAreaId, 
       type_param AS typeParam,
       started_at AS startedAt,
       finished_at AS finishedAt, 
@@ -49,7 +49,7 @@ const postSearch = async (searchData: PostSearch): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     'INSERT INTO searches (search_area_id, type_param, started_at, status) VALUES (?, ?, ?, ?)',
     [
-      searchData.searchAreaId,
+      searchData.metroAreaId,
       searchData.typeParam,
       searchData.startedAt,
       'running'

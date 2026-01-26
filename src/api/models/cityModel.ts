@@ -7,7 +7,7 @@ import { ResultSetHeader } from 'mysql2';
 
 const getAllCities = async (): Promise<City[]> => {
   const [rows] = await promisePool.query<GetCity[]>(
-    'SELECT id, name, search_area_id AS searchAreaId FROM cities'
+    'SELECT id, name, metro_area_id AS metroAreaId FROM cities'
   );
   if (rows.length === 0) {
     throw new CustomError('No cities found', 404);
@@ -17,7 +17,7 @@ const getAllCities = async (): Promise<City[]> => {
 
 const getCity = async (id: number): Promise<City> => {
   const [rows] = await promisePool.query<GetCity[]>(
-    'SELECT id, name, search_area_id AS searchAreaId FROM cities WHERE id = ?',
+    'SELECT id, name, metro_area_id AS metroAreaId FROM cities WHERE id = ?',
     [id]
   );
   if (rows.length === 0) {
@@ -36,8 +36,8 @@ const checkCityExistsByName = async (name: string): Promise<number> => {
 
 const postCity = async (cityData: PostCity): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
-    'INSERT INTO cities (name, search_area_id) VALUES (?, ?)',
-    [cityData.name, cityData.searchAreaId]
+    'INSERT INTO cities (name, metro_area_id) VALUES (?, ?)',
+    [cityData.name, cityData.metroAreaId]
   );
   if (headers.affectedRows === 0) {
     throw new CustomError('Failed to create city', 500);

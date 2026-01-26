@@ -57,6 +57,7 @@ interface Project {
   contractors?: Contractor[];
   media?: ProjectMedia[];
   sources?: SourceLink[];
+  projects?: Project[];
 }
 
 interface GetProject extends RowDataPacket, Project {}

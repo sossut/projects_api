@@ -1,10 +1,10 @@
 import { RowDataPacket } from 'mysql2';
-import { SearchArea } from './SearchArea';
+import { MetroArea } from './MetroArea';
 
 interface City {
   id?: number;
   name: string;
-  searchAreaId: number | SearchArea;
+  metroAreaId: number | MetroArea;
 }
 
 interface GetCity extends RowDataPacket, City {}

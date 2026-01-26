@@ -2,9 +2,9 @@ import request from 'supertest';
 import app from '../src/app';
 
 let authToken: string;
-let searchAreaId: number;
+let metroAreaId: number;
 
-describe('Search Area Routes', () => {
+describe('Metro Area Routes', () => {
   beforeAll((done) => {
     // Get auth token for protected routes
     request(app)
@@ -20,10 +20,10 @@ describe('Search Area Routes', () => {
           return done(new Error(`Login failed with status ${res.status}`));
         }
         authToken = res.body.token;
-        
-        // create a search area to use across tests
+
+        // create a   metro area to use across tests
         request(app)
-          .post('/api/v1/search-areas')
+          .post('/api/v1/metro-areas')
           .set('Authorization', `Bearer ${authToken}`)
           .set('Accept', 'application/json')
           .send({
@@ -39,18 +39,22 @@ describe('Search Area Routes', () => {
           .end((createErr, createRes) => {
             if (createErr) return done(createErr);
             if (createRes.status !== 200 || !createRes.body.id) {
-              return done(new Error(`Setup create search area failed with status ${createRes.status}`));
+              return done(
+                new Error(
+                  `Setup create metro area failed with status ${createRes.status}`
+                )
+              );
             }
-            searchAreaId = createRes.body.id;
+            metroAreaId = createRes.body.id;
             done();
           });
       });
   });
-  
-  describe('GET /api/v1/search-areas', () => {
-    it('should get all search areas with valid token', (done) => {
+
+  describe('GET /api/v1/metro-areas', () => {
+    it('should get all metro areas with valid token', (done) => {
       request(app)
-        .get('/api/v1/search-areas')
+        .get('/api/v1/metro-areas')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -69,24 +73,24 @@ describe('Search Area Routes', () => {
 
     it('should fail without token', (done) => {
       request(app)
-        .get('/api/v1/search-areas')
+        .get('/api/v1/metro-areas')
         .set('Accept', 'application/json')
         .expect(401, done);
     });
 
     it('should fail with invalid token', (done) => {
       request(app)
-        .get('/api/v1/search-areas')
+        .get('/api/v1/metro-areas')
         .set('Authorization', 'Bearer invalid_token')
         .set('Accept', 'application/json')
         .expect(401, done);
     });
   });
 
-  describe('GET /api/v1/search-areas/:id', () => {
-    it('should get search area by id with valid token', (done) => {
+  describe('GET /api/v1/metro-areas/:id', () => {
+    it('should get metro area by id with valid token', (done) => {
       request(app)
-        .get(`/api/v1/search-areas/${searchAreaId}`)
+        .get(`/api/v1/metro-areas/${metroAreaId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -100,9 +104,9 @@ describe('Search Area Routes', () => {
         });
     });
 
-    it('should fail with non-existent search area id', (done) => {
+    it('should fail with non-existent metro area id', (done) => {
       request(app)
-        .get('/api/v1/search-areas/99999')
+        .get('/api/v1/metro-areas/99999')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .expect(404, done);
@@ -110,7 +114,7 @@ describe('Search Area Routes', () => {
 
     it('should fail with invalid id format', (done) => {
       request(app)
-        .get('/api/v1/search-areas/invalid')
+        .get('/api/v1/metro-areas/invalid')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .expect(400, done);
@@ -118,16 +122,16 @@ describe('Search Area Routes', () => {
 
     it('should fail without token', (done) => {
       request(app)
-        .get(`/api/v1/search-areas/${searchAreaId}`)
+        .get(`/api/v1/metro-areas/${metroAreaId}`)
         .set('Accept', 'application/json')
         .expect(401, done);
     });
   });
 
-  describe('POST /api/v1/search-areas', () => {
-    it('should create a new search area with valid data and admin token', (done) => {
+  describe('POST /api/v1/metro-areas', () => {
+    it('should create a new metro area with valid data and admin token', (done) => {
       request(app)
-        .post('/api/v1/search-areas')
+        .post('/api/v1/metro-areas')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .send({
@@ -146,14 +150,14 @@ describe('Search Area Routes', () => {
           if (err) return done(err);
           expect(res.body).toHaveProperty('message');
           expect(res.body).toHaveProperty('id');
-          searchAreaId = res.body.id;
+          metroAreaId = res.body.id;
           done();
         });
     });
 
     it('should fail without token', (done) => {
       request(app)
-        .post('/api/v1/search-areas')
+        .post('/api/v1/metro-areas')
         .set('Accept', 'application/json')
         .send({
           name: `TestArea${Date.now()}`,
@@ -170,7 +174,7 @@ describe('Search Area Routes', () => {
 
     it('should fail without name', (done) => {
       request(app)
-        .post('/api/v1/search-areas')
+        .post('/api/v1/metro-areas')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .send({
@@ -187,7 +191,7 @@ describe('Search Area Routes', () => {
 
     it('should fail without continent', (done) => {
       request(app)
-        .post('/api/v1/search-areas')
+        .post('/api/v1/metro-areas')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .send({
@@ -201,7 +205,7 @@ describe('Search Area Routes', () => {
 
     it('should fail without country', (done) => {
       request(app)
-        .post('/api/v1/search-areas')
+        .post('/api/v1/metro-areas')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .send({
@@ -216,7 +220,7 @@ describe('Search Area Routes', () => {
 
     it('should fail without continent.name', (done) => {
       request(app)
-        .post('/api/v1/search-areas')
+        .post('/api/v1/metro-areas')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .send({
@@ -233,7 +237,7 @@ describe('Search Area Routes', () => {
 
     it('should fail without country.name', (done) => {
       request(app)
-        .post('/api/v1/search-areas')
+        .post('/api/v1/metro-areas')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .send({
@@ -273,7 +277,7 @@ describe('Search Area Routes', () => {
               const nonAdminToken = res.body.token;
 
               request(app)
-                .post('/api/v1/search-areas')
+                .post('/api/v1/metro-areas')
                 .set('Authorization', `Bearer ${nonAdminToken}`)
                 .set('Accept', 'application/json')
                 .send({
@@ -292,14 +296,14 @@ describe('Search Area Routes', () => {
     });
   });
 
-  describe('PUT /api/v1/search-areas/:id', () => {
-    it('should update search area with valid token and admin role', (done) => {
-      if (!searchAreaId) {
-        return done(new Error('No search area created'));
+  describe('PUT /api/v1/metro-areas/:id', () => {
+    it('should update metro area with valid token and admin role', (done) => {
+      if (!metroAreaId) {
+        return done(new Error('No metro area created'));
       }
 
       request(app)
-        .put(`/api/v1/search-areas/${searchAreaId}`)
+        .put(`/api/v1/metro-areas/${metroAreaId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .send({
@@ -310,7 +314,7 @@ describe('Search Area Routes', () => {
 
     it('should fail without token', (done) => {
       request(app)
-        .put('/api/v1/search-areas/1')
+        .put('/api/v1/metro-areas/1')
         .set('Accept', 'application/json')
         .send({
           name: 'UpdatedArea'
@@ -318,9 +322,9 @@ describe('Search Area Routes', () => {
         .expect(401, done);
     });
 
-    it('should fail with non-existent search area id', (done) => {
+    it('should fail with non-existent metro area id', (done) => {
       request(app)
-        .put('/api/v1/search-areas/99999')
+        .put('/api/v1/metro-areas/99999')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .send({
@@ -330,14 +334,14 @@ describe('Search Area Routes', () => {
     });
   });
 
-  describe('DELETE /api/v1/search-areas/:id', () => {
-    it('should delete search area with valid token and admin role', (done) => {
-      if (!searchAreaId) {
-        return done(new Error('No search area created'));
+  describe('DELETE /api/v1/metro-areas/:id', () => {
+    it('should delete metro area with valid token and admin role', (done) => {
+      if (!metroAreaId) {
+        return done(new Error('No metro area created'));
       }
 
       request(app)
-        .delete(`/api/v1/search-areas/${searchAreaId}`)
+        .delete(`/api/v1/metro-areas/${metroAreaId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .expect(200, done);
@@ -345,14 +349,14 @@ describe('Search Area Routes', () => {
 
     it('should fail without token', (done) => {
       request(app)
-        .delete('/api/v1/search-areas/1')
+        .delete('/api/v1/metro-areas/1')
         .set('Accept', 'application/json')
         .expect(401, done);
     });
 
-    it('should fail with non-existent search area id', (done) => {
+    it('should fail with non-existent metro area id', (done) => {
       request(app)
-        .delete('/api/v1/search-areas/99999')
+        .delete('/api/v1/metro-areas/99999')
         .set('Authorization', `Bearer ${authToken}`)
         .set('Accept', 'application/json')
         .expect(404, done);

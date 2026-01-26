@@ -1,9 +1,9 @@
 import { RowDataPacket } from 'mysql2';
-import { SearchArea } from './SearchArea';
+import { MetroArea } from './MetroArea';
 
 interface Search {
   id: number;
-  searchAreaId: number | SearchArea;
+  metroAreaId?: number | MetroArea | null;
   typeParam: string;
   startedAt: Date;
   finishedAt?: Date | null;

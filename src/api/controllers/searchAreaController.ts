@@ -1,13 +1,13 @@
 import { validationResult } from 'express-validator';
 import {
-  postSearchArea,
-  putSearchArea,
-  deleteSearchArea,
-  getAllSearchAreas,
-  getSearchArea
+  postMetroArea,
+  putMetroArea,
+  deleteMetroArea,
+  getAllMetroAreas,
+  getMetroArea
 } from '../models/searchAreaModel';
 import { Request, Response, NextFunction } from 'express';
-import { PostSearchArea } from '../../interfaces/SearchArea';
+import { PostMetroArea } from '../../interfaces/MetroArea';
 
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
@@ -19,20 +19,20 @@ import {
 } from '../models/continentModel';
 import { checkCountryExistsByName, postCountry } from '../models/countryModel';
 
-const searchAreaListGet = async (
+const metroAreaListGet = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const rows = await getAllSearchAreas();
-    const searchAreas = rows.map((row) => toCamel(row));
-    res.json(searchAreas);
+    const rows = await getAllMetroAreas();
+    const metroAreas = rows.map((row) => toCamel(row));
+    res.json(metroAreas);
   } catch (err) {
     next(err);
   }
 };
-const searchAreaGet = async (
+const metroAreaGet = async (
   req: Request<{ id: number }, {}, {}>,
   res: Response,
   next: NextFunction
@@ -40,15 +40,15 @@ const searchAreaGet = async (
   try {
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const searchArea = toCamel(await getSearchArea(req.params.id as number));
-    res.json(searchArea);
+    const metroArea = toCamel(await getMetroArea(req.params.id as number));
+    res.json(metroArea);
   } catch (err) {
     next(err);
   }
 };
 
-const searchAreaPost = async (
-  req: Request<{}, {}, PostSearchArea>,
+const metroAreaPost = async (
+  req: Request<{}, {}, PostMetroArea>,
   res: Response,
   next: NextFunction
 ) => {
@@ -98,14 +98,14 @@ const searchAreaPost = async (
     req.body.countryId = countryID;
 
     req.body.lastSearchedAt = new Date(Date.now());
-    const searchAreaId = await postSearchArea(req.body);
-    if (!searchAreaId) {
-      throw new CustomError('Failed to create search area', 500);
+    const metroAreaId = await postMetroArea(req.body);
+    if (!metroAreaId) {
+      throw new CustomError('Failed to create metro area', 500);
     }
 
     const response: MessageResponse = {
-      message: 'Search area created successfully',
-      id: searchAreaId
+      message: 'Metro area created successfully',
+      id: metroAreaId
     };
     res.json(response);
   } catch (err) {
@@ -113,8 +113,8 @@ const searchAreaPost = async (
   }
 };
 
-const searchAreaPut = async (
-  req: Request<{ id: number }, {}, PostSearchArea>,
+const metroAreaPut = async (
+  req: Request<{ id: number }, {}, PostMetroArea>,
   res: Response,
   next: NextFunction
 ) => {
@@ -126,10 +126,10 @@ const searchAreaPut = async (
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
     req.body.lastSearchedAt = new Date(Date.now());
-    const success = await putSearchArea(req.body, req.params.id as number);
+    const success = await putMetroArea(req.body, req.params.id as number);
     if (success) {
       const response: MessageResponse = {
-        message: 'Search area updated successfully',
+        message: 'Metro area updated successfully',
         id: req.params.id
       };
       res.json(response);
@@ -138,7 +138,7 @@ const searchAreaPut = async (
     next(err);
   }
 };
-const searchAreaDelete = async (
+const metroAreaDelete = async (
   req: Request<{ id: number }, {}, {}>,
   res: Response,
   next: NextFunction
@@ -150,10 +150,10 @@ const searchAreaDelete = async (
     if (user.role !== 'admin') {
       throw new CustomError('Unauthorized', 401);
     }
-    const success = await deleteSearchArea(req.params.id as number);
+    const success = await deleteMetroArea(req.params.id as number);
     if (success) {
       const response: MessageResponse = {
-        message: 'Search area deleted successfully',
+        message: 'Metro area deleted successfully',
         id: req.params.id
       };
       res.json(response);
@@ -164,9 +164,9 @@ const searchAreaDelete = async (
 };
 
 export {
-  searchAreaListGet,
-  searchAreaGet,
-  searchAreaPost,
-  searchAreaPut,
-  searchAreaDelete
+  metroAreaListGet,
+  metroAreaGet,
+  metroAreaPost,
+  metroAreaPut,
+  metroAreaDelete
 };

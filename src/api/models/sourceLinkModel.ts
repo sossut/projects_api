@@ -55,9 +55,9 @@ const postSourceLink = async (
     [
       sourceLinkData.projectId,
       sourceLinkData.url,
-      sourceLinkData.sourceType,
-      sourceLinkData.publisher,
-      sourceLinkData.accessedAt
+      sourceLinkData.sourceType ?? null,
+      sourceLinkData.publisher ?? null,
+      sourceLinkData.accessedAt ?? null
     ]
   );
   if (headers.affectedRows === 0) {

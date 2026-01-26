@@ -2,7 +2,7 @@ import { RowDataPacket } from 'mysql2';
 import { Country } from './Country';
 import { Continent } from './Continent';
 
-interface SearchArea {
+interface MetroArea {
   id?: number;
   name: string;
   lastSearchedAt: Date;
@@ -11,10 +11,9 @@ interface SearchArea {
   countryId: number | Country;
 }
 
-interface GetSearchArea extends RowDataPacket, SearchArea {}
+interface GetMetroArea extends RowDataPacket, MetroArea {}
 
-type PostSearchArea = Omit<SearchArea, 'id'>;
+type PostMetroArea = Omit<MetroArea, 'id'>;
 
-type PutSearchArea = Partial<PostSearchArea>;
-
-export { SearchArea, GetSearchArea, PostSearchArea, PutSearchArea };
+type PutMetroArea = Partial<PostMetroArea>;
+export { MetroArea, GetMetroArea, PostMetroArea, PutMetroArea };

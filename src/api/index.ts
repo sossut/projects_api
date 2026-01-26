@@ -18,7 +18,7 @@ router.get<{}, MessageResponse>('/', (req, res) => {
 router.use('/emojis', emojis);
 router.use('/auth', authRoute);
 router.use('/users', userRoute);
-router.use('/search-areas', searchAreaRoute);
+router.use('/metro-areas', searchAreaRoute);
 router.use('/projects', projectRoute);
 
 export default router;

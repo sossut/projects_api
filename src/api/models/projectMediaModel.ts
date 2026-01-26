@@ -50,14 +50,13 @@ const postProjectMedia = async (
 ): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     `INSERT INTO project_medias
-    (project_id, media_type, url, title, filename)
-    VALUES (?, ?, ?, ?, ?)`,
+    (project_id, media_type, url, title )
+    VALUES (?, ?, ?, ?)`,
     [
       projectMediaData.projectId,
       projectMediaData.mediaType,
       projectMediaData.url,
-      projectMediaData.title,
-      projectMediaData.filename
+      projectMediaData.title
     ]
   );
   if (headers.affectedRows === 0) {

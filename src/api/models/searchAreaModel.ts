@@ -1,103 +1,97 @@
 import { promisePool } from '../../database/db';
 import {
-  SearchArea,
-  GetSearchArea,
-  PutSearchArea,
-  PostSearchArea
-} from '../../interfaces/SearchArea';
+  MetroArea,
+  GetMetroArea,
+  PutMetroArea,
+  PostMetroArea
+} from '../../interfaces/MetroArea';
 
 import CustomError from '../../classes/CustomError';
 import { ResultSetHeader } from 'mysql2';
 import { toSnake } from '../../utils/utilities';
 
-const getAllSearchAreas = async (): Promise<SearchArea[]> => {
-  const [rows] = await promisePool.query<GetSearchArea[]>(
-    `SELECT search_areas.id, search_areas.name, search_areas.last_searched_at,
+const getAllMetroAreas = async (): Promise<MetroArea[]> => {
+  const [rows] = await promisePool.query<GetMetroArea[]>(
+    `SELECT metro_areas.id, metro_areas.name, metro_areas.last_searched_at,
       countries.id AS country_id, countries.name AS country_name,
       continents.id AS continent_id, continents.name AS continent_name
-    FROM search_areas
-      JOIN countries ON search_areas.country_id = countries.id
+    FROM metro_areas
+      JOIN countries ON metro_areas.country_id = countries.id
       JOIN continents ON countries.continent_id = continents.id`
   );
   if (rows.length === 0) {
-    throw new CustomError('No search areas found', 404);
+    throw new CustomError('No metro areas found', 404);
   }
   return rows;
 };
 
-const getSearchArea = async (id: number): Promise<SearchArea> => {
-  const [rows] = await promisePool.query<GetSearchArea[]>(
-    `SELECT search_areas.id, search_areas.name, search_areas.last_searched_at,
+const getMetroArea = async (id: number): Promise<MetroArea> => {
+  const [rows] = await promisePool.query<GetMetroArea[]>(
+    `SELECT metro_areas.id, metro_areas.name, metro_areas.last_searched_at,
       countries.id AS country_id, countries.name AS country_name,
       continents.id AS continent_id, continents.name AS continent_name
-    FROM search_areas
-      JOIN countries ON search_areas.country_id = countries.id
+    FROM metro_areas
+      JOIN countries ON metro_areas.country_id = countries.id
       JOIN continents ON countries.continent_id = continents.id
-    WHERE search_areas.id = ?`,
+    WHERE metro_areas.id = ?`,
     [id]
   );
   if (rows.length === 0) {
-    throw new CustomError(`Search area with id ${id} not found`, 404);
+    throw new CustomError(`Metro area with id ${id} not found`, 404);
   }
   return rows[0];
 };
 
-const checkSearchAreaExistsByName = async (name: string): Promise<number> => {
-  const [rows] = await promisePool.query<GetSearchArea[]>(
-    'SELECT id FROM search_areas WHERE name = ?',
+const checkMetroAreaExistsByName = async (name: string): Promise<number> => {
+  const [rows] = await promisePool.query<GetMetroArea[]>(
+    'SELECT id FROM metro_areas WHERE name = ?',
     [name]
   );
   return rows.length > 0 ? (rows[0].id as number) : 0;
 };
 
-const postSearchArea = async (
-  searchAreaData: PostSearchArea
-): Promise<number> => {
+const postMetroArea = async (metroAreaData: PostMetroArea): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
-    'INSERT INTO search_areas (name, country_id, last_searched_at) VALUES (?, ?, ?)',
-    [
-      searchAreaData.name,
-      searchAreaData.countryId,
-      searchAreaData.lastSearchedAt
-    ]
+    'INSERT INTO metro_areas (name, country_id, last_searched_at) VALUES (?, ?, ?)',
+    [metroAreaData.name, metroAreaData.countryId, metroAreaData.lastSearchedAt]
   );
   if (headers.affectedRows === 0) {
-    throw new CustomError('Failed to create search area', 500);
+    throw new CustomError('Failed to create metro area', 500);
   }
   return headers.insertId;
 };
 
-const putSearchArea = async (
-  searchAreaData: PutSearchArea,
+const putMetroArea = async (
+  metroAreaData: PutMetroArea,
   id: number
 ): Promise<boolean> => {
-  const sql = promisePool.format('UPDATE search_areas SET ? WHERE id = ?', [
-    toSnake(searchAreaData),
+  const sql = promisePool.format('UPDATE metro_areas SET ? WHERE id = ?', [
+    toSnake(metroAreaData),
     id
   ]);
   const [headers] = await promisePool.query<ResultSetHeader>(sql);
   if (headers.affectedRows === 0) {
-    throw new CustomError(`Search area with id ${id} not found`, 404);
+    throw new CustomError(`Metro area with id ${id} not found`, 404);
   }
   return true;
 };
 
-const deleteSearchArea = async (id: number): Promise<boolean> => {
+const deleteMetroArea = async (id: number): Promise<boolean> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
-    'DELETE FROM search_areas WHERE id = ?',
+    'DELETE FROM metro_areas WHERE id = ?',
     [id]
   );
   if (headers.affectedRows === 0) {
-    throw new CustomError(`Search area with id ${id} not found`, 404);
+    throw new CustomError(`Metro area with id ${id} not found`, 404);
   }
   return true;
 };
 
 export {
-  getAllSearchAreas,
-  getSearchArea,
-  postSearchArea,
-  putSearchArea,
-  deleteSearchArea,
-  checkSearchAreaExistsByName
+  getAllMetroAreas,
+  getMetroArea,
+  postMetroArea,
+  putMetroArea,
+  deleteMetroArea,
+  checkMetroAreaExistsByName
 };
