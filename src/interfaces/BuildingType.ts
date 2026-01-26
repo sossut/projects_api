@@ -1,7 +1,7 @@
 import { RowDataPacket } from 'mysql2';
 
 interface BuildingType {
-  id: number;
+  id?: number;
   buildingType: string;
 }
 

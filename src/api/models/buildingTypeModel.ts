@@ -31,6 +31,16 @@ const getBuildingType = async (id: number): Promise<BuildingType> => {
   return rows[0];
 };
 
+const checkBuildingTypeExistsByName = async (
+  buildingType: string
+): Promise<number> => {
+  const [rows] = await promisePool.query<GetBuildingType[]>(
+    'SELECT id FROM building_types WHERE building_type = ?',
+    [buildingType]
+  );
+  return rows.length > 0 ? (rows[0].id as number) : 0;
+};
+
 const postBuildingType = async (
   buildingTypeData: PostBuildingType
 ): Promise<number> => {
@@ -73,6 +83,7 @@ const deleteBuildingType = async (id: number): Promise<boolean> => {
 export {
   getAllBuildingTypes,
   getBuildingType,
+  checkBuildingTypeExistsByName,
   postBuildingType,
   putBuildingType,
   deleteBuildingType

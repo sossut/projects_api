@@ -42,6 +42,14 @@ const getSearchArea = async (id: number): Promise<SearchArea> => {
   return rows[0];
 };
 
+const checkSearchAreaExistsByName = async (name: string): Promise<number> => {
+  const [rows] = await promisePool.query<GetSearchArea[]>(
+    'SELECT id FROM search_areas WHERE name = ?',
+    [name]
+  );
+  return rows.length > 0 ? (rows[0].id as number) : 0;
+};
+
 const postSearchArea = async (
   searchAreaData: PostSearchArea
 ): Promise<number> => {
@@ -90,5 +98,6 @@ export {
   getSearchArea,
   postSearchArea,
   putSearchArea,
-  deleteSearchArea
+  deleteSearchArea,
+  checkSearchAreaExistsByName
 };

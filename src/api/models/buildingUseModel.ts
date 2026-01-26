@@ -31,6 +31,16 @@ const getBuildingUse = async (id: number): Promise<BuildingUse> => {
   return rows[0];
 };
 
+const checkBuildingUseExistsByName = async (
+  buildingUse: string
+): Promise<number> => {
+  const [rows] = await promisePool.query<GetBuildingUse[]>(
+    'SELECT id FROM building_uses WHERE building_use = ?',
+    [buildingUse]
+  );
+  return rows.length > 0 ? (rows[0].id as number) : 0;
+};
+
 const postBuildingUse = async (
   buildingUseData: PostBuildingUse
 ): Promise<number> => {
@@ -72,6 +82,7 @@ const deleteBuildingUse = async (id: number): Promise<boolean> => {
 export {
   getAllBuildingUses,
   getBuildingUse,
+  checkBuildingUseExistsByName,
   postBuildingUse,
   putBuildingUse,
   deleteBuildingUse

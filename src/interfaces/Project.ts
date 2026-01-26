@@ -4,7 +4,7 @@ import { Address } from './Address';
 import { BuildingType } from './BuildingType';
 
 interface Project {
-  id: number;
+  id?: number;
   name: string;
   addressId: number | Address;
   expectedDateText?: string;
@@ -13,7 +13,7 @@ interface Project {
   buildingHeightMeters?: number;
   buildingHeightFloors?: number;
   buildingTypeId?: number | BuildingType;
-  buildingType?: BuildingType;
+  buildingType?: string;
   buildingUse?: string[];
   budgetEur?: number;
   glassFacade?: 'yes' | 'no' | 'unknown';

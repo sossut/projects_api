@@ -8,7 +8,7 @@ import {
   getProject
 } from '../models/projectModel';
 import { Request, Response, NextFunction } from 'express';
-import { PostProject } from '../../interfaces/Project';
+import { PostProject, Project } from '../../interfaces/Project';
 
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
@@ -19,13 +19,28 @@ import {
   postContinent
 } from '../models/continentModel';
 import { checkCountryExistsByName, postCountry } from '../models/countryModel';
-import { postSearchArea } from '../models/searchAreaModel';
+import {
+  checkSearchAreaExistsByName,
+  postSearchArea
+} from '../models/searchAreaModel';
 import { SearchArea } from '../../interfaces/SearchArea';
 import { Continent } from '../../interfaces/Continent';
 import { Country } from '../../interfaces/Country';
 import { Address } from '../../interfaces/Address';
 import { City } from '../../interfaces/City';
 import { checkCityExistsByName, postCity } from '../models/cityModel';
+import { postAddress } from '../models/addressModel';
+import {
+  checkBuildingTypeExistsByName,
+  postBuildingType
+} from '../models/buildingTypeModel';
+import { BuildingType } from '../../interfaces/BuildingType';
+import {
+  checkBuildingUseExistsByName,
+  postBuildingUse
+} from '../models/buildingUseModel';
+import { postProjectBuildingUse } from '../models/projectBuildingUse';
+import { ProjectBuildingUse } from '../../interfaces/ProjectBuildingUse';
 
 const projectListGet = async (
   req: Request,
@@ -86,7 +101,7 @@ const projectPost = async (
     if (continentExists === 0) {
       continentID = await postContinent(continent);
     }
-    if (!continentID) {
+    if (continentID === 0) {
       throw new CustomError('Failed to create continent', 500);
     }
 
@@ -104,7 +119,7 @@ const projectPost = async (
       countryID = await postCountry(country);
     }
 
-    if (!countryID) {
+    if (countryID === 0) {
       throw new CustomError('Failed to create country', 500);
     }
     const timeNow = new Date(Date.now());
@@ -114,8 +129,15 @@ const projectPost = async (
       countryId: countryID,
       lastSearchedAt: timeNow
     };
-    const searchAreaId = await postSearchArea(searchArea);
-    if (!searchAreaId) {
+    const searchAreaExists = await checkSearchAreaExistsByName(
+      req.body.location.metroArea
+    );
+    let searchAreaId = searchAreaExists;
+    if (searchAreaExists === 0) {
+      searchAreaId = await postSearchArea(searchArea);
+    }
+
+    if (searchAreaId === 0) {
       throw new CustomError('Failed to create search area', 500);
     }
 
@@ -128,7 +150,7 @@ const projectPost = async (
     if (cityExists === 0) {
       cityId = await postCity(city);
     }
-    if (!cityId) {
+    if (cityId === 0) {
       throw new CustomError('Failed to create city', 500);
     }
 
@@ -138,8 +160,46 @@ const projectPost = async (
       postcode: req.body.location.postcode,
       cityId: cityId
     };
-    console.log(address);
-    const projectId = await postProject(req.body);
+
+    const addressId = await postAddress(address);
+    if (!addressId) {
+      throw new CustomError('Failed to create address', 500);
+    }
+
+    const buildingTypeExists = await checkBuildingTypeExistsByName(
+      req.body.buildingType as string
+    );
+    let buildingTypeId = buildingTypeExists;
+    const buildingType: BuildingType = {
+      buildingType: req.body.buildingType as string
+    };
+    if (buildingTypeExists === 0) {
+      buildingTypeId = await postBuildingType(buildingType);
+    }
+
+    const project: Project = {
+      name: req.body.name,
+      expectedDateText: req.body.expectedDateText,
+
+      addressId: addressId,
+      buildingTypeId: buildingTypeId
+    };
+    const projectId = await postProject(project);
+    for (const bu of req.body.buildingUse || []) {
+      const buildingUseExists = await checkBuildingUseExistsByName(bu);
+      let buildingUseId = buildingUseExists;
+      if (buildingUseExists === 0) {
+        buildingUseId = await postBuildingUse({ buildingUse: bu });
+      }
+      if (buildingUseId === 0) {
+        throw new CustomError('Failed to create building use', 500);
+      }
+      const projectBuildingUse: ProjectBuildingUse = {
+        projectId: projectId,
+        buildingUseId: buildingUseId
+      };
+      await postProjectBuildingUse(projectBuildingUse);
+    }
     if (projectId) {
       const response: MessageResponse = {
         message: 'Project created successfully',
