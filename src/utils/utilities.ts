@@ -24,9 +24,12 @@ const throwIfValidationErrors = (errors: any) => {
   if (!errors.isEmpty()) {
     const messages = errors
       .array()
-      .map((error: any) => error.msg)
+      .map(
+        (error: any) =>
+          `${error.path}: ${error.msg}${error.value !== undefined ? ` (received: ${JSON.stringify(error.value)})` : ''}`
+      )
       .filter((msg: any) => msg !== undefined)
-      .join(', ');
+      .join('; ');
 
     throw new CustomError(messages, 400);
   }
