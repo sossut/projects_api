@@ -12,33 +12,30 @@ interface Project {
   id?: number;
   name: string;
   addressId: number | Address;
-  expectedDateText?: string;
-  earliestDate?: Date;
-  latestDate?: Date;
+  expectedDateText?: string | null;
+  earliestDateText?: string | null;
+  latestDateText?: string | null;
   expectedCompletionWindow?: {
     expected?: string;
     earliest?: string;
     latest?: string;
   };
-  buildingHeightMeters?: number;
-  buildingHeightFloors?: number;
+  buildingHeightMeters?: number | null;
+  buildingHeightFloors?: number | null;
   buildingTypeId?: number | BuildingType;
   buildingType?: string;
   buildingUse?: string[];
   budgetEur?: number;
-  glassFacade?: 'yes' | 'no' | 'unknown';
-  facadeBasis?:
-    | 'renderings'
-    | 'construction_photos'
-    | 'architectural_specs'
-    | 'mixed'
-    | 'unknown';
+  glassFacade?: 'yes' | 'no' | 'unknown' | true | false | 0 | 1 | null;
+  facadeBasis?: string;
   status?:
     | 'planned'
     | 'approved'
     | 'proposed'
     | 'on_hold'
-    | 'under_construction';
+    | 'under_construction'
+    | 'completed'
+    | 'cancelled';
   lastVerifiedDate?: Date;
   confidenceScore?: 'low' | 'medium' | 'high';
   isActive?: boolean;
@@ -50,6 +47,10 @@ interface Project {
     city: string;
     metroArea: string; //same as search area,
     postcode?: string;
+    coordinates?: {
+      latitude: number;
+      longitude: number;
+    };
   };
   projectWebsites?: string[];
   developers?: Developer[];

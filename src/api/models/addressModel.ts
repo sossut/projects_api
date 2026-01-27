@@ -29,6 +29,21 @@ const getAddress = async (id: number): Promise<Address> => {
   }
   return rows[0];
 };
+
+const getAddressByProjectId = async (projectId: number): Promise<Address> => {
+  const [rows] = await promisePool.query<GetAddress[]>(
+    `SELECT addresses.id, addresses.address, addresses.city_id AS cityId, addresses.postcode AS postalCode
+    FROM addresses
+    JOIN projects ON addresses.id = projects.address_id
+    WHERE projects.id = ?`,
+    [projectId]
+  );
+  if (rows.length === 0) {
+    throw new CustomError(`Address for project id ${projectId} not found`, 404);
+  }
+  return rows[0];
+};
+
 const postAddress = async (addressData: PostAddress): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     'INSERT INTO addresses (address, city_id, postcode) VALUES (?, ?, ?)',
@@ -48,6 +63,7 @@ const putAddress = async (
     addressData,
     id
   ]);
+
   const [headers] = await promisePool.query<ResultSetHeader>(sql);
   if (headers.affectedRows === 0) {
     throw new CustomError(`Address with id ${id} not found`, 404);
@@ -64,4 +80,11 @@ const deleteAddress = async (id: number): Promise<boolean> => {
   }
   return true;
 };
-export { getAllAddresses, getAddress, postAddress, putAddress, deleteAddress };
+export {
+  getAllAddresses,
+  getAddress,
+  getAddressByProjectId,
+  postAddress,
+  putAddress,
+  deleteAddress
+};

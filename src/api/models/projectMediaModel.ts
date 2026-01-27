@@ -45,6 +45,14 @@ const getProjectMedia = async (id: number): Promise<ProjectMedia> => {
   return rows[0];
 };
 
+const checkProjectMediaExistsByUrl = async (url: string): Promise<boolean> => {
+  const [rows] = await promisePool.query<GetProjectMedia[]>(
+    'SELECT id FROM project_medias WHERE url = ?',
+    [url]
+  );
+  return rows.length > 0;
+};
+
 const postProjectMedia = async (
   projectMediaData: PostProjectMedia
 ): Promise<number> => {
@@ -94,6 +102,7 @@ const deleteProjectMedia = async (id: number): Promise<boolean> => {
 export {
   getAllProjectMedias,
   getProjectMedia,
+  checkProjectMediaExistsByUrl,
   postProjectMedia,
   putProjectMedia,
   deleteProjectMedia

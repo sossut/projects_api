@@ -45,6 +45,14 @@ const getSourceLink = async (id: number): Promise<SourceLink> => {
   return rows[0];
 };
 
+const checkSourceLinkExistsByUrl = async (url: string): Promise<boolean> => {
+  const [rows] = await promisePool.query<GetSourceLink[]>(
+    'SELECT id FROM source_links WHERE url = ?',
+    [url]
+  );
+  return rows.length > 0;
+};
+
 const postSourceLink = async (
   sourceLinkData: PostSourceLink
 ): Promise<number> => {
@@ -95,6 +103,7 @@ const deleteSourceLink = async (id: number): Promise<boolean> => {
 export {
   getAllSourceLinks,
   getSourceLink,
+  checkSourceLinkExistsByUrl,
   postSourceLink,
   putSourceLink,
   deleteSourceLink

@@ -5,7 +5,7 @@ import {
   deleteMetroArea,
   getAllMetroAreas,
   getMetroArea
-} from '../models/searchAreaModel';
+} from '../models/metroAreaModel';
 import { Request, Response, NextFunction } from 'express';
 import { PostMetroArea } from '../../interfaces/MetroArea';
 

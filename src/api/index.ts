@@ -4,7 +4,7 @@ import MessageResponse from '../interfaces/MessageResponse';
 import emojis from './emojis';
 import authRoute from './routes/authRoute';
 import userRoute from './routes/userRoute';
-import searchAreaRoute from './routes/searchAreaRoute';
+import searchAreaRoute from './routes/metroAreaRoute';
 import projectRoute from './routes/projectRoute';
 
 const router = express.Router();

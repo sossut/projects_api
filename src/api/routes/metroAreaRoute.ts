@@ -5,7 +5,7 @@ import {
   metroAreaPost,
   metroAreaPut,
   metroAreaDelete
-} from '../controllers/searchAreaController';
+} from '../controllers/metroAreaController';
 import { body, param } from 'express-validator';
 import passport from 'passport';
 

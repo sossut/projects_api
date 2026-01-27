@@ -9,6 +9,7 @@ import {
 
 import CustomError from '../../classes/CustomError';
 import { ResultSetHeader } from 'mysql2';
+import { toSnake } from '../../utils/utilities';
 
 const getAllProjects = async (): Promise<Project[]> => {
   const [rows] = await promisePool.query<GetProject[]>(
@@ -42,7 +43,7 @@ const getAllProjects = async (): Promise<Project[]> => {
       )
     ), ']') AS buildingUses,
     address_id AS addressId, expected_date_text AS expectedDateText,
-    earliest_date AS earliestDate, latest_date AS latestDate, building_height_meters AS buildingHeightMeters,
+    earliest_date_text AS earliestDateText, latest_date_text AS latestDateText, building_height_meters AS buildingHeightMeters,
     building_height_floors AS buildingHeightFloors, building_type_id AS buildingTypeId,
     budget_eur AS budgetEur, glass_facade AS glassFacade, facade_basis AS facadeBasis,
     status, last_verified_date AS lastVerifiedDate, confidence_score AS confidenceScore,
@@ -156,7 +157,7 @@ const getProject = async (id: number): Promise<Project> => {
       )
     ), ']') AS buildingUses,
     address_id AS addressId, expected_date_text AS expectedDateText,
-    earliest_date AS earliestDate, latest_date AS latestDate, building_height_meters AS buildingHeightMeters,
+    earliest_date_text AS earliestDateText, latest_date_text AS latestDateText, building_height_meters AS buildingHeightMeters,
     building_height_floors AS buildingHeightFloors, building_type_id AS buildingTypeId,
     budget_eur AS budgetEur, glass_facade AS glassFacade, facade_basis AS facadeBasis,
     status, last_verified_date AS lastVerifiedDate, confidence_score AS confidenceScore,
@@ -243,7 +244,7 @@ const checkIfProjectExistsByKey = async (
 const postProject = async (projectData: PostProject): Promise<number> => {
   const sql = promisePool.format(
     `INSERT INTO projects
-    (name, address_id, expected_date_text, earliest_date, latest_date, building_height_meters,
+    (name, address_id, expected_date_text, earliest_date_text, latest_date_text, building_height_meters,
     building_height_floors, building_type_id, budget_eur, glass_facade,
     facade_basis, status, last_verified_date, confidence_score, is_active, project_key)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -251,8 +252,8 @@ const postProject = async (projectData: PostProject): Promise<number> => {
       projectData.name,
       projectData.addressId,
       projectData.expectedDateText,
-      projectData.earliestDate,
-      projectData.latestDate,
+      projectData.earliestDateText,
+      projectData.latestDateText,
       projectData.buildingHeightMeters,
       projectData.buildingHeightFloors,
       projectData.buildingTypeId,
@@ -269,7 +270,7 @@ const postProject = async (projectData: PostProject): Promise<number> => {
   console.log(sql);
   const [headers] = await promisePool.execute<ResultSetHeader>(
     `INSERT INTO projects
-    (name, address_id, expected_date_text, earliest_date, latest_date, building_height_meters,
+    (name, address_id, expected_date_text, earliest_date_text, latest_date_text, building_height_meters,
     building_height_floors, building_type_id, budget_eur, glass_facade,
     facade_basis, status, last_verified_date, confidence_score, is_active, project_key)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -277,8 +278,8 @@ const postProject = async (projectData: PostProject): Promise<number> => {
       projectData.name,
       projectData.addressId,
       projectData.expectedDateText ?? null,
-      projectData.earliestDate ?? null,
-      projectData.latestDate ?? null,
+      projectData.earliestDateText ?? null,
+      projectData.latestDateText ?? null,
       projectData.buildingHeightMeters ?? null,
       projectData.buildingHeightFloors ?? null,
       projectData.buildingTypeId ?? null,
@@ -302,9 +303,10 @@ const putProject = async (
   id: number
 ): Promise<boolean> => {
   const sql = promisePool.format('UPDATE projects SET ? WHERE id = ?', [
-    projectData,
+    toSnake(projectData),
     id
   ]);
+  console.log(sql);
   const [headers] = await promisePool.query<ResultSetHeader>(sql);
   if (headers.affectedRows === 0) {
     throw new CustomError(`Project with id ${id} not found`, 404);

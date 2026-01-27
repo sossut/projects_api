@@ -35,6 +35,16 @@ const getProjectWebsite = async (id: number): Promise<ProjectWebsite> => {
   return rows[0];
 };
 
+const checkProjectWebsiteExistsByUrl = async (
+  url: string
+): Promise<boolean> => {
+  const [rows] = await promisePool.query<GetProjectWebsite[]>(
+    'SELECT id FROM project_websites WHERE url = ?',
+    [url]
+  );
+  return rows.length > 0;
+};
+
 const postProjectWebsite = async (
   projectWebsiteData: PostProjectWebsite
 ): Promise<number> => {
@@ -65,9 +75,22 @@ const putProjectWebsite = async (
   return true;
 };
 
+const deleteProjectWebsite = async (id: number): Promise<boolean> => {
+  const [headers] = await promisePool.execute<ResultSetHeader>(
+    'DELETE FROM project_websites WHERE id = ?',
+    [id]
+  );
+  if (headers.affectedRows === 0) {
+    throw new CustomError(`ProjectWebsite with id ${id} not found`, 404);
+  }
+  return true;
+};
+
 export {
   getAllProjectWebsites,
   getProjectWebsite,
+  checkProjectWebsiteExistsByUrl,
   postProjectWebsite,
-  putProjectWebsite
+  putProjectWebsite,
+  deleteProjectWebsite
 };
