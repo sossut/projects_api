@@ -4,7 +4,8 @@ import {
   projectGet,
   projectPost,
   projectPut,
-  projectDelete
+  projectDelete,
+  projectGetFormatted
 } from '../controllers/projectController';
 import { body, param } from 'express-validator';
 import passport from 'passport';
@@ -23,16 +24,16 @@ router
     body('projects.*.buildingUse.*').isString().notEmpty().escape(),
     body('projects.*.buildingHeightMeters')
       .if((value) => value !== null && value !== undefined)
-      .isFloat({ gt: 0 })
+      .isFloat({ min: 0 })
       .toFloat(),
     body('projects.*.buildingHeightFloors')
       .if((value) => value !== null && value !== undefined)
-      .isInt({ gt: 0 })
+      .isInt({ min: 0 })
       .toInt(),
 
     body('projects.*.glassFacade')
       .optional()
-      .isIn(['yes', 'no', 'unknown', null, true, false, 0, 1]),
+      .isIn(['yes', 'no', 'unknown', null, 'null', true, false, 0, 1]),
     body('projects.*.facadeBasis').optional().isString().notEmpty().escape(),
     body('projects.*.status')
       .optional()
@@ -158,7 +159,7 @@ router
 router
   .route('/:id')
   .get(
-    passport.authenticate('jwt', { session: false }),
+    // passport.authenticate('jwt', { session: false }),
     param('id').isInt({ gt: 0 }).toInt(),
     projectGet
   )
@@ -171,16 +172,16 @@ router
     body('buildingUse.*').isString().notEmpty().escape(),
     body('buildingHeightMeters')
       .if((value) => value !== null && value !== undefined)
-      .isFloat({ gt: 0 })
+      .isFloat({ min: 0 })
       .toFloat(),
     body('buildingHeightFloors')
       .optional()
-      .isInt({ gt: 0 })
+      .isInt({ min: 0 })
       .toInt()
       .customSanitizer((value) => (value === null ? null : value)),
     body('glassFacade')
       .optional()
-      .isIn(['yes', 'no', 'unknown', null, true, false, 0, 1]),
+      .isIn(['yes', 'no', 'unknown', null, 'null', true, false, 0, 1]),
     body('facadeBasis').optional().isString().notEmpty().escape(),
     body('status')
       .optional()
@@ -301,4 +302,9 @@ router
     param('id').isInt({ gt: 0 }).toInt(),
     projectDelete
   );
+router.route('/formatted/:id').get(
+  // passport.authenticate('jwt', { session: false }),
+  param('id').isInt({ gt: 0 }).toInt(),
+  projectGetFormatted
+);
 export default router;

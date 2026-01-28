@@ -11,6 +11,20 @@ import CustomError from '../../classes/CustomError';
 import { ResultSetHeader } from 'mysql2';
 import { toSnake } from '../../utils/utilities';
 
+const parseProjectRows = (rows: GetProject[]): Project[] => {
+  return rows.map((row) => ({
+    ...row,
+    address: JSON.parse(row.address as unknown as string),
+    buildingUses: JSON.parse(row.buildingUses as unknown as string),
+    projectWebsites: JSON.parse(row.projectWebsites as unknown as string),
+    developers: JSON.parse(row.developers as unknown as string),
+    architects: JSON.parse(row.architects as unknown as string),
+    contractors: JSON.parse(row.contractors as unknown as string),
+    projectMedias: JSON.parse(row.projectMedias as unknown as string),
+    sourceLinks: JSON.parse(row.sourceLinks as unknown as string)
+  }));
+};
+
 const getAllProjects = async (): Promise<Project[]> => {
   const [rows] = await promisePool.query<GetProject[]>(
     `SELECT projects.id, projects.name,
@@ -112,18 +126,7 @@ const getAllProjects = async (): Promise<Project[]> => {
   if (rows.length === 0) {
     throw new CustomError('No projects found', 404);
   }
-  const projects = rows.map((row) => ({
-    ...row,
-    address: JSON.parse(row.address as unknown as string),
-    buildingUses: JSON.parse(row.buildingUses as unknown as string),
-    projectWebsites: JSON.parse(row.projectWebsites as unknown as string),
-    developers: JSON.parse(row.developers as unknown as string),
-    architects: JSON.parse(row.architects as unknown as string),
-    contractors: JSON.parse(row.contractors as unknown as string),
-    projectMedias: JSON.parse(row.projectMedias as unknown as string),
-    sourceLinks: JSON.parse(row.sourceLinks as unknown as string)
-  }));
-  return projects;
+  return parseProjectRows(rows);
 };
 const getProject = async (id: number): Promise<Project> => {
   const [rows] = await promisePool.query<GetProject[]>(
@@ -171,20 +174,35 @@ const getProject = async (id: number): Promise<Project> => {
     CONCAT('[', GROUP_CONCAT(DISTINCT
     JSON_OBJECT(
       'id', developers.id,
-      'name', developers.name
-          )
-        ), ']') AS developers,
+      'name', developers.name,
+      'contact', JSON_OBJECT(
+        'website', developers.website,
+        'email', developers.email,
+        'phone', developers.phone
+      )
+    )
+    ), ']') AS developers,
     CONCAT('[', GROUP_CONCAT(DISTINCT
     JSON_OBJECT(
       'id', architects.id,
-      'name', architects.name
+      'name', architects.name,
+      'contact', JSON_OBJECT(
+        'website', architects.website,
+        'email', architects.email,
+        'phone', architects.phone
           )
+        )
         ), ']') AS architects,
     CONCAT('[', GROUP_CONCAT(DISTINCT
     JSON_OBJECT(
       'id', contractors.id,
-      'name', contractors.name
+      'name', contractors.name,
+      'contact', JSON_OBJECT(
+        'website', contractors.website,
+        'email', contractors.email,
+        'phone', contractors.phone
           )
+        )
         ), ']') AS contractors,
     CONCAT('[', GROUP_CONCAT(DISTINCT
       JSON_OBJECT(
@@ -228,7 +246,7 @@ const getProject = async (id: number): Promise<Project> => {
   if (rows.length === 0) {
     throw new CustomError(`Project with id ${id} not found`, 404);
   }
-  return rows[0];
+  return parseProjectRows(rows)[0];
 };
 
 const checkIfProjectExistsByKey = async (

@@ -26,7 +26,7 @@ interface Project {
   buildingType?: string;
   buildingUse?: string[];
   budgetEur?: number;
-  glassFacade?: 'yes' | 'no' | 'unknown' | true | false | 0 | 1 | null;
+  glassFacade?: 'yes' | 'no' | 'unknown' | true | false | 0 | 1 | null | 'null';
   facadeBasis?: string;
   status?:
     | 'planned'

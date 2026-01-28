@@ -90,6 +90,7 @@ const projectListGet = async (
   try {
     const rows = await getAllProjects();
     const projects = rows.map((row) => toCamel(row));
+    console.log(projects);
     res.json(projects);
   } catch (err) {
     next(err);
@@ -106,6 +107,56 @@ const projectGet = async (
     throwIfValidationErrors(errors);
     const project = toCamel(await getProject(req.params.id as number));
     res.json(project);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectGetFormatted = async (
+  req: Request<{ id: number }, {}, {}>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+    const project = toCamel(await getProject(req.params.id as number));
+    //formatted response
+    console.log(project);
+    const formattedProject = {
+      id: project.id,
+      name: project.name,
+      location: {
+        address: project.location?.address,
+        city: project.location?.city.name,
+        country: project.location?.country.name,
+        metroArea: project.location?.metroArea.name,
+        postcode: project.location?.postcode,
+        coordinates: project.location?.coordinates
+      },
+      expectedCompletionWindow: {
+        expected: project.expectedDateText,
+        earliest: project.earliestDateText,
+        latest: project.latestDateText
+      },
+      buildingType: project.buildingType,
+      buildingUse: project.buildingUse,
+      budgetEur: project.budgetEur,
+      glassFacade: project.glassFacade,
+      facadeBasis: project.facadeBasis,
+      status: project.status,
+      lastVerifiedDate: project.lastVerifiedDate,
+      confidenceScore: project.confidenceScore,
+      isActive: project.isActive,
+      projectWebsites: project.projectWebsites,
+      developers: project.developers,
+      architects: project.architects,
+      contractors: project.contractors,
+      media: project.media,
+      sources: project.sources
+    };
+
+    res.json(formattedProject);
   } catch (err) {
     next(err);
   }
@@ -231,7 +282,9 @@ const projectPost = async (
       if (buildingTypeExists === 0) {
         buildingTypeId = await postBuildingType(buildingType);
       }
-
+      if (proj.glassFacade === 'null') {
+        proj.glassFacade = null;
+      }
       const project: Project = {
         name: proj.name,
         expectedDateText: proj.expectedCompletionWindow?.expected || null,
@@ -468,7 +521,7 @@ const projectPut = async (
         contractorId = await postContractor({
           name: contractor.name,
           website: contractor.website,
-          // countryId: null,
+          countryId: null,
           email: contractor.contact?.email,
           phone: contractor.contact?.phone
         });
@@ -509,7 +562,7 @@ const projectPut = async (
           {
             name: developer.name,
             website: developer.website,
-            countryId: null,
+            // countryId: null,
             email: developer.contact?.email,
             phone: developer.contact?.phone
           },
@@ -606,4 +659,11 @@ const projectDelete = async (
   }
 };
 
-export { projectListGet, projectGet, projectPost, projectPut, projectDelete };
+export {
+  projectListGet,
+  projectGet,
+  projectGetFormatted,
+  projectPost,
+  projectPut,
+  projectDelete
+};
