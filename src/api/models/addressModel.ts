@@ -9,6 +9,7 @@ import {
 
 import CustomError from '../../classes/CustomError';
 import { ResultSetHeader } from 'mysql2';
+import { Point } from 'geojson';
 
 const getAllAddresses = async (): Promise<Address[]> => {
   const [rows] = await promisePool.query<GetAddress[]>(
@@ -45,9 +46,16 @@ const getAddressByProjectId = async (projectId: number): Promise<Address> => {
 };
 
 const postAddress = async (addressData: PostAddress): Promise<number> => {
+  const location = addressData.location as Point;
   const [headers] = await promisePool.execute<ResultSetHeader>(
-    'INSERT INTO addresses (address, city_id, postcode) VALUES (?, ?, ?)',
-    [addressData.address, addressData.cityId, addressData.postcode]
+    'INSERT INTO addresses (address, city_id, postcode, location) VALUES (?, ?, ?, POINT(?, ?))',
+    [
+      addressData.address,
+      addressData.cityId,
+      addressData.postcode,
+      location.coordinates[0],
+      location.coordinates[1]
+    ]
   );
   if (headers.affectedRows === 0) {
     throw new CustomError('Failed to create address', 500);
@@ -59,11 +67,33 @@ const putAddress = async (
   addressData: PutAddress,
   id: number
 ): Promise<boolean> => {
-  const sql = promisePool.format('UPDATE addresses SET ? WHERE id = ?', [
-    addressData,
-    id
-  ]);
+  const fields = Object.keys(addressData)
+    .map((key) => {
+      if (key === 'location') {
+        return `${key} = ST_GeomFromGeoJSON(?)`;
+      } else {
+        return `${key} = ?`;
+      }
+    })
+    .join(', ');
+  const values = Object.values(addressData).map((value) => {
+    if (
+      value &&
+      typeof value === 'object' &&
+      'type' in value &&
+      'coordinates' in value
+    ) {
+      return JSON.stringify(value);
+    }
+    return value;
+  });
+  values.push(id);
 
+  const sql = promisePool.format(
+    `UPDATE addresses SET ${fields} WHERE id = ?`,
+    values
+  );
+  console.log(sql);
   const [headers] = await promisePool.query<ResultSetHeader>(sql);
   if (headers.affectedRows === 0) {
     throw new CustomError(`Address with id ${id} not found`, 404);

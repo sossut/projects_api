@@ -33,6 +33,10 @@ const getAllProjects = async (): Promise<Project[]> => {
       'address', addresses.address,
       'cityId', addresses.city_id,
       'postalCode', addresses.postcode,
+      'location', JSON_OBJECT(
+        'latitude', ST_Y(addresses.location),
+        'longitude', ST_X(addresses.location)
+      ),
       'city', JSON_OBJECT(
         'id', cities.id,
         'name', cities.name,
@@ -136,6 +140,10 @@ const getProject = async (id: number): Promise<Project> => {
       'address', addresses.address,
       'cityId', addresses.city_id,
       'postalCode', addresses.postcode,
+      'location', JSON_OBJECT(
+        'latitude', ST_Y(addresses.location),
+        'longitude', ST_X(addresses.location)
+      ),
       'city', JSON_OBJECT(
         'id', cities.id,
         'name', cities.name,

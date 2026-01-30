@@ -262,9 +262,15 @@ const projectPost = async (
 
       const address: Address = {
         address: proj.location.address,
-        location: null,
         postcode: proj.location.postcode,
-        cityId: cityId
+        cityId: cityId,
+        location: {
+          type: 'Point',
+          coordinates: [
+            (proj.location.coordinates?.longitude as number) || 0,
+            (proj.location.coordinates?.latitude as number) || 0
+          ]
+        }
       };
 
       const addressId = await postAddress(address);
@@ -462,7 +468,13 @@ const projectPut = async (
     if (req.body.location) {
       const a: Address = {
         address: req.body.location.address,
-        location: null,
+        location: {
+          type: 'Point',
+          coordinates: [
+            (req.body.location.coordinates?.longitude as number) || 0,
+            (req.body.location.coordinates?.latitude as number) || 0
+          ]
+        },
         postcode: req.body.location.postcode
       };
       await putAddress(a, address.id as number);
