@@ -15,6 +15,7 @@ interface Project {
   expectedDateText?: string | null;
   earliestDateText?: string | null;
   latestDateText?: string | null;
+  expectedDate?: Date | null;
   expectedCompletionWindow?: {
     expected?: string;
     earliest?: string;

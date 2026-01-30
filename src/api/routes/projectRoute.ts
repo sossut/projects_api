@@ -194,7 +194,7 @@ router
         'completed',
         'cancelled'
       ]),
-    body('budgetEur').optional().isFloat({ gt: 0 }).toFloat(),
+    body('budgetEur').optional({ nullable: true }).isFloat({ gt: 0 }).toFloat(),
     body('expectedCompletionWindow').optional().isObject(),
     body('expectedCompletionWindow.expected')
       .if((value) => value !== null && value !== undefined && value !== '')
@@ -234,7 +234,15 @@ router
       .isString()
       .escape(),
     body('projectWebsites').optional().isArray(),
-    body('projectWebsites.*').isString().notEmpty().isURL(),
+    body('projectWebsites.*')
+      .custom((value) => {
+        if (typeof value === 'string') return true;
+        if (typeof value === 'object' && value.url) return true;
+        throw new Error('Must be a URL string or object with url property');
+      })
+      .customSanitizer((value) =>
+        typeof value === 'string' ? value : value.url
+      ),
     body('developers').optional().isArray(),
     body('developers.*.name')
       .if((value) => value !== null && value !== undefined && value !== '')

@@ -40,6 +40,7 @@ const checkArchitectExistsByName = async (name: string): Promise<number> => {
 };
 
 const postArchitect = async (architectData: PostArchitect): Promise<number> => {
+  console.log(architectData);
   const [headers] = await promisePool.execute<ResultSetHeader>(
     'INSERT INTO architects (name, website, phone, email, country_id) VALUES (?, ?, ?, ?, ?)',
     [
@@ -64,6 +65,7 @@ const putArchitect = async (
     architectData,
     id
   ]);
+
   const [headers] = await promisePool.query<ResultSetHeader>(sql);
   if (headers.affectedRows === 0) {
     throw new CustomError(`Architect with id ${id} not found`, 404);

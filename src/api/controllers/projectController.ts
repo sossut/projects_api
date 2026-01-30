@@ -6,14 +6,21 @@ import {
   deleteProject,
   getAllProjects,
   getProject,
-  checkIfProjectExistsByKey
+  checkIfProjectExistsByKey,
+  getProjectsByCity,
+  getProjectsByStatus,
+  getProjectsByMetroArea
 } from '../models/projectModel';
 import { Request, Response, NextFunction } from 'express';
 import { PostProject, Project } from '../../interfaces/Project';
 
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
-import { throwIfValidationErrors, toCamel } from '../../utils/utilities';
+import {
+  throwIfValidationErrors,
+  toCamel,
+  parseToStandardDate
+} from '../../utils/utilities';
 import { User } from '../../interfaces/User';
 import {
   checkContinentExistsByName,
@@ -88,7 +95,12 @@ const projectListGet = async (
   next: NextFunction
 ) => {
   try {
-    const rows = await getAllProjects();
+    const sortBy = req.query.sortBy as string | undefined;
+    const order = req.query.order as 'asc' | 'desc' | undefined;
+    const rows = await getAllProjects(
+      sortBy,
+      order === 'desc' ? 'DESC' : 'ASC'
+    );
     const projects = rows.map((row) => toCamel(row));
     console.log(projects);
     res.json(projects);
@@ -112,6 +124,57 @@ const projectGet = async (
   }
 };
 
+const projectGetByCity = async (
+  req: Request<{ city: string }, {}, {}>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+    const city = req.params.city;
+    const projects = await getProjectsByCity(city);
+    const formattedProjects = projects.map((project) => toCamel(project));
+    res.json(formattedProjects);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectsGetByStatus = async (
+  req: Request<{ status: string }, {}, {}>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+    const status = req.params.status;
+    const projects = await getProjectsByStatus(status);
+    const formattedProjects = projects.map((project) => toCamel(project));
+    res.json(formattedProjects);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectGetByMetroArea = async (
+  req: Request<{ metroArea: string }, {}, {}>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+    const metroArea = req.params.metroArea;
+    const projects = await getProjectsByMetroArea(metroArea);
+    const formattedProjects = projects.map((project) => toCamel(project));
+    res.json(formattedProjects);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const projectGetFormatted = async (
   req: Request<{ id: number }, {}, {}>,
   res: Response,
@@ -127,12 +190,12 @@ const projectGetFormatted = async (
       id: project.id,
       name: project.name,
       location: {
-        address: project.location?.address,
-        city: project.location?.city.name,
-        country: project.location?.country.name,
-        metroArea: project.location?.metroArea.name,
-        postcode: project.location?.postcode,
-        coordinates: project.location?.coordinates
+        address: project.address.address,
+        city: project.address.city.name,
+        country: project.address.country.name,
+        metroArea: project.address.metroArea.name,
+        postcode: project.address.postcode,
+        coordinates: project.address.location
       },
       expectedCompletionWindow: {
         expected: project.expectedDateText,
@@ -149,13 +212,37 @@ const projectGetFormatted = async (
       confidenceScore: project.confidenceScore,
       isActive: project.isActive,
       projectWebsites: project.projectWebsites,
-      developers: project.developers,
-      architects: project.architects,
-      contractors: project.contractors,
-      media: project.media,
-      sources: project.sources
+      developers:
+        project.developers?.map((dev: any) => ({
+          name: dev.name,
+          website: dev.contact?.website ?? dev.website,
+          contact: {
+            phone: dev.contact?.phone ?? dev.phone,
+            email: dev.contact?.email ?? dev.email
+          }
+        })) || [],
+      architects:
+        project.architects?.map((arch: any) => ({
+          name: arch.name,
+          website: arch.contact?.website ?? arch.website,
+          contact: {
+            phone: arch.contact?.phone ?? arch.phone,
+            email: arch.contact?.email ?? arch.email
+          }
+        })) || [],
+      contractors:
+        project.contractors?.map((cont: any) => ({
+          name: cont.name,
+          website: cont.contact?.website ?? cont.website,
+          contact: {
+            phone: cont.contact?.phone ?? cont.phone,
+            email: cont.contact?.email ?? cont.email
+          }
+        })) || [],
+      media: project.projectMedias,
+      sources: project.sourceLinks
     };
-
+    console.log(formattedProject.architects);
     res.json(formattedProject);
   } catch (err) {
     next(err);
@@ -291,11 +378,15 @@ const projectPost = async (
       if (proj.glassFacade === 'null') {
         proj.glassFacade = null;
       }
+      const expectedDate = parseToStandardDate(
+        proj.expectedCompletionWindow?.expected || ''
+      );
       const project: Project = {
         name: proj.name,
         expectedDateText: proj.expectedCompletionWindow?.expected || null,
         earliestDateText: proj.expectedCompletionWindow?.earliest || null,
         latestDateText: proj.expectedCompletionWindow?.latest || null,
+        expectedDate: new Date(expectedDate || ''),
         addressId: addressId,
         buildingTypeId: buildingTypeId,
         status: proj.status,
@@ -479,11 +570,15 @@ const projectPut = async (
       };
       await putAddress(a, address.id as number);
     }
+    const expectedDate = parseToStandardDate(
+      req.body.expectedCompletionWindow?.expected || ''
+    );
     const project: Project = {
       name: req.body.name,
       expectedDateText: req.body.expectedCompletionWindow?.expected || null,
       earliestDateText: req.body.expectedCompletionWindow?.earliest || null,
       latestDateText: req.body.expectedCompletionWindow?.latest || null,
+      expectedDate: new Date(expectedDate || ''),
       addressId: address.id as number,
       buildingTypeId: req.body.buildingTypeId,
       status: req.body.status,
@@ -500,6 +595,7 @@ const projectPut = async (
       const checkedArchitect = await checkArchitectExistsByName(architect.name);
       let architectId = checkedArchitect;
       if (checkedArchitect === 0) {
+        console.log(architect);
         architectId = await postArchitect({
           name: architect.name,
           website: architect.website,
@@ -674,6 +770,9 @@ const projectDelete = async (
 export {
   projectListGet,
   projectGet,
+  projectGetByCity,
+  projectsGetByStatus,
+  projectGetByMetroArea,
   projectGetFormatted,
   projectPost,
   projectPut,
