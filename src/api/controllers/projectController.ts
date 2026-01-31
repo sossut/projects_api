@@ -6,10 +6,7 @@ import {
   deleteProject,
   getAllProjects,
   getProject,
-  checkIfProjectExistsByKey,
-  getProjectsByCity,
-  getProjectsByStatus,
-  getProjectsByMetroArea
+  checkIfProjectExistsByKey
 } from '../models/projectModel';
 import { Request, Response, NextFunction } from 'express';
 import { PostProject, Project } from '../../interfaces/Project';
@@ -97,12 +94,27 @@ const projectListGet = async (
   try {
     const sortBy = req.query.sortBy as string | undefined;
     const order = req.query.order as 'asc' | 'desc' | undefined;
+
+    // Build filters object from query params
+    const filters: { [key: string]: string | number } = {};
+    if (req.query.status) filters.status = req.query.status as string;
+    if (req.query.city) filters.city = req.query.city as string;
+    if (req.query.metroArea) filters.metroArea = req.query.metroArea as string;
+    if (req.query.country) filters.country = req.query.country as string;
+    if (req.query.continent) filters.continent = req.query.continent as string;
+    if (req.query.buildingType)
+      filters.buildingType = req.query.buildingType as string;
+    if (req.query.minBudget)
+      filters.minBudget = parseFloat(req.query.minBudget as string);
+    if (req.query.maxBudget)
+      filters.maxBudget = parseFloat(req.query.maxBudget as string);
+
     const rows = await getAllProjects(
       sortBy,
-      order === 'desc' ? 'DESC' : 'ASC'
+      order === 'desc' ? 'DESC' : 'ASC',
+      Object.keys(filters).length > 0 ? filters : undefined
     );
     const projects = rows.map((row) => toCamel(row));
-    console.log(projects);
     res.json(projects);
   } catch (err) {
     next(err);
@@ -119,57 +131,6 @@ const projectGet = async (
     throwIfValidationErrors(errors);
     const project = toCamel(await getProject(req.params.id as number));
     res.json(project);
-  } catch (err) {
-    next(err);
-  }
-};
-
-const projectGetByCity = async (
-  req: Request<{ city: string }, {}, {}>,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const errors = validationResult(req);
-    throwIfValidationErrors(errors);
-    const city = req.params.city;
-    const projects = await getProjectsByCity(city);
-    const formattedProjects = projects.map((project) => toCamel(project));
-    res.json(formattedProjects);
-  } catch (err) {
-    next(err);
-  }
-};
-
-const projectsGetByStatus = async (
-  req: Request<{ status: string }, {}, {}>,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const errors = validationResult(req);
-    throwIfValidationErrors(errors);
-    const status = req.params.status;
-    const projects = await getProjectsByStatus(status);
-    const formattedProjects = projects.map((project) => toCamel(project));
-    res.json(formattedProjects);
-  } catch (err) {
-    next(err);
-  }
-};
-
-const projectGetByMetroArea = async (
-  req: Request<{ metroArea: string }, {}, {}>,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const errors = validationResult(req);
-    throwIfValidationErrors(errors);
-    const metroArea = req.params.metroArea;
-    const projects = await getProjectsByMetroArea(metroArea);
-    const formattedProjects = projects.map((project) => toCamel(project));
-    res.json(formattedProjects);
   } catch (err) {
     next(err);
   }
@@ -770,9 +731,6 @@ const projectDelete = async (
 export {
   projectListGet,
   projectGet,
-  projectGetByCity,
-  projectsGetByStatus,
-  projectGetByMetroArea,
   projectGetFormatted,
   projectPost,
   projectPut,

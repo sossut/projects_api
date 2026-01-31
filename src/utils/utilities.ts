@@ -54,6 +54,17 @@ const parseToStandardDate = (dateStr: string | null): string | null => {
       Q4: '10-01'
     };
     return `${year}-${quarterMap[quarter!]}`;
+  } else if (dateStr.match(/^\d{4}\s?H[1-2]$/i)) {
+    // Year with half (2026 H1, 2026H2)
+    const yearMatch = dateStr.match(/\d{4}/);
+    const halfMatch = dateStr.match(/H[1-2]/i);
+    const year = yearMatch?.[0];
+    const half = halfMatch?.[0].toUpperCase();
+    const halfMap: { [key: string]: string } = {
+      H1: '01-01',
+      H2: '07-01'
+    };
+    return `${year}-${halfMap[half!]}`;
   } else if (dateStr.match(/^[A-Za-z]{3,9}\s+\d{4}$/)) {
     // Month name and year (September 2025, Sep 2025)
     const date = new Date(dateStr);
@@ -104,6 +115,9 @@ const parseToStandardDate = (dateStr: string | null): string | null => {
     if (!isNaN(date.getTime())) {
       return date.toISOString().split('T')[0];
     }
+  } else if (dateStr.match(/^\d{4}$/)) {
+    // Just a year (2025)
+    return `${dateStr}-01-01`;
   } else {
     // Full date - validate it's valid
     const date = new Date(dateStr);
