@@ -60,6 +60,7 @@ interface Project {
   media?: ProjectMedia[];
   sources?: SourceLink[];
   projects?: Project[];
+  address?: Address;
 }
 
 interface GetProject extends RowDataPacket, Project {}

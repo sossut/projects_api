@@ -8,6 +8,7 @@ interface Address {
   location?: Point | null;
   postcode?: string | null;
   cityId?: number | City;
+  city?: City;
 }
 
 interface GetAddress extends RowDataPacket, Address {}
