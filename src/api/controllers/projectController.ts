@@ -193,6 +193,7 @@ const projectGetFormatted = async (
         project.developers?.map((dev: any) => ({
           name: dev.name,
           website: dev.contact?.website ?? dev.website,
+          source: dev.source,
           contact: {
             phone: dev.contact?.phone ?? dev.phone,
             email: dev.contact?.email ?? dev.email
@@ -202,6 +203,7 @@ const projectGetFormatted = async (
         project.architects?.map((arch: any) => ({
           name: arch.name,
           website: arch.contact?.website ?? arch.website,
+          source: arch.source,
           contact: {
             phone: arch.contact?.phone ?? arch.phone,
             email: arch.contact?.email ?? arch.email
@@ -210,6 +212,7 @@ const projectGetFormatted = async (
       contractors:
         project.contractors?.map((cont: any) => ({
           name: cont.name,
+          source: cont.source,
           website: cont.contact?.website ?? cont.website,
           contact: {
             phone: cont.contact?.phone ?? cont.phone,

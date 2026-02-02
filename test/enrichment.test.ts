@@ -33,97 +33,59 @@ async function test() {
     tools: [{ type: 'web_search' }],
     input: `Enrich this json with missing data:
     {
-    "id": 2,
-    "name": "One Bloor West",
-    "buildingHeightMeters": 309,
-    "buildingHeightFloors": 85,
+    "id": 5,
+    "name": "Forma East Tower",
+    "buildingHeightMeters": 266,
+    "buildingHeightFloors": null,
     "location": {
         "address": "",
         "city": "Toronto",
         "country": "Canada",
         "metroArea": "Toronto",
+        "postcode": "",
         "coordinates": {
-            "latitude": 43.669916666666666,
-            "longitude": -79.38702777777779
+            "latitude": 0,
+            "longitude": 0
         }
     },
     "expectedCompletionWindow": {
-        "expected": "2028",
-        "earliest": "2028-01-01",
-        "latest": "2028-12-31"
+        "expected": null,
+        "earliest": null,
+        "latest": null
     },
     "buildingType": "Skyscraper",
     "buildingUse": [
         {
             "buildingUse": "residential"
-        },
-        {
-            "buildingUse": "mixed-use"
         }
     ],
     "budgetEur": null,
-    "glassFacade": "yes",
-    "facadeBasis": "architectural_specs",
+    "glassFacade": null,
+    "facadeBasis": "unknown",
     "status": "under_construction",
     "lastVerifiedDate": "2026-02-01T22:00:00.000Z",
-    "confidenceScore": "High",
+    "confidenceScore": "Medium",
     "isActive": null,
     "projectWebsites": [
         {
-            "id": 3,
-            "url": "https://en.wikipedia.org/wiki/One_Bloor_West"
-        },
-        {
-            "id": 4,
-            "url": "https://www.skyscrapercenter.com/building/one-bloor-west/18879"
-        },
-        {
-            "id": 5,
-            "url": "https://toronto.urbanize.city/post/one-bloor-west-becomes-canadas-first-supertall-skyscraper"
-        },
-        {
-            "id": 6,
-            "url": "https://www.dezeen.com/2025/06/26/canadas-toronto-supertall-skyscraper-one-bloor-west/"
+            "id": null,
+            "url": null
         }
     ],
     "developers": [
         {
-            "name": "Tridel",
+            "name": null,
             "website": null,
             "contact": {
                 "phone": null,
                 "email": null
             }
-        },
-        {
-            "name": "Mizrahi Developments",
-            "website": "",
-            "contact": {
-                "phone": "",
-                "email": ""
-            }
         }
     ],
     "architects": [
         {
-            "name": "Foster + Partners",
-            "website": "",
-            "contact": {
-                "phone": "",
-                "email": ""
-            }
-        },
-        {
-            "name": "Core Architects",
-            "website": "",
-            "contact": {
-                "phone": "",
-                "email": ""
-            }
-        },
-        {
-            "name": "Foster and Partners",
-            "website": "https://www.fosterandpartners.com/",
+            "name": null,
+            "website": null,
             "contact": {
                 "phone": null,
                 "email": null
@@ -132,40 +94,33 @@ async function test() {
     ],
     "contractors": [
         {
-            "name": "Tridel",
-            "website": "",
+            "name": null,
+            "website": null,
             "contact": {
-                "phone": "",
-                "email": ""
+                "phone": null,
+                "email": null
             }
         }
     ],
     "media": [
         {
-            "id": 4,
-            "mediaType": "photo",
-            "url": "https://toronto.urbanize.city/sites/default/files/styles/social_1200x630/public/background/2025-06/DSC00787.jpeg?itok=aAJ9YjRd",
-            "title": "One Bloor West",
-            "filename": null
-        },
-        {
-            "id": 5,
-            "mediaType": "photo",
-            "url": "https://static.dezeen.com/uploads/2025/06/one-bloor-west-toronto-canada-tridel_dezeen_2364_sq-1.jpg",
-            "title": "One Bloor West under construction",
+            "id": null,
+            "mediaType": null,
+            "url": null,
+            "title": null,
             "filename": null
         }
     ],
     "sources": [
         {
-            "id": 3,
-            "url": "https://www.skyscrapercenter.com/building/the-one/18879",
+            "id": 8,
+            "url": "https://www.skyscrapercenter.com/building/forma-east-tower/16871",
             "sourceType": "database",
             "publisher": "The Skyscraper Center (Council on Vertical Urbanism &#x2F; CTBUH)",
             "accessedAt": "2026-02-02"
         },
         {
-            "id": 4,
+            "id": 9,
             "url": "https://urbantoronto.ca/news/2025/05/torontos-growing-skyline-9-supertall-projects-watch.58795",
             "sourceType": "media",
             "publisher": "UrbanToronto",

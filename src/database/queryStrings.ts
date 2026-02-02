@@ -49,7 +49,8 @@ const projectsQueryString = `SELECT projects.id, projects.name,
       'name', developers.name,
       'website', developers.website,
       'phone', developers.phone,
-      'email', developers.email
+      'email', developers.email,
+      'source', project_developers.source
           )
         ), ']') AS developers,
     CONCAT('[', GROUP_CONCAT(DISTINCT
@@ -58,7 +59,8 @@ const projectsQueryString = `SELECT projects.id, projects.name,
       'name', architects.name,
       'website', architects.website,
       'phone', architects.phone,
-      'email', architects.email
+      'email', architects.email,
+      'source', project_architects.source
           )
         ), ']') AS architects,
     CONCAT('[', GROUP_CONCAT(DISTINCT
@@ -67,7 +69,8 @@ const projectsQueryString = `SELECT projects.id, projects.name,
       'name', contractors.name,
       'website', contractors.website,
       'phone', contractors.phone,
-      'email', contractors.email
+      'email', contractors.email,
+      'source', project_contractors.source
           )
         ), ']') AS contractors,
     CONCAT('[', GROUP_CONCAT(DISTINCT
