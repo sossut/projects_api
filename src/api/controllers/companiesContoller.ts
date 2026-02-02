@@ -9,7 +9,7 @@ import { validationResult } from 'express-validator';
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
 import { throwIfValidationErrors } from '../../utils/utilities';
-import { User } from '../../interfaces/User';
+// import { User } from '../../interfaces/User';
 import { Company } from '../../interfaces/Company';
 
 import { checkCountryExistsByName, postCountry } from '../models/countryModel';
@@ -24,10 +24,10 @@ const companiesPost = async (
   next: NextFunction
 ) => {
   try {
-    const user = req.user as User;
-    if (user.role !== 'admin') {
-      throw new CustomError('Unauthorized', 401);
-    }
+    // const user = req.user as User;
+    // if (user.role !== 'admin') {
+    //   throw new CustomError('Unauthorized', 401);
+    // }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
     const results = req.body.results || {};
@@ -46,6 +46,12 @@ const companiesPost = async (
       };
       if (continentExists === 0) {
         continentId = await postContinent(continent);
+        if (continentId === 0) {
+          throw new CustomError(
+            `Failed to create continent ${contractor.hqContinent}`,
+            500
+          );
+        }
       }
 
       const countryExists = await checkCountryExistsByName(
@@ -58,6 +64,12 @@ const companiesPost = async (
           code: null,
           continentId: continentId
         });
+        if (countryId === 0) {
+          throw new CustomError(
+            `Failed to create country ${contractor.hqCountry}`,
+            500
+          );
+        }
       }
 
       const c = {
@@ -67,7 +79,13 @@ const companiesPost = async (
         email: contractor.email,
         phone: contractor.phone
       };
-      await postContractor(c);
+      const contractorResult = await postContractor(c);
+      if (contractorResult === 0) {
+        throw new CustomError(
+          `Failed to create contractor ${contractor.name}`,
+          500
+        );
+      }
     }
     for (const developer of developers) {
       const continentExists = await checkContinentExistsByName(
@@ -80,6 +98,12 @@ const companiesPost = async (
       };
       if (continentExists === 0) {
         continentId = await postContinent(continent);
+        if (continentId === 0) {
+          throw new CustomError(
+            `Failed to create continent ${developer.hqContinent}`,
+            500
+          );
+        }
       }
       const countryExists = await checkCountryExistsByName(
         developer.hqCountry as string
@@ -99,7 +123,13 @@ const companiesPost = async (
         email: developer.email,
         phone: developer.phone
       };
-      await postDeveloper(d);
+      const developerResult = await postDeveloper(d);
+      if (developerResult === 0) {
+        throw new CustomError(
+          `Failed to create developer ${developer.name}`,
+          500
+        );
+      }
     }
     for (const architect of architects) {
       const continentExists = await checkContinentExistsByName(
@@ -112,6 +142,12 @@ const companiesPost = async (
       };
       if (continentExists === 0) {
         continentId = await postContinent(continent);
+        if (continentId === 0) {
+          throw new CustomError(
+            `Failed to create continent ${architect.hqContinent}`,
+            500
+          );
+        }
       }
       const countryExists = await checkCountryExistsByName(
         architect.hqCountry as string
@@ -123,6 +159,12 @@ const companiesPost = async (
           code: null,
           continentId: continentId
         });
+        if (countryId === 0) {
+          throw new CustomError(
+            `Failed to create country ${architect.hqCountry}`,
+            500
+          );
+        }
       }
       architect.hqCountryId = countryId;
       const a = {
@@ -132,7 +174,13 @@ const companiesPost = async (
         email: architect.email,
         phone: architect.phone
       };
-      await postArchitect(a);
+      const architectResult = await postArchitect(a);
+      if (architectResult === 0) {
+        throw new CustomError(
+          `Failed to create architect ${architect.name}`,
+          500
+        );
+      }
     }
 
     const response: MessageResponse = {
