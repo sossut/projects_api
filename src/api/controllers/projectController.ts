@@ -178,7 +178,9 @@ const projectGetFormatted = async (
         latest: project.latestDateText
       },
       buildingType: project.buildingType,
-      buildingUse: project.buildingUse,
+      buildingUse: project.buildingUses?.map((bu: any) => ({
+        buildingUse: bu.buildingUse
+      })),
       budgetEur: project.budgetEur,
       glassFacade: project.glassFacade,
       facadeBasis: project.facadeBasis,

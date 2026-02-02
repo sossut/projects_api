@@ -3,7 +3,7 @@ const projectsQueryString = `SELECT projects.id, projects.name,
       'id', addresses.id,
       'address', addresses.address,
       'cityId', addresses.city_id,
-      'postalCode', addresses.postcode,
+      'postcode', addresses.postcode,
       'location', JSON_OBJECT(
         'latitude', ST_Y(addresses.location),
         'longitude', ST_X(addresses.location)
