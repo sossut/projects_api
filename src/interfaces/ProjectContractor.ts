@@ -5,6 +5,7 @@ import { Contractor } from './Contractor';
 interface ProjectContractor {
   projectId: number | Project;
   contractorId: number | Contractor;
+  source: string;
 }
 
 interface GetProjectContractor extends RowDataPacket, ProjectContractor {}

@@ -61,14 +61,30 @@ const getProjectsContractors = async (
   return rows;
 };
 
+const checkProjectContractorExists = async (
+  projectId: number,
+  contractorId: number
+): Promise<boolean> => {
+  const [rows] = await promisePool.query<GetProjectContractor[]>(
+    `SELECT project_id 
+    FROM project_contractors WHERE project_id = ? AND contractor_id = ?`,
+    [projectId, contractorId]
+  );
+  return rows.length > 0;
+};
+
 const postProjectContractor = async (
   projectContractorData: PostProjectContractor
 ): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     `INSERT INTO project_contractors
-    (project_id, contractor_id)
-    VALUES (?, ?)`,
-    [projectContractorData.projectId, projectContractorData.contractorId]
+    (project_id, contractor_id, source)
+    VALUES (?, ?, ?)`,
+    [
+      projectContractorData.projectId,
+      projectContractorData.contractorId,
+      projectContractorData.source
+    ]
   );
   if (headers.affectedRows === 0) {
     throw new CustomError('Failed to create project contractor', 500);
@@ -116,6 +132,7 @@ export {
   getAllProjectContractors,
   getProjectContractor,
   getProjectsContractors,
+  checkProjectContractorExists,
   postProjectContractor,
   putProjectContractor,
   deleteProjectContractor

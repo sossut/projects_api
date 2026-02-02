@@ -3,6 +3,7 @@ import { RowDataPacket } from 'mysql2';
 interface ProjectDeveloper {
   projectId: number;
   developerId: number;
+  source: string;
 }
 
 interface GetProjectDeveloper extends RowDataPacket, ProjectDeveloper {}

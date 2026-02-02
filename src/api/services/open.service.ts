@@ -141,9 +141,9 @@ From the provided web sources, extract and return JSON with:
     "earliest": string or null,
     "latest": string or null
   },
-  "developers": [{ "name": string, "website": string or null, "contact": { "email": string or null, "phone": string or null }}],
-  "architects": [{ "name": string, "website": string or null, "contact": { "email": string or null, "phone": string or null }}],
-  "contractors": [{ "name": string, "website": string or null, "contact": { "email": string or null, "phone": string or null }}],
+  "developers": [{ "name": string, "source": string or null, "website": string or null, "contact": { "email": string or null, "phone": string or null }}],
+  "architects": [{ "name": string, "source": string or null, "website": string or null, "contact": { "email": string or null, "phone": string or null }}],
+  "contractors": [{ "name": string, "source": string or null, "website": string or null, "contact": { "email": string or null, "phone": string or null }}],
   "projectWebsites": [string],
   "media": [{ "url": string, "title": string or null, "mediaType": "rendering" | "photo" | "other" }]
 }

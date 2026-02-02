@@ -7,6 +7,7 @@ import { Architect } from './Architect';
 import { Contractor } from './Contractor';
 import { ProjectMedia } from './ProjectMedia';
 import { SourceLink } from './SourceLink';
+import { Country } from './Country';
 
 interface Project {
   id?: number;
@@ -61,6 +62,7 @@ interface Project {
   sources?: SourceLink[];
   projects?: Project[];
   address?: Address;
+  country?: Country;
 }
 
 interface GetProject extends RowDataPacket, Project {}

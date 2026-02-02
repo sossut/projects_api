@@ -15,6 +15,7 @@ interface Developer {
     email?: string;
     phone?: string;
   };
+  source?: string;
 }
 
 interface GetDeveloper extends RowDataPacket, Developer {}

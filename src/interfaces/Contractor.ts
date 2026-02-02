@@ -15,6 +15,7 @@ interface Contractor {
     email?: string;
     phone?: string;
   };
+  source?: string;
 }
 
 interface GetContractor extends RowDataPacket, Contractor {}

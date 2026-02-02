@@ -62,14 +62,30 @@ const getProjectsArchitects = async (
   return rows;
 };
 
+const checkProjectArchitectExists = async (
+  projectId: number,
+  architectId: number
+): Promise<boolean> => {
+  const [rows] = await promisePool.query<GetProjectArchitect[]>(
+    `SELECT project_id 
+    FROM project_architects WHERE project_id = ? AND architect_id = ?`,
+    [projectId, architectId]
+  );
+  return rows.length > 0;
+};
+
 const postProjectArchitect = async (
   projectArchitectData: PostProjectArchitect
 ): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     `INSERT INTO project_architects
-    (project_id, architect_id)
-    VALUES (?, ?)`,
-    [projectArchitectData.projectId, projectArchitectData.architectId]
+    (project_id, architect_id, source)
+    VALUES (?, ?, ?)`,
+    [
+      projectArchitectData.projectId,
+      projectArchitectData.architectId,
+      projectArchitectData.source
+    ]
   );
   if (headers.affectedRows === 0) {
     throw new CustomError('Failed to create project architect', 500);
@@ -117,6 +133,7 @@ export {
   getAllProjectArchitects,
   getProjectArchitect,
   getProjectsArchitects,
+  checkProjectArchitectExists,
   postProjectArchitect,
   putProjectArchitect,
   deleteProjectArchitect

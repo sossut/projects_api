@@ -15,6 +15,7 @@ interface Architect {
     email?: string;
     phone?: string;
   };
+  source?: string;
 }
 
 interface GetArchitect extends RowDataPacket, Architect {}

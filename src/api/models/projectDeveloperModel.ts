@@ -43,6 +43,18 @@ const getProjectDeveloper = async (
   return rows[0];
 };
 
+const checkProjectDeveloperExists = async (
+  projectId: number,
+  developerId: number
+): Promise<boolean> => {
+  const [rows] = await promisePool.query<GetProjectDeveloper[]>(
+    `SELECT project_id 
+    FROM project_developers WHERE project_id = ? AND developer_id = ?`,
+    [projectId, developerId]
+  );
+  return rows.length > 0;
+};
+
 const getProjectsDevelopers = async (
   projectId: number
 ): Promise<ProjectDeveloper[]> => {
@@ -66,9 +78,13 @@ const postProjectDeveloper = async (
 ): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     `INSERT INTO project_developers
-    (project_id, developer_id)
-    VALUES (?, ?)`,
-    [projectDeveloperData.projectId, projectDeveloperData.developerId]
+    (project_id, developer_id, source)
+    VALUES (?, ?, ?)`,
+    [
+      projectDeveloperData.projectId,
+      projectDeveloperData.developerId,
+      projectDeveloperData.source
+    ]
   );
   if (headers.affectedRows === 0) {
     throw new CustomError('Failed to create project developer', 500);
@@ -99,6 +115,7 @@ export {
   getAllProjectDevelopers,
   getProjectDeveloper,
   getProjectsDevelopers,
+  checkProjectDeveloperExists,
   postProjectDeveloper,
   putProjectDeveloper
 };

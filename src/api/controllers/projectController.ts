@@ -48,7 +48,7 @@ import {
   checkBuildingUseExistsByName,
   postBuildingUse
 } from '../models/buildingUseModel';
-import { postProjectBuildingUse } from '../models/projectBuildingUse';
+import { postProjectBuildingUse } from '../models/projectBuildingUseModel';
 import { ProjectBuildingUse } from '../../interfaces/ProjectBuildingUse';
 
 import {
@@ -57,21 +57,21 @@ import {
   putDeveloper
 } from '../models/developerModel';
 import { Developer } from '../../interfaces/Developer';
-import { postProjectDeveloper } from '../models/projectDeveloper';
+import { postProjectDeveloper } from '../models/projectDeveloperModel';
 import {
   checkArchitectExistsByName,
   postArchitect,
   putArchitect
 } from '../models/architectModel';
 import { Architect } from '../../interfaces/Architect';
-import { postProjectArchitect } from '../models/projectArchitect';
+import { postProjectArchitect } from '../models/projectArchitectModel';
 import { Contractor } from '../../interfaces/Contractor';
 import {
   checkContractorExistsByName,
   postContractor,
   putContractor
 } from '../models/contractorModel';
-import { postProjectContractor } from '../models/projectContractor';
+import { postProjectContractor } from '../models/projectContractorModel';
 import { ProjectMedia } from '../../interfaces/ProjectMedia';
 import {
   checkProjectMediaExistsByUrl,
@@ -162,6 +162,8 @@ const projectGetFormatted = async (
     const formattedProject = {
       id: project.id,
       name: project.name,
+      buildingHeightMeters: project.buildingHeightMeters,
+      buildingHeightFloors: project.buildingHeightFloors,
       location: {
         address: project.address.address,
         city: project.address.city.name,
@@ -425,7 +427,8 @@ const projectPost = async (
         }
         await postProjectDeveloper({
           projectId: projectId,
-          developerId: developerId
+          developerId: developerId,
+          source: developer.source as string
         });
         if (countryID !== 0) {
           const developerPresenceExists = await checkDeveloperPresenceInCountry(
@@ -460,7 +463,8 @@ const projectPost = async (
         }
         await postProjectArchitect({
           projectId: projectId,
-          architectId: architectId
+          architectId: architectId,
+          source: architect.source as string
         });
         if (countryID !== 0) {
           const architectPresenceExists = await checkArchitectPresenceInCountry(
@@ -495,7 +499,8 @@ const projectPost = async (
         }
         await postProjectContractor({
           projectId: projectId,
-          contractorId: contractorId
+          contractorId: contractorId,
+          source: contractor.source as string
         });
         if (countryID !== 0) {
           const contractorPresenceExists =
@@ -616,7 +621,8 @@ const projectPut = async (
         });
         await postProjectArchitect({
           projectId: req.params.id as number,
-          architectId: architectId
+          architectId: architectId,
+          source: architect.source as string
         });
         if (countryId !== 0) {
           const architectPresenceExists = await checkArchitectPresenceInCountry(
@@ -658,7 +664,8 @@ const projectPut = async (
         });
         await postProjectContractor({
           projectId: req.params.id as number,
-          contractorId: contractorId
+          contractorId: contractorId,
+          source: contractor.source as string
         });
         if (countryId !== 0) {
           const contractorPresenceExists =
@@ -696,7 +703,8 @@ const projectPut = async (
         });
         await postProjectDeveloper({
           projectId: req.params.id as number,
-          developerId: developerId
+          developerId: developerId,
+          source: developer.source as string
         });
         if (countryId !== 0) {
           const developerPresenceExists = await checkDeveloperPresenceInCountry(

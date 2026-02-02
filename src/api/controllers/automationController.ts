@@ -103,5 +103,16 @@ const jobStatus = async (
     next(err);
   }
 };
+// Test enrichment
+async function test() {
+  try {
+    const result = await enrichProject(1); // Replace 1 with your projectId
+    console.log('Result:', result);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+test();
 
 export { projectEnrich, projectEnrichImmediate, projectEnrichBatch, jobStatus };
