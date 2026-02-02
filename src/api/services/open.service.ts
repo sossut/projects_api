@@ -117,6 +117,19 @@ Project: ${projectName} in ${cityName}
 
 From the provided web sources, extract and return JSON with:
 {
+  "name": string or null,
+  "location": {
+    "address": string or null,
+    "city": string or null,
+    "country": string or null,
+    "metroArea": string or null,
+    "coordinates": {
+      "latitude": number or null,
+      "longitude": number or null
+    } or null
+  },
+  "buildingType": string or null,
+  "buildingUse": [string] or null, 
   "buildingHeightMeters": number or null,
   "buildingHeightFloors": number or null,
   "status": "planned" | "approved" | "proposed" | "under_construction" | "on_hold" | null,
