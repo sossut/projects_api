@@ -85,6 +85,18 @@ import {
   checkProjectWebsiteExistsByUrl,
   postProjectWebsite
 } from '../models/projectWebsiteModel';
+import {
+  postDevelopersPresence,
+  checkDeveloperPresenceInCountry
+} from '../models/developersPresenceModel';
+import {
+  postArchitectsPresence,
+  checkArchitectPresenceInCountry
+} from '../models/architectsPresenceModel';
+import {
+  postContractorsPresence,
+  checkContractorPresenceInCountry
+} from '../models/contractorsPresenceModel';
 
 const projectListGet = async (
   req: Request,
@@ -402,7 +414,7 @@ const projectPost = async (
           const d: Developer = {
             name: developer.name,
             website: developer.website,
-            countryId: null,
+            hqCountryId: null,
             email: developer.contact?.email,
             phone: developer.contact?.phone
           };
@@ -415,6 +427,18 @@ const projectPost = async (
           projectId: projectId,
           developerId: developerId
         });
+        if (countryID !== 0) {
+          const developerPresenceExists = await checkDeveloperPresenceInCountry(
+            developerId,
+            countryID
+          );
+          if (!developerPresenceExists) {
+            await postDevelopersPresence({
+              developerId: developerId,
+              countryId: countryID
+            });
+          }
+        }
       }
       for (const architect of proj.architects || []) {
         const architectExists = await checkArchitectExistsByName(
@@ -425,7 +449,7 @@ const projectPost = async (
           const a: Architect = {
             name: architect.name,
             website: architect.website,
-            countryId: null,
+            hqCountryId: null,
             email: architect.contact?.email,
             phone: architect.contact?.phone
           };
@@ -438,6 +462,18 @@ const projectPost = async (
           projectId: projectId,
           architectId: architectId
         });
+        if (countryID !== 0) {
+          const architectPresenceExists = await checkArchitectPresenceInCountry(
+            architectId,
+            countryID
+          );
+          if (!architectPresenceExists) {
+            await postArchitectsPresence({
+              architectId: architectId,
+              countryId: countryID
+            });
+          }
+        }
       }
       for (const contractor of proj.contractors || []) {
         const contractorExists = await checkContractorExistsByName(
@@ -448,7 +484,7 @@ const projectPost = async (
           const c: Contractor = {
             name: contractor.name,
             website: contractor.website,
-            countryId: null,
+            hqCountryId: null,
             email: contractor.contact?.email,
             phone: contractor.contact?.phone
           };
@@ -461,6 +497,16 @@ const projectPost = async (
           projectId: projectId,
           contractorId: contractorId
         });
+        if (countryID !== 0) {
+          const contractorPresenceExists =
+            await checkContractorPresenceInCountry(contractorId, countryID);
+          if (!contractorPresenceExists) {
+            await postContractorsPresence({
+              contractorId: contractorId,
+              countryId: countryID
+            });
+          }
+        }
       }
       for (const media of proj.media || []) {
         const mediaData: ProjectMedia = {
@@ -517,6 +563,10 @@ const projectPut = async (
     if (!address) {
       throw new CustomError('Address not found for project', 500);
     }
+    const countryId = await checkCountryExistsByName(
+      req.body.location?.country as string
+    );
+
     if (req.body.location) {
       const a: Address = {
         address: req.body.location.address,
@@ -560,7 +610,7 @@ const projectPut = async (
         architectId = await postArchitect({
           name: architect.name,
           website: architect.website,
-          countryId: null,
+          hqCountryId: null,
           email: architect.contact?.email,
           phone: architect.contact?.phone
         });
@@ -568,12 +618,24 @@ const projectPut = async (
           projectId: req.params.id as number,
           architectId: architectId
         });
+        if (countryId !== 0) {
+          const architectPresenceExists = await checkArchitectPresenceInCountry(
+            architectId,
+            countryId
+          );
+          if (!architectPresenceExists) {
+            await postArchitectsPresence({
+              architectId: architectId,
+              countryId: countryId
+            });
+          }
+        }
       } else {
         await putArchitect(
           {
             name: architect.name,
             website: architect.website,
-            // countryId: null,
+            // hqCountryId: null,
             email: architect.contact?.email,
             phone: architect.contact?.phone
           },
@@ -590,7 +652,7 @@ const projectPut = async (
         contractorId = await postContractor({
           name: contractor.name,
           website: contractor.website,
-          countryId: null,
+          hqCountryId: null,
           email: contractor.contact?.email,
           phone: contractor.contact?.phone
         });
@@ -598,12 +660,22 @@ const projectPut = async (
           projectId: req.params.id as number,
           contractorId: contractorId
         });
+        if (countryId !== 0) {
+          const contractorPresenceExists =
+            await checkContractorPresenceInCountry(contractorId, countryId);
+          if (!contractorPresenceExists) {
+            await postContractorsPresence({
+              contractorId: contractorId,
+              countryId: countryId
+            });
+          }
+        }
       } else {
         await putContractor(
           {
             name: contractor.name,
             website: contractor.website,
-            // countryId: null,
+            // hqCountryId: null,
             email: contractor.contact?.email,
             phone: contractor.contact?.phone
           },
@@ -618,7 +690,7 @@ const projectPut = async (
         developerId = await postDeveloper({
           name: developer.name,
           website: developer.website,
-          countryId: null,
+          hqCountryId: null,
           email: developer.contact?.email,
           phone: developer.contact?.phone
         });
@@ -626,12 +698,24 @@ const projectPut = async (
           projectId: req.params.id as number,
           developerId: developerId
         });
+        if (countryId !== 0) {
+          const developerPresenceExists = await checkDeveloperPresenceInCountry(
+            developerId,
+            countryId
+          );
+          if (!developerPresenceExists) {
+            await postDevelopersPresence({
+              developerId: developerId,
+              countryId: countryId
+            });
+          }
+        }
       } else {
         await putDeveloper(
           {
             name: developer.name,
             website: developer.website,
-            // countryId: null,
+            // hqCountryId: null,
             email: developer.contact?.email,
             phone: developer.contact?.phone
           },

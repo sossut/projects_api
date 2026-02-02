@@ -1,30 +1,35 @@
 import { validationResult } from 'express-validator';
+import { Request, Response, NextFunction } from 'express';
 
 import {
-  postCity,
-  putCity,
-  deleteCity,
-  getAllCities,
-  getCity
-} from '../models/cityModel';
-import { Request, Response, NextFunction } from 'express';
-import { PostCity, PutCity } from '../../interfaces/City';
+  getArchitect,
+  getAllArchitects,
+  postArchitect,
+  putArchitect,
+  deleteArchitect
+} from '../models/architectModel';
+
+import { PostArchitect, PutArchitect } from '../../interfaces/Architect';
+
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
 import { throwIfValidationErrors, toCamel } from '../../utils/utilities';
 import { User } from '../../interfaces/User';
 
-const cityListGet = async (req: Request, res: Response, next: NextFunction) => {
+const architectListGet = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const rows = await getAllCities();
-    const cities = rows.map((row) => toCamel(row));
-    res.json(cities);
+    const rows = await getAllArchitects();
+    const architects = rows.map((row) => toCamel(row));
+    res.json(architects);
   } catch (err) {
     next(err);
   }
 };
-
-const cityGet = async (
+const architectGet = async (
   req: Request<{ id: number }, {}, {}>,
   res: Response,
   next: NextFunction
@@ -32,15 +37,14 @@ const cityGet = async (
   try {
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = toCamel(await getCity(req.params.id as number));
-    res.json(city);
+    const architect = toCamel(await getArchitect(req.params.id as number));
+    res.json(architect);
   } catch (err) {
     next(err);
   }
 };
-
-const cityPost = async (
-  req: Request<{}, {}, PostCity>,
+const architectPost = async (
+  req: Request<{}, {}, PostArchitect>,
   res: Response,
   next: NextFunction
 ) => {
@@ -51,11 +55,11 @@ const cityPost = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = await postCity(req.body);
-    if (city) {
+    const architect = await postArchitect(req.body);
+    if (architect) {
       const response: MessageResponse = {
-        message: 'City created successfully',
-        id: city
+        message: 'Architect created successfully',
+        id: architect
       };
       res.json(response);
     }
@@ -63,9 +67,8 @@ const cityPost = async (
     next(err);
   }
 };
-
-const cityPut = async (
-  req: Request<{ id: number }, {}, PutCity>,
+const architectPut = async (
+  req: Request<{ id: number }, {}, PutArchitect>,
   res: Response,
   next: NextFunction
 ) => {
@@ -76,10 +79,10 @@ const cityPut = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = await putCity(req.body, req.params.id as number);
-    if (city) {
+    const success = await putArchitect(req.body, req.params.id as number);
+    if (success) {
       const response: MessageResponse = {
-        message: 'City updated successfully',
+        message: 'Architect updated successfully',
         id: req.params.id
       };
       res.json(response);
@@ -89,7 +92,7 @@ const cityPut = async (
   }
 };
 
-const cityDelete = async (
+const architectDelete = async (
   req: Request<{ id: number }, {}, {}>,
   res: Response,
   next: NextFunction
@@ -101,10 +104,10 @@ const cityDelete = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = await deleteCity(req.params.id as number);
-    if (city) {
+    const success = await deleteArchitect(req.params.id as number);
+    if (success) {
       const response: MessageResponse = {
-        message: 'City deleted successfully',
+        message: 'Architect deleted successfully',
         id: req.params.id
       };
       res.json(response);
@@ -114,4 +117,10 @@ const cityDelete = async (
   }
 };
 
-export { cityListGet, cityGet, cityPost, cityPut, cityDelete };
+export {
+  architectListGet,
+  architectGet,
+  architectPost,
+  architectPut,
+  architectDelete
+};

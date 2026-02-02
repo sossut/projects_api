@@ -1,30 +1,33 @@
 import { validationResult } from 'express-validator';
+import { Request, Response, NextFunction } from 'express';
 
 import {
-  postCity,
-  putCity,
-  deleteCity,
-  getAllCities,
-  getCity
-} from '../models/cityModel';
-import { Request, Response, NextFunction } from 'express';
-import { PostCity, PutCity } from '../../interfaces/City';
+  getDeveloper,
+  getAllDevelopers,
+  postDeveloper,
+  putDeveloper,
+  deleteDeveloper
+} from '../models/developerModel';
+import { PostDeveloper, PutDeveloper } from '../../interfaces/Developer';
+
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
 import { throwIfValidationErrors, toCamel } from '../../utils/utilities';
 import { User } from '../../interfaces/User';
-
-const cityListGet = async (req: Request, res: Response, next: NextFunction) => {
+const developerListGet = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const rows = await getAllCities();
-    const cities = rows.map((row) => toCamel(row));
-    res.json(cities);
+    const rows = await getAllDevelopers();
+    const developers = rows.map((row) => toCamel(row));
+    res.json(developers);
   } catch (err) {
     next(err);
   }
 };
-
-const cityGet = async (
+const developerGet = async (
   req: Request<{ id: number }, {}, {}>,
   res: Response,
   next: NextFunction
@@ -32,15 +35,15 @@ const cityGet = async (
   try {
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = toCamel(await getCity(req.params.id as number));
-    res.json(city);
+    const developer = toCamel(await getDeveloper(req.params.id as number));
+    res.json(developer);
   } catch (err) {
     next(err);
   }
 };
 
-const cityPost = async (
-  req: Request<{}, {}, PostCity>,
+const developerPost = async (
+  req: Request<{}, {}, PostDeveloper>,
   res: Response,
   next: NextFunction
 ) => {
@@ -51,11 +54,11 @@ const cityPost = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = await postCity(req.body);
-    if (city) {
+    const developer = await postDeveloper(req.body);
+    if (developer) {
       const response: MessageResponse = {
-        message: 'City created successfully',
-        id: city
+        message: 'Developer created successfully',
+        id: developer
       };
       res.json(response);
     }
@@ -64,8 +67,8 @@ const cityPost = async (
   }
 };
 
-const cityPut = async (
-  req: Request<{ id: number }, {}, PutCity>,
+const developerPut = async (
+  req: Request<{ id: number }, {}, PutDeveloper>,
   res: Response,
   next: NextFunction
 ) => {
@@ -76,10 +79,10 @@ const cityPut = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = await putCity(req.body, req.params.id as number);
-    if (city) {
+    const success = await putDeveloper(req.body, req.params.id as number);
+    if (success) {
       const response: MessageResponse = {
-        message: 'City updated successfully',
+        message: 'Developer updated successfully',
         id: req.params.id
       };
       res.json(response);
@@ -89,7 +92,7 @@ const cityPut = async (
   }
 };
 
-const cityDelete = async (
+const developerDelete = async (
   req: Request<{ id: number }, {}, {}>,
   res: Response,
   next: NextFunction
@@ -101,10 +104,10 @@ const cityDelete = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = await deleteCity(req.params.id as number);
-    if (city) {
+    const success = await deleteDeveloper(req.params.id as number);
+    if (success) {
       const response: MessageResponse = {
-        message: 'City deleted successfully',
+        message: 'Developer deleted successfully',
         id: req.params.id
       };
       res.json(response);
@@ -113,5 +116,10 @@ const cityDelete = async (
     next(err);
   }
 };
-
-export { cityListGet, cityGet, cityPost, cityPut, cityDelete };
+export {
+  developerListGet,
+  developerGet,
+  developerPost,
+  developerPut,
+  developerDelete
+};

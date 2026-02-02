@@ -7,7 +7,7 @@ import {
   getMetroArea
 } from '../models/metroAreaModel';
 import { Request, Response, NextFunction } from 'express';
-import { PostMetroArea } from '../../interfaces/MetroArea';
+import { PostMetroArea, PutMetroArea } from '../../interfaces/MetroArea';
 
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
@@ -114,7 +114,7 @@ const metroAreaPost = async (
 };
 
 const metroAreaPut = async (
-  req: Request<{ id: number }, {}, PostMetroArea>,
+  req: Request<{ id: number }, {}, PutMetroArea>,
   res: Response,
   next: NextFunction
 ) => {

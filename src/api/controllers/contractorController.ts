@@ -1,30 +1,32 @@
-import { validationResult } from 'express-validator';
-
-import {
-  postCity,
-  putCity,
-  deleteCity,
-  getAllCities,
-  getCity
-} from '../models/cityModel';
 import { Request, Response, NextFunction } from 'express';
-import { PostCity, PutCity } from '../../interfaces/City';
+import { validationResult } from 'express-validator';
+import {
+  getContractor,
+  getAllContractors,
+  postContractor,
+  putContractor,
+  deleteContractor
+} from '../models/contractorModel';
+import { PostContractor, PutContractor } from '../../interfaces/Contractor';
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
 import { throwIfValidationErrors, toCamel } from '../../utils/utilities';
 import { User } from '../../interfaces/User';
-
-const cityListGet = async (req: Request, res: Response, next: NextFunction) => {
+const contractorListGet = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const rows = await getAllCities();
-    const cities = rows.map((row) => toCamel(row));
-    res.json(cities);
+    const rows = await getAllContractors();
+    const contractors = rows.map((row) => toCamel(row));
+    res.json(contractors);
   } catch (err) {
     next(err);
   }
 };
 
-const cityGet = async (
+const contractorGet = async (
   req: Request<{ id: number }, {}, {}>,
   res: Response,
   next: NextFunction
@@ -32,15 +34,15 @@ const cityGet = async (
   try {
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = toCamel(await getCity(req.params.id as number));
-    res.json(city);
+    const contractor = toCamel(await getContractor(req.params.id as number));
+    res.json(contractor);
   } catch (err) {
     next(err);
   }
 };
 
-const cityPost = async (
-  req: Request<{}, {}, PostCity>,
+const contractorPost = async (
+  req: Request<{}, {}, PostContractor>,
   res: Response,
   next: NextFunction
 ) => {
@@ -51,11 +53,11 @@ const cityPost = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = await postCity(req.body);
-    if (city) {
+    const contractor = await postContractor(req.body);
+    if (contractor) {
       const response: MessageResponse = {
-        message: 'City created successfully',
-        id: city
+        message: 'Contractor created successfully',
+        id: contractor
       };
       res.json(response);
     }
@@ -64,8 +66,8 @@ const cityPost = async (
   }
 };
 
-const cityPut = async (
-  req: Request<{ id: number }, {}, PutCity>,
+const contractorPut = async (
+  req: Request<{ id: number }, {}, PutContractor>,
   res: Response,
   next: NextFunction
 ) => {
@@ -76,10 +78,10 @@ const cityPut = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = await putCity(req.body, req.params.id as number);
-    if (city) {
+    const success = await putContractor(req.body, req.params.id as number);
+    if (success) {
       const response: MessageResponse = {
-        message: 'City updated successfully',
+        message: 'Contractor updated successfully',
         id: req.params.id
       };
       res.json(response);
@@ -89,7 +91,7 @@ const cityPut = async (
   }
 };
 
-const cityDelete = async (
+const contractorDelete = async (
   req: Request<{ id: number }, {}, {}>,
   res: Response,
   next: NextFunction
@@ -101,10 +103,10 @@ const cityDelete = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const city = await deleteCity(req.params.id as number);
-    if (city) {
+    const success = await deleteContractor(req.params.id as number);
+    if (success) {
       const response: MessageResponse = {
-        message: 'City deleted successfully',
+        message: 'Contractor deleted successfully',
         id: req.params.id
       };
       res.json(response);
@@ -114,4 +116,10 @@ const cityDelete = async (
   }
 };
 
-export { cityListGet, cityGet, cityPost, cityPut, cityDelete };
+export {
+  contractorListGet,
+  contractorGet,
+  contractorPost,
+  contractorPut,
+  contractorDelete
+};

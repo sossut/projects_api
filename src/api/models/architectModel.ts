@@ -12,7 +12,7 @@ import { ResultSetHeader } from 'mysql2';
 
 const getAllArchitects = async (): Promise<Architect[]> => {
   const [rows] = await promisePool.query<GetArchitect[]>(
-    'SELECT id, name, website, phone, email, country_id AS countryId FROM architects'
+    'SELECT id, name, website, phone, email, hq_country_id AS hqCountryId FROM architects'
   );
   if (rows.length === 0) {
     throw new CustomError('No architects found', 404);
@@ -22,7 +22,7 @@ const getAllArchitects = async (): Promise<Architect[]> => {
 
 const getArchitect = async (id: number): Promise<Architect> => {
   const [rows] = await promisePool.query<GetArchitect[]>(
-    'SELECT id, name, website, phone, email, country_id AS countryId FROM architects WHERE id = ?',
+    'SELECT id, name, website, phone, email, hq_country_id AS hqCountryId FROM architects WHERE id = ?',
     [id]
   );
   if (rows.length === 0) {
@@ -42,13 +42,13 @@ const checkArchitectExistsByName = async (name: string): Promise<number> => {
 const postArchitect = async (architectData: PostArchitect): Promise<number> => {
   console.log(architectData);
   const [headers] = await promisePool.execute<ResultSetHeader>(
-    'INSERT INTO architects (name, website, phone, email, country_id) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO architects (name, website, phone, email, hq_country_id) VALUES (?, ?, ?, ?, ?)',
     [
       architectData.name,
       architectData.website,
       architectData.phone,
       architectData.email,
-      architectData.countryId
+      architectData.hqCountryId
     ]
   );
   if (headers.affectedRows === 0) {

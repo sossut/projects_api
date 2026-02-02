@@ -1,10 +1,13 @@
 import { RowDataPacket } from 'mysql2';
 import { Country } from './Country';
+import { Continent } from './Continent';
 
 interface Contractor {
   id?: number;
   name: string;
-  countryId?: number | Country | null;
+  hqCountryId?: number | Country | null;
+  hqCountry?: string | Country | null;
+  hqContinent?: string | Continent | null;
   website?: string;
   email?: string;
   phone?: string;

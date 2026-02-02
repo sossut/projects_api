@@ -12,7 +12,7 @@ import { ResultSetHeader } from 'mysql2';
 
 const getAllDevelopers = async (): Promise<Developer[]> => {
   const [rows] = await promisePool.query<GetDeveloper[]>(
-    'SELECT id, name, website, country_id AS countryId, phone, email FROM developers'
+    'SELECT id, name, website, hq_country_id AS hqCountryId, phone, email FROM developers'
   );
   if (rows.length === 0) {
     throw new CustomError('No developers found', 404);
@@ -22,7 +22,7 @@ const getAllDevelopers = async (): Promise<Developer[]> => {
 
 const getDeveloper = async (id: number): Promise<Developer> => {
   const [rows] = await promisePool.query<GetDeveloper[]>(
-    'SELECT id, name, website, country_id AS countryId, phone, email FROM developers WHERE id = ?',
+    'SELECT id, name, website, hq_country_id AS hqCountryId, phone, email FROM developers WHERE id = ?',
     [id]
   );
   if (rows.length === 0) {
@@ -41,10 +41,10 @@ const checkDeveloperExistsByName = async (name: string): Promise<number> => {
 
 const postDeveloper = async (developerData: PostDeveloper): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
-    'INSERT INTO developers (name, country_id, website, phone, email) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO developers (name, hq_country_id, website, phone, email) VALUES (?, ?, ?, ?, ?)',
     [
       developerData.name,
-      developerData.countryId,
+      developerData.hqCountryId,
       developerData.website,
       developerData.phone,
       developerData.email

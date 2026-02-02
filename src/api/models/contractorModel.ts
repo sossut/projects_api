@@ -12,7 +12,7 @@ import { ResultSetHeader } from 'mysql2';
 
 const getAllContractors = async (): Promise<Contractor[]> => {
   const [rows] = await promisePool.query<GetContractor[]>(
-    'SELECT id, name, country_id AS countryId, website, email, phone FROM contractors'
+    'SELECT id, name, hq_country_id AS hqCountryId, website, email, phone FROM contractors'
   );
   if (rows.length === 0) {
     throw new CustomError('No contractors found', 404);
@@ -22,7 +22,7 @@ const getAllContractors = async (): Promise<Contractor[]> => {
 
 const getContractor = async (id: number): Promise<Contractor> => {
   const [rows] = await promisePool.query<GetContractor[]>(
-    'SELECT id, name, country_id AS countryId, website, email, phone FROM contractors WHERE id = ?',
+    'SELECT id, name, hq_country_id AS hqCountryId, website, email, phone FROM contractors WHERE id = ?',
     [id]
   );
   if (rows.length === 0) {
@@ -43,10 +43,10 @@ const postContractor = async (
   contractorData: PostContractor
 ): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
-    'INSERT INTO contractors (name, country_id, website, email, phone) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO contractors (name, hq_country_id, website, email, phone) VALUES (?, ?, ?, ?, ?)',
     [
       contractorData.name,
-      contractorData.countryId,
+      contractorData.hqCountryId,
       contractorData.website,
       contractorData.email,
       contractorData.phone
