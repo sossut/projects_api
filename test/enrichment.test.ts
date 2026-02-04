@@ -2,10 +2,10 @@ import dotenv from 'dotenv';
 import OpenAI from 'openai';
 dotenv.config();
 
-import {
-  enrichProject,
-  enrichProjectsBatch
-} from '../src/api/services/automation.service';
+// import {
+//   enrichProject,
+//   enrichProjectsBatch
+// } from '../src/api/services/automation.service';
 
 // async function testEnrichment() {
 //   try {

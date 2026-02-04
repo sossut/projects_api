@@ -50,14 +50,23 @@ router
     body('projects.*.expectedCompletionWindow').optional().isObject(),
     body('projects.*.expectedCompletionWindow.expected')
       .if((value) => value !== null && value !== undefined && value !== '')
+      .customSanitizer((value) =>
+        typeof value === 'number' ? value.toString() : value
+      )
       .isString()
       .escape(),
     body('projects.*.expectedCompletionWindow.earliest')
       .if((value) => value !== null && value !== undefined && value !== '')
+      .customSanitizer((value) =>
+        typeof value === 'number' ? value.toString() : value
+      )
       .isString()
       .escape(),
     body('projects.*.expectedCompletionWindow.latest')
       .if((value) => value !== null && value !== undefined && value !== '')
+      .customSanitizer((value) =>
+        typeof value === 'number' ? value.toString() : value
+      )
       .isString()
       .escape(),
     body('projects.*.location').optional().isObject(),
@@ -198,14 +207,23 @@ router
     body('expectedCompletionWindow').optional().isObject(),
     body('expectedCompletionWindow.expected')
       .if((value) => value !== null && value !== undefined && value !== '')
+      .customSanitizer((value) =>
+        typeof value === 'number' ? value.toString() : value
+      )
       .isString()
       .escape(),
     body('expectedCompletionWindow.earliest')
       .if((value) => value !== null && value !== undefined && value !== '')
+      .customSanitizer((value) =>
+        typeof value === 'number' ? value.toString() : value
+      )
       .isString()
       .escape(),
     body('expectedCompletionWindow.latest')
       .if((value) => value !== null && value !== undefined && value !== '')
+      .customSanitizer((value) =>
+        typeof value === 'number' ? value.toString() : value
+      )
       .isString()
       .escape(),
     body('location').optional().isObject(),

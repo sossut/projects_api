@@ -363,9 +363,15 @@ const projectPost = async (
       );
       const project: Project = {
         name: proj.name,
-        expectedDateText: proj.expectedCompletionWindow?.expected || null,
-        earliestDateText: proj.expectedCompletionWindow?.earliest || null,
-        latestDateText: proj.expectedCompletionWindow?.latest || null,
+        expectedDateText:
+          (proj.expectedCompletionWindow?.expected as string)?.slice(0, 100) ||
+          null,
+        earliestDateText:
+          (proj.expectedCompletionWindow?.earliest as string)?.slice(0, 100) ||
+          null,
+        latestDateText:
+          (proj.expectedCompletionWindow?.latest as string)?.slice(0, 100) ||
+          null,
         expectedDate: new Date(expectedDate || ''),
         addressId: addressId,
         buildingTypeId: buildingTypeId,
@@ -394,7 +400,8 @@ const projectPost = async (
           projectId: projectId,
           url: media.url,
           title: media.title,
-          mediaType: media.mediaType
+          mediaType: media.mediaType,
+          sourcePage: media.sourcePage || null
         });
       }
       for (const bu of proj.buildingUse || []) {
@@ -596,9 +603,19 @@ const projectPut = async (
     );
     const project: Project = {
       name: req.body.name,
-      expectedDateText: req.body.expectedCompletionWindow?.expected || null,
-      earliestDateText: req.body.expectedCompletionWindow?.earliest || null,
-      latestDateText: req.body.expectedCompletionWindow?.latest || null,
+      expectedDateText:
+        (req.body.expectedCompletionWindow?.expected as string)?.slice(
+          0,
+          100
+        ) || null,
+      earliestDateText:
+        (req.body.expectedCompletionWindow?.earliest as string)?.slice(
+          0,
+          100
+        ) || null,
+      latestDateText:
+        (req.body.expectedCompletionWindow?.latest as string)?.slice(0, 100) ||
+        null,
       expectedDate: new Date(expectedDate || ''),
       addressId: address.id as number,
       buildingTypeId: req.body.buildingTypeId,

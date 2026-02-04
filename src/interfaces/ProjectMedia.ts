@@ -8,16 +8,8 @@ interface ProjectMedia {
   projectId: number | Project;
   title: string;
   filename?: string;
-  mediaType?:
-    | 'rendering'
-    | 'construction_photo'
-    | 'photo'
-    | 'other'
-    | 'drawing'
-    | 'diagram'
-    | 'site_plan'
-    | 'aerial'
-    | 'map';
+  sourcePage?: string | null;
+  mediaType?: string | null;
 }
 
 interface GetProjectMedia extends RowDataPacket, ProjectMedia {}

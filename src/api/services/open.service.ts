@@ -112,7 +112,7 @@ export const extractEnrichmentData = async (
     messages: [
       {
         role: 'system',
-        content: `You are enriching data for a construction project.
+        content: `You are enriching data for a construction project. 
 Project: ${projectName} in ${cityName}
 
 From the provided web sources, extract and return JSON with:
@@ -160,4 +160,19 @@ Be conservative - don't guess or infer.`
   });
 
   return JSON.parse(response.choices[0].message.content || '{}');
+};
+
+export const openAIWebSearch = async (projectJSON: any) => {
+  const response = await openai.responses.create({
+    model: 'gpt-5',
+    tools: [{ type: 'web_search' }],
+    input: `Enrich this json with missing data, add more details where possible. 
+    If a direct image URL (ending .jpg/.png/.webp) cannot be reliably obtained, 
+    set media.url to "" and do NOT place the webpage URL there.
+    There should be pictures available for most projects, so try to find them and post the diect image URL
+    in the media.url field. Do not fabricate image URLs. 
+    instead put the webpage under projectWebsites or sources :
+    ${JSON.stringify(projectJSON)}`
+  });
+  return response;
 };
