@@ -1,5 +1,6 @@
 import { RowDataPacket } from 'mysql2';
 import { MetroArea } from './MetroArea';
+import { Project } from './Project';
 
 interface Search {
   id: number;
@@ -9,6 +10,10 @@ interface Search {
   finishedAt?: Date | null;
   status: 'running' | 'completed' | 'failed';
   errorText?: string | null;
+  projectId: number | Project;
+  sourcesFound: number;
+  fieldsUpdated: JSON;
+  confidenceScore: 'low' | 'medium' | 'high';
 }
 
 interface GetSearch extends RowDataPacket, Search {}
