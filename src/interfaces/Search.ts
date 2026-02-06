@@ -1,18 +1,23 @@
+/* eslint-disable @typescript-eslint/indent */
 import { RowDataPacket } from 'mysql2';
-import { MetroArea } from './MetroArea';
-import { Project } from './Project';
 
 interface Search {
   id: number;
-  metroAreaId?: number | MetroArea | null;
+  targetType:
+    | 'project'
+    | 'project_first_pass'
+    | 'developer'
+    | 'architect'
+    | 'contractor'
+    | 'consultant'
+    | 'company';
+  targetId?: number;
   startedAt: Date;
   finishedAt?: Date | null;
   status: 'running' | 'completed' | 'failed';
   errorText?: string | null;
-  projectId?: number | Project;
-  projectFirstPassId?: number;
-  sourcesFound: number;
-  fieldsUpdated: JSON;
+  sourcesFound?: number;
+  fieldsUpdated?: JSON;
 }
 
 interface GetSearch extends RowDataPacket, Search {}

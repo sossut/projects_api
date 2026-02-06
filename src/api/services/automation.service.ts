@@ -75,6 +75,7 @@ import { parseToStandardDate, toCamel } from '../../utils/utilities';
 import { enrichProjectWithTavily } from './enrichmentTavily.service';
 import { Address } from '../../interfaces/Address';
 import { postProjectFirstPass } from '../models/projectFirstPassModel';
+import { postSearch } from '../models/searchModel';
 
 // Main automation service for project discovery
 export const discoverProjects = async (userQuery: string) => {
@@ -701,8 +702,15 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
 
 // Main enrichment function - switches between GPT-5 and Tavily based on config
 export const enrichProject = async (projectId: number) => {
-  const useGPT5 = process.env.USE_GPT5_ENRICHMENT === 'true';
-
+  const useGPT5 = process.env.USE_GPT5_ENRICHMENT;
+  const searchId = await postSearch({
+    targetType: 'project',
+    targetId: projectId,
+    startedAt: new Date()
+  });
+  console.log(
+    `Started enrichment search ID ${searchId} for project ID ${projectId}`
+  );
   if (useGPT5) {
     return enrichProjectWithGPT5(projectId);
   } else {

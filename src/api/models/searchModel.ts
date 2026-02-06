@@ -47,10 +47,10 @@ const getSearch = async (id: number): Promise<Search> => {
 
 const postSearch = async (searchData: PostSearch): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
-    'INSERT INTO searches (search_area_id, type_param, started_at, status) VALUES (?, ?, ?, ?)',
+    'INSERT INTO searches (target_type, target_id, started_at, status) VALUES (?, ?, ?, ?)',
     [
-      searchData.metroAreaId,
-      searchData.typeParam,
+      searchData.targetType,
+      searchData.targetId,
       searchData.startedAt,
       'running'
     ]
