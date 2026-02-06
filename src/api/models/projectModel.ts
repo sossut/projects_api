@@ -59,7 +59,7 @@ const getAllProjects = async (
       params.push(filters.city);
     }
     if (filters.metroArea) {
-      conditions.push('search_areas.name = ?');
+      conditions.push('metro_areas.name = ?');
       params.push(filters.metroArea);
     }
     if (filters.country) {
@@ -71,7 +71,7 @@ const getAllProjects = async (
       params.push(filters.continent);
     }
     if (filters.buildingType) {
-      conditions.push('projects.building_type = ?');
+      conditions.push('building_types.building_type = ?');
       params.push(filters.buildingType);
     }
     if (filters.minBudget) {
@@ -81,6 +81,19 @@ const getAllProjects = async (
     if (filters.maxBudget) {
       conditions.push('projects.budget_eur <= ?');
       params.push(filters.maxBudget);
+    }
+
+    if (filters.confidenceScore) {
+      conditions.push('projects.confidence_score = ?');
+      params.push(filters.confidenceScore);
+    }
+    if (filters.isActive !== undefined) {
+      conditions.push('projects.is_active = ?');
+      params.push(filters.isActive);
+    }
+    if (filters.buildingUse) {
+      conditions.push('building_uses.building_use = ?');
+      params.push(filters.buildingUse);
     }
 
     if (conditions.length > 0) {

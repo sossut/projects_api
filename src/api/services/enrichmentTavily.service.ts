@@ -1,332 +1,115 @@
-import {
-  parseSearchQuery,
-  generateSearchQuery,
-  extractProjectData,
-  parseCompanyQuery,
-  openAIWebSearch,
-  openAIWebSearchList
-} from './open.service';
-import { searchWeb, fetchPageContent } from './search.service';
-
+import { Address } from '../../interfaces/Address';
+import { parseToStandardDate, toCamel } from '../../utils/utilities';
+import { getAddressByProjectId, putAddress } from '../models/addressModel';
+import { checkCountryExistsByName } from '../models/countryModel';
 import {
   checkDeveloperExistsByName,
   postDeveloper,
   putDeveloper
 } from '../models/developerModel';
 import {
+  checkDeveloperPresenceInCountry,
+  postDevelopersPresence
+} from '../models/developersPresenceModel';
+import {
+  checkProjectDeveloperExists,
+  postProjectDeveloper
+} from '../models/projectDeveloperModel';
+import {
   checkArchitectExistsByName,
   postArchitect,
   putArchitect
 } from '../models/architectModel';
+import {
+  checkArchitectPresenceInCountry,
+  postArchitectsPresence
+} from '../models/architectsPresenceModel';
+import {
+  checkProjectArchitectExists,
+  postProjectArchitect
+} from '../models/projectArchitectModel';
 import {
   checkContractorExistsByName,
   postContractor,
   putContractor
 } from '../models/contractorModel';
 import {
-  postProjectDeveloper,
-  checkProjectDeveloperExists
-} from '../models/projectDeveloperModel';
-import {
-  postProjectArchitect,
-  checkProjectArchitectExists
-} from '../models/projectArchitectModel';
-import {
-  postProjectContractor,
-  checkProjectContractorExists
-} from '../models/projectContractorModel';
-import {
-  postProjectMedia,
-  checkProjectMediaExistsByUrl
-} from '../models/projectMediaModel';
-import {
-  checkIfProjectExistsByKey,
-  getProject,
-  putProject
-} from '../models/projectModel';
-
-import { checkCountryExistsByName } from '../models/countryModel';
-import {
-  postDevelopersPresence,
-  checkDeveloperPresenceInCountry
-} from '../models/developersPresenceModel';
-import {
-  postContractorsPresence,
-  checkContractorPresenceInCountry
+  checkContractorPresenceInCountry,
+  postContractorsPresence
 } from '../models/contractorsPresenceModel';
 import {
-  postArchitectsPresence,
-  checkArchitectPresenceInCountry
-} from '../models/architectsPresenceModel';
+  checkProjectContractorExists,
+  postProjectContractor
+} from '../models/projectContractorModel';
 import {
   checkBuildingUseExistsByName,
   postBuildingUse
 } from '../models/buildingUseModel';
 import {
-  postProjectBuildingUse,
-  checkProjectBuildingUseExists
+  checkProjectBuildingUseExists,
+  postProjectBuildingUse
 } from '../models/projectBuildingUseModel';
+import {
+  checkProjectMediaExistsByUrl,
+  postProjectMedia
+} from '../models/projectMediaModel';
 import {
   checkProjectWebsiteExistsByUrl,
   postProjectWebsite
 } from '../models/projectWebsiteModel';
-import { getAddressByProjectId, putAddress } from '../models/addressModel';
-import { parseToStandardDate, toCamel } from '../../utils/utilities';
-import { enrichProjectWithTavily } from './enrichmentTavily.service';
-import { Address } from '../../interfaces/Address';
-import { postProjectFirstPass } from '../models/projectFirstPassModel';
+import { getProject, putProject } from '../models/projectModel';
+import { extractEnrichmentData } from './open.service';
+import { fetchPageContent, searchWeb } from './search.service';
 
-// Main automation service for project discovery
-export const discoverProjects = async (userQuery: string) => {
-  // Step 1: Parse user query with OpenAI
-  const parsedQuery = await parseSearchQuery(userQuery);
-  console.log('Parsed query:', parsedQuery);
-
-  // Step 2: Generate optimized search query
-  const searchQuery = await generateSearchQuery(parsedQuery);
-  console.log('Search query:', searchQuery);
-
-  // Step 3: Search web with Tavily
-  const searchResults = await searchWeb(searchQuery, 10);
-  console.log(`Found ${searchResults.length} results`);
-
-  const discoveredProjects = [];
-
-  // Step 4: Process each search result
-  for (const result of searchResults) {
-    try {
-      // Fetch full page content
-      const htmlContent = await fetchPageContent(result.url);
-      if (!htmlContent) continue;
-
-      // Step 5: Extract project data with OpenAI
-      const projectData = await extractProjectData(htmlContent, result.url);
-
-      if (!projectData.name || !projectData.location) {
-        console.log(`Skipping ${result.url} - insufficient data`);
-        continue;
-      }
-
-      // Step 6: Save to database (simplified - you'd use your full projectPost logic)
-      // This is a basic example - expand with your full project creation flow
-      console.log('Discovered project:', projectData.name);
-      discoveredProjects.push({
-        name: projectData.name,
-        location: projectData.location,
-        source: result.url
-      });
-    } catch (error) {
-      console.error(`Error processing ${result.url}:`, error);
-      continue;
-    }
-  }
-
-  return {
-    projectsFound: discoveredProjects.length,
-    projects: discoveredProjects
-  };
-};
-
-// Company-based search
-export const discoverCompanyProjects = async (userQuery: string) => {
-  // Step 1: Parse company query
-  const parsedQuery = await parseCompanyQuery(userQuery);
-  console.log('Parsed companies:', parsedQuery);
-
-  const results = [];
-
-  for (const companyName of parsedQuery.companies || []) {
-    // Check if company exists
-    let companyId = await checkDeveloperExistsByName(companyName);
-
-    // Create if not exists
-    if (companyId === 0) {
-      companyId = await postDeveloper({
-        name: companyName,
-        website: 'test',
-        hqCountryId: null,
-        email: 'test',
-        phone: 'test'
-      });
-    }
-
-    // Search for company projects on web
-    const searchQuery = `${companyName} construction projects ${parsedQuery.metroArea || ''}`;
-    const searchResults = await searchWeb(searchQuery, 5);
-
-    // Process results similar to above
-    for (const result of searchResults) {
-      const htmlContent = await fetchPageContent(result.url);
-      if (!htmlContent) continue;
-
-      const projectData = await extractProjectData(htmlContent, result.url);
-
-      results.push({
-        company: companyName,
-        companyId,
-        project: projectData.name,
-        source: result.url
-      });
-    }
-  }
-
-  return {
-    companiesProcessed: parsedQuery.companies?.length || 0,
-    results
-  };
-};
-
-// Enrich a single project with additional details using Tavily (backup method)
-
-//first pass finding projects with GPT-5 web search
-export const findProjectsWithGPT5 = async (
-  location: string,
-  buildingType: string
-) => {
-  console.log(`Finding type ${buildingType} projects in: ${location}`);
-  try {
-    let count = 0;
-    const existingProjects = [];
-    const resultsText = await openAIWebSearchList(location, buildingType);
-
-    const results = JSON.parse(resultsText.output_text || '{}');
-    console.log(results);
-    for (const project of results.projects || []) {
-      console.log(project);
-      const p = {
-        name: project.name,
-
-        address: project.address,
-        city: project.city,
-        country: project.country,
-        metroArea: project.metroArea,
-        continent: project.continent,
-        buildingHeightMeters: project.buildingHeightMeters || null,
-        buildingType: project.buildingType,
-        buildingUse: project.buildingUse,
-        status: project.status,
-        expectedDateText: project.expectedDateText,
-        lastVerifiedDate: project.lastVerifiedDate,
-        sources: project.sources
-      };
-      console.log('Found project:', JSON.stringify(p, null, 2));
-
-      const key = `${p.name}|${p.city}|${p.country}`.toLowerCase();
-      const checkIfProjectExistsByKeyFields =
-        await checkIfProjectExistsByKey(key);
-      if (!checkIfProjectExistsByKeyFields) {
-        const newFirstPassProject = await postProjectFirstPass(p);
-        count++;
-        console.log(
-          `Project "${p.name}" added to first pass table with ID ${newFirstPassProject}`
-        );
-      } else {
-        existingProjects.push(key);
-        console.log(
-          `Project "${p.name}" already exists in the database, skipping.`
-        );
-      }
-    }
-    return {
-      projectsFound: results.projects?.length || 0,
-      projectsAdded: count,
-      existingProjects
-    };
-  } catch (error) {
-    console.error('Error finding projects with GPT-5:', error);
-    throw error;
-  }
-};
-
-export const enrichFirstPassProjectWithGPT5 = async (projectId: number) => {
-  console.log(`Enriching first pass project ${projectId} with GPT-5`);
-  try {
-    // Fetch project from first pass table
-    console.log('not yet implemented');
-  } catch (error) {
-    console.error(
-      `Error enriching first pass project ${projectId} with GPT-5:`,
-      error
-    );
-    throw error;
-  }
-};
-
-// Enrich a single project from the main table with additional details using GPT-5 web search
-export const enrichProjectWithGPT5 = async (projectId: number) => {
+export const enrichProjectWithTavily = async (projectId: number) => {
   const project = toCamel(await getProject(projectId));
-  console.log(`Enriching project with GPT-5: ${project.name}`);
+  console.log(`Enriching project with Tavily: ${project.name}`);
 
   try {
-    // Build current project data as JSON
+    // Perform web searches
+    const searchQueries = [
+      `"${project.name}" ${project.address?.city?.name} building height meters floors`,
+      `"${project.name}" ${project.address?.city?.name} construction status`,
+      `"${project.name}" developer architect contractor`,
+      `"${project.name}" budget cost EUR`,
+      `"${project.name}" completion date opening`
+    ];
 
-    const formattedProject = {
-      id: project.id,
-      name: project.name,
-      buildingHeightMeters: project.buildingHeightMeters,
-      buildingHeightFloors: project.buildingHeightFloors,
-      location: {
-        address: project.address.address,
-        city: project.address.city.name,
-        country: project.address.country.name,
-        metroArea: project.address.metroArea.name,
-        postcode: project.address.postcode,
-        coordinates: project.address.location
-      },
-      expectedCompletionWindow: {
-        expected: project.expectedDateText,
-        earliest: project.earliestDateText,
-        latest: project.latestDateText
-      },
-      buildingType: project.buildingType,
-      buildingUse: project.buildingUses?.map((bu: any) => ({
-        buildingUse: bu.buildingUse
-      })),
-      budgetEur: project.budgetEur,
-      glassFacade: project.glassFacade,
-      facadeBasis: project.facadeBasis,
-      status: project.status,
-      lastVerifiedDate: project.lastVerifiedDate,
-      confidenceScore: project.confidenceScore,
-      isActive: project.isActive,
-      projectWebsites: project.projectWebsites,
-      developers:
-        project.developers?.map((dev: any) => ({
-          name: dev.name,
-          website: dev.contact?.website ?? dev.website,
-          source: dev.source,
-          contact: {
-            phone: dev.contact?.phone ?? dev.phone,
-            email: dev.contact?.email ?? dev.email
-          }
-        })) || [],
-      architects:
-        project.architects?.map((arch: any) => ({
-          name: arch.name,
-          website: arch.contact?.website ?? arch.website,
-          source: arch.source,
-          contact: {
-            phone: arch.contact?.phone ?? arch.phone,
-            email: arch.contact?.email ?? arch.email
-          }
-        })) || [],
-      contractors:
-        project.contractors?.map((cont: any) => ({
-          name: cont.name,
-          source: cont.source,
-          website: cont.contact?.website ?? cont.website,
-          contact: {
-            phone: cont.contact?.phone ?? cont.phone,
-            email: cont.contact?.email ?? cont.email
-          }
-        })) || [],
-      media: project.projectMedias,
-      sources: project.sourceLinks
-    };
+    const searchPromises = searchQueries.map((query) => searchWeb(query, 5));
+    const searchResults = (await Promise.all(searchPromises)).flat();
 
-    // Single GPT-5 web search call
-    const enrichedText = await openAIWebSearch(formattedProject);
-    const enrichedData = JSON.parse(enrichedText.output_text || '{}');
+    // Deduplicate URLs
+    const uniqueUrls = new Set<string>();
+    const deduplicatedResults: any[] = [];
+    for (const result of searchResults) {
+      if (!uniqueUrls.has(result.url)) {
+        uniqueUrls.add(result.url);
+        deduplicatedResults.push(result);
+      }
+    }
+
+    // Fetch full content
+    const pageContents = await Promise.all(
+      deduplicatedResults.slice(0, 8).map(async (result) => {
+        try {
+          const content = await fetchPageContent(result.url);
+          return { url: result.url, content, title: result.title };
+        } catch (error) {
+          return {
+            url: result.url,
+            content: result.content,
+            title: result.title
+          };
+        }
+      })
+    );
+
+    // Extract data with OpenAI
+    const enrichedData = await extractEnrichmentData(
+      project.name,
+      project.address?.city?.name as string,
+      pageContents
+    );
 
     console.log('Enriched data:', JSON.stringify(enrichedData, null, 2));
 
@@ -356,9 +139,7 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
     ) {
       updates.facadeBasis = enrichedData.facadeBasis;
     }
-    if (enrichedData.isActive !== undefined || project.isActive === null) {
-      updates.isActive = enrichedData.isActive;
-    }
+
     // Parse and update dates
     if (
       enrichedData.expectedCompletion?.expected &&
@@ -433,7 +214,6 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
                 developerId: devId,
                 source: dev.source
               });
-              newDevelopers.push({ id: devId, name: dev.name });
             }
             if (countryId !== 0) {
               const presenceExists = await checkDeveloperPresenceInCountry(
@@ -465,9 +245,9 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
                 developerId: devId,
                 source: dev.source
               });
-              newDevelopers.push({ id: devId, name: dev.name });
             }
           }
+          newDevelopers.push({ id: devId, name: dev.name });
         } catch (error) {
           console.warn(`Failed to add developer ${dev.name}:`, error);
         }
@@ -499,7 +279,6 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
                 architectId: archId,
                 source: arch.source
               });
-              newArchitects.push({ id: archId, name: arch.name });
             }
             if (countryId !== 0) {
               const presenceExists = await checkArchitectPresenceInCountry(
@@ -534,9 +313,9 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
                 architectId: archId,
                 source: arch.source
               });
-              newArchitects.push({ id: archId, name: arch.name });
             }
           }
+          newArchitects.push({ id: archId, name: arch.name });
         } catch (error) {
           console.warn(`Failed to add architect ${arch.name}:`, error);
         }
@@ -568,7 +347,6 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
                 contractorId: contId,
                 source: cont.source
               });
-              newContractors.push({ id: contId, name: cont.name });
             }
             if (countryId !== 0) {
               const presenceExists = await checkContractorPresenceInCountry(
@@ -603,9 +381,9 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
                 contractorId: contId,
                 source: cont.source
               });
-              newContractors.push({ id: contId, name: cont.name });
             }
           }
+          newContractors.push({ id: contId, name: cont.name });
         } catch (error) {
           console.warn(`Failed to add contractor ${cont.name}:`, error);
         }
@@ -616,10 +394,8 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
     if (enrichedData.buildingUse?.length) {
       for (const bu of enrichedData.buildingUse) {
         try {
-          console.log({ bu });
           const buildingUseId = await checkBuildingUseExistsByName(bu);
           let finalBuId = buildingUseId;
-          console.log({ buildingUseId });
           if (buildingUseId === 0) {
             finalBuId = await postBuildingUse({ buildingUse: bu });
           }
@@ -691,71 +467,11 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
       newArchitects: newArchitects.length,
       newContractors: newContractors.length,
       newMedia: newMedia.length,
+      sourcesChecked: deduplicatedResults.length,
       updates
     };
   } catch (error) {
     console.error(`Error enriching project ${projectId}:`, error);
     throw error;
   }
-};
-
-// Main enrichment function - switches between GPT-5 and Tavily based on config
-export const enrichProject = async (projectId: number) => {
-  const useGPT5 = process.env.USE_GPT5_ENRICHMENT === 'true';
-
-  if (useGPT5) {
-    return enrichProjectWithGPT5(projectId);
-  } else {
-    return enrichProjectWithTavily(projectId);
-  }
-};
-
-export const enrichProjectsBatchWithGPT5 = async (projectIds: number[]) => {
-  // Run all enrichments concurrently
-  const enrichmentPromises = projectIds.map(async (projectId) => {
-    try {
-      const result = await enrichProjectWithGPT5(projectId);
-      return { success: true, ...result };
-    } catch (error) {
-      return {
-        success: false,
-        projectId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  });
-
-  const results = await Promise.all(enrichmentPromises);
-  return {
-    total: projectIds.length,
-    successful: results.filter((r) => r.success).length,
-    failed: results.filter((r) => !r.success).length,
-    results
-  };
-};
-
-// Batch enrich multiple projects
-export const enrichProjectsBatch = async (projectIds: number[]) => {
-  // Run all enrichments concurrently
-  const enrichmentPromises = projectIds.map(async (projectId) => {
-    try {
-      const result = await enrichProject(projectId);
-      return { success: true, ...result };
-    } catch (error) {
-      return {
-        success: false,
-        projectId,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  });
-
-  const results = await Promise.all(enrichmentPromises);
-
-  return {
-    total: projectIds.length,
-    successful: results.filter((r) => r.success).length,
-    failed: results.filter((r) => !r.success).length,
-    results
-  };
 };

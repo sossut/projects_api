@@ -6,7 +6,8 @@ import {
   // jobStatus,
   projectEnrichGPT5,
   projectEnrichTavily,
-  projectEnrichBatchGPT5
+  projectEnrichBatchGPT5,
+  projectsFindGPT5
 } from '../controllers/automationController';
 
 const router = express.Router();
@@ -22,7 +23,8 @@ router.post('/enrich/:id/gpt5', projectEnrichGPT5);
 
 // Test Tavily enrichment
 router.post('/enrich/:id/tavily', projectEnrichTavily);
-
+// Test GPT-5 project search
+router.post('/find-projects/gpt5', projectsFindGPT5);
 // Test GPT-5 batch enrichment
 router.post('/enrich-batch/gpt5', projectEnrichBatchGPT5);
 

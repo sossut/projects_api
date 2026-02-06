@@ -3,9 +3,10 @@ import { Request, Response, NextFunction } from 'express';
 import {
   enrichProject,
   enrichProjectWithGPT5,
-  enrichProjectWithTavily,
-  enrichProjectsBatchWithGPT5
+  enrichProjectsBatchWithGPT5,
+  findProjectsWithGPT5
 } from '../services/automation.service';
+import { enrichProjectWithTavily } from '../services/enrichmentTavily.service';
 import MessageResponse from '../../interfaces/MessageResponse';
 
 // Trigger project enrichment job
@@ -112,13 +113,17 @@ import MessageResponse from '../../interfaces/MessageResponse';
 // Enrich project with GPT-5 immediately (for testing)
 const projectEnrichGPT5 = async (
   req: Request<{ id: number }, {}, {}>,
-  res: Response,
+  res: Response<MessageResponse>,
   next: NextFunction
 ) => {
   try {
     const projectId = req.params.id;
     const result = await enrichProjectWithGPT5(projectId);
-    res.json(result);
+    res.json({
+      message: 'Project enriched with GPT-5 successfully',
+      id: projectId,
+      ...result
+    });
   } catch (err) {
     next(err);
   }
@@ -127,13 +132,34 @@ const projectEnrichGPT5 = async (
 // Enrich project with Tavily immediately (for testing)
 const projectEnrichTavily = async (
   req: Request<{ id: number }, {}, {}>,
-  res: Response,
+  res: Response<MessageResponse>,
   next: NextFunction
 ) => {
   try {
     const projectId = req.params.id;
     const result = await enrichProjectWithTavily(projectId);
-    res.json(result);
+    res.json({
+      message: 'Project enriched with Tavily successfully',
+      id: projectId,
+      ...result
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectsFindGPT5 = async (
+  req: Request<{}, {}, { location: string; buildingType: string }>,
+  res: Response<MessageResponse>,
+  next: NextFunction
+) => {
+  try {
+    const { location, buildingType } = req.body;
+    const result = await findProjectsWithGPT5(location, buildingType);
+    res.json({
+      message: 'Projects found with GPT-5 successfully',
+      ...result
+    });
   } catch (err) {
     next(err);
   }
@@ -166,6 +192,7 @@ export {
   // projectEnrichImmediate,
   // projectEnrichBatch,
   // jobStatus,
+  projectsFindGPT5,
   projectEnrichGPT5,
   projectEnrichTavily,
   projectEnrichBatchGPT5

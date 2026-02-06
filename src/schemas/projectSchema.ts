@@ -66,7 +66,8 @@ export const ProjectSchema = z.object({
     'approved',
     'proposed',
     'under_construction',
-    'on_hold'
+    'on_hold',
+    'completed'
   ]),
 
   expectedCompletionWindow: z.object({

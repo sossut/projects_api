@@ -5,15 +5,14 @@ import { Project } from './Project';
 interface Search {
   id: number;
   metroAreaId?: number | MetroArea | null;
-  typeParam: string;
   startedAt: Date;
   finishedAt?: Date | null;
   status: 'running' | 'completed' | 'failed';
   errorText?: string | null;
-  projectId: number | Project;
+  projectId?: number | Project;
+  projectFirstPassId?: number;
   sourcesFound: number;
   fieldsUpdated: JSON;
-  confidenceScore: 'low' | 'medium' | 'high';
 }
 
 interface GetSearch extends RowDataPacket, Search {}

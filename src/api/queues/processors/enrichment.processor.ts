@@ -33,7 +33,7 @@ export const processBatchEnrichment = async (job: Job) => {
 
   console.log(`Processing batch enrichment for ${projectIds.length} projects`);
 
-  const totalProjects = projectIds.length;
+  // const totalProjects = projectIds.length;
   await job.updateProgress(5);
 
   try {
