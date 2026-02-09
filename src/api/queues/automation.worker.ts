@@ -20,8 +20,9 @@ const scheduleProjectSearch = async () => {
       : process.env.NODE_ENV === 'development'
         ? '*/5 * * * *'
         : undefined;
-
+  console.log('PROJECT_SEARCH_CRON:', process.env.PROJECT_SEARCH_CRON);
   if (!cron || cron.toLowerCase() === 'off') {
+    console.log('off');
     return;
   }
 
@@ -29,10 +30,10 @@ const scheduleProjectSearch = async () => {
   const buildingType =
     process.env.PROJECT_SEARCH_BUILDING_TYPE || 'residential';
 
-  const existing = await automationQueue.getRepeatableJobs();
+  const existing = await automationQueue.getJobSchedulers();
   const toRemove = existing.filter((job) => job.name === 'project-search');
   for (const job of toRemove) {
-    await automationQueue.removeRepeatableByKey(job.key);
+    await automationQueue.removeJobScheduler(job.key);
   }
 
   await automationQueue.add(

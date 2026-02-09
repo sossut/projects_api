@@ -240,6 +240,26 @@ const projectAfterFirstPassEnrichWithGPT5 = async (
   }
 };
 
+const immediateProjectAfterFirstPassEnrichWithGPT5 = async (
+  req: Request<{ id: number }, {}, {}>,
+  res: Response<MessageResponse>,
+  next: NextFunction
+) => {
+  try {
+    const fPProjectId = req.params.id;
+    const result = await enrichProjectAfterFirstPassWithGPT5(
+      Number(fPProjectId)
+    );
+    res.json({
+      message: 'Project enrichment after first pass with GPT-5 completed',
+      id: fPProjectId,
+      ...(typeof result === 'object' && result !== null ? result : { result })
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export {
   projectEnrich,
   projectEnrichImmediate,
@@ -250,5 +270,6 @@ export {
   projectEnrichGPT5,
   projectEnrichTavily,
   projectEnrichBatchGPT5,
-  projectAfterFirstPassEnrichWithGPT5
+  projectAfterFirstPassEnrichWithGPT5,
+  immediateProjectAfterFirstPassEnrichWithGPT5
 };

@@ -10,7 +10,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: DockerFile
+      dockerfile: Dockerfile
     command: npm run dev
     env_file: .env
     environment:
@@ -27,7 +27,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: DockerFile
+      dockerfile: Dockerfile
     command: npx ts-node src/api/queues/automation.worker.ts
     env_file: .env
     environment:
