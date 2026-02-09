@@ -68,6 +68,15 @@ export const automationWorker = new Worker(
       case 'enrich-batch':
         return processBatchEnrichment(job);
 
+      case 'enrich-after-first-pass-gpt5':
+        // Import here to avoid circular dependency at top
+        const {
+          enrichProjectAfterFirstPassWithGPT5
+        } = require('../services/automation.service');
+        return enrichProjectAfterFirstPassWithGPT5(
+          Number(job.data.fPProjectId)
+        );
+
       default:
         throw new Error(`Unknown job type: ${job.name}`);
     }
@@ -92,5 +101,5 @@ automationWorker.on('failed', (job, err) => {
 scheduleProjectSearch().catch((err) => {
   console.error('Failed to schedule project-search job:', err);
 });
-console.log('Automation worker starting');
+
 console.log('Automation worker started');

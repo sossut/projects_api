@@ -282,7 +282,7 @@ JSON OUTPUT SCHEMA (MUST MATCH EXACTLY)
 
 PARAMETERS (INPUT)
 [TYPE] = A | B | C | D 
-[LOCATION] = Metro area name`
+[LOCATION] = Metro area name eg Location Metropolitan Area`
       },
       {
         role: 'user',

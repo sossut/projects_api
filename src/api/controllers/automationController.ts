@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { automationQueue } from '../queues/automation.queue';
 import {
   enrichProject,
+  enrichProjectAfterFirstPassWithGPT5,
   enrichProjectWithGPT5,
   enrichProjectsBatchWithGPT5,
   findProjectsWithGPT5
@@ -165,6 +166,37 @@ const projectsFindGPT5 = async (
   }
 };
 
+// Queue GPT-5 project search
+const projectsFindGPT5Queued = async (
+  req: Request<{}, {}, { location: string; buildingType: string }>,
+  res: Response<MessageResponse>,
+  next: NextFunction
+) => {
+  try {
+    const { location, buildingType } = req.body;
+
+    if (!location || !buildingType) {
+      return res.status(400).json({
+        message: 'location and buildingType are required'
+      });
+    }
+
+    const job = await automationQueue.add('project-search', {
+      location,
+      buildingType
+    });
+
+    res.json({
+      message: 'Project search queued',
+      jobId: job.id as string,
+      location,
+      buildingType
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // Batch enrich multiple projects with GPT-5 immediately (for testing)
 const projectEnrichBatchGPT5 = async (
   req: Request<{}, {}, { projectIds: number[] }>,
@@ -187,13 +219,36 @@ const projectEnrichBatchGPT5 = async (
   }
 };
 
+const projectAfterFirstPassEnrichWithGPT5 = async (
+  req: Request<{ id: number }, {}, {}>,
+  res: Response<MessageResponse>,
+  next: NextFunction
+) => {
+  try {
+    const fPProjectId = req.params.id;
+    // Add to queue for background processing
+    const job = await automationQueue.add('enrich-after-first-pass-gpt5', {
+      fPProjectId
+    });
+    res.json({
+      message: 'Project enrichment after first pass with GPT-5 started',
+      jobId: job.id as string,
+      id: fPProjectId
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export {
   projectEnrich,
   projectEnrichImmediate,
   projectEnrichBatch,
   jobStatus,
   projectsFindGPT5,
+  projectsFindGPT5Queued,
   projectEnrichGPT5,
   projectEnrichTavily,
-  projectEnrichBatchGPT5
+  projectEnrichBatchGPT5,
+  projectAfterFirstPassEnrichWithGPT5
 };

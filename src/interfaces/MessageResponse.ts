@@ -3,5 +3,7 @@ export default interface MessageResponse {
   id?: number;
   ids?: number[];
   jobId?: string;
+  location?: string;
   skipped?: any[];
+  buildingType?: string;
 }

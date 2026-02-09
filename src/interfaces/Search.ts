@@ -10,15 +10,24 @@ interface Search {
     | 'architect'
     | 'contractor'
     | 'consultant'
-    | 'company';
+    | 'company'
+    | 'metro_area';
   targetId?: number;
   startedAt: Date;
   finishedAt?: Date | null;
   status: 'running' | 'completed' | 'failed';
   errorText?: string | null;
   sourcesFound?: number;
-  fieldsUpdated?: JSON;
+  fieldsUpdated?: JsonValue;
 }
+
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: JsonValue }
+  | JsonValue[];
 
 interface GetSearch extends RowDataPacket, Search {}
 
