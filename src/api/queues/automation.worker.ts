@@ -1,4 +1,5 @@
 import { Worker } from 'bullmq';
+import { automationQueue } from './automation.queue';
 import { processProjectSearch } from './processors/projectSearch.processor';
 import { processCompanyExtract } from './processors/companyExtract.processor';
 import {
@@ -9,6 +10,43 @@ import {
 const connection = {
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379')
+};
+
+const scheduleProjectSearch = async () => {
+  const cronEnv = process.env.PROJECT_SEARCH_CRON;
+  const cron =
+    cronEnv !== undefined
+      ? cronEnv.trim()
+      : process.env.NODE_ENV === 'development'
+        ? '*/5 * * * *'
+        : undefined;
+
+  if (!cron || cron.toLowerCase() === 'off') {
+    return;
+  }
+
+  const location = process.env.PROJECT_SEARCH_LOCATION || 'Hanoi';
+  const buildingType =
+    process.env.PROJECT_SEARCH_BUILDING_TYPE || 'residential';
+
+  const existing = await automationQueue.getRepeatableJobs();
+  const toRemove = existing.filter((job) => job.name === 'project-search');
+  for (const job of toRemove) {
+    await automationQueue.removeRepeatableByKey(job.key);
+  }
+
+  await automationQueue.add(
+    'project-search',
+    { location, buildingType },
+    {
+      repeat: { pattern: cron },
+      jobId: `project-search:${location}:${buildingType}`
+    }
+  );
+
+  console.log(
+    `Scheduled project-search for ${location} (${buildingType}) on cron ${cron}`
+  );
 };
 
 // Worker for automation queue
@@ -51,5 +89,8 @@ automationWorker.on('completed', (job) => {
 automationWorker.on('failed', (job, err) => {
   console.error(`Job ${job?.id} failed:`, err);
 });
-
+scheduleProjectSearch().catch((err) => {
+  console.error('Failed to schedule project-search job:', err);
+});
+console.log('Automation worker starting');
 console.log('Automation worker started');

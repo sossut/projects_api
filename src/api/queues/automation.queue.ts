@@ -21,5 +21,5 @@ export const automationQueue = new Queue('automation', {
     }
   }
 });
-
+console.log('Initializing Automation queue');
 console.log('Automation queue initialized');

@@ -1,0 +1,44 @@
+version: '3.9'
+services:
+  redis:
+    image: redis:8.4
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+
+  api:
+    build:
+      context: .
+      dockerfile: DockerFile
+    command: npm run dev
+    env_file: .env
+    environment:
+      CHOKIDAR_USEPOLLING: '1'
+      CHOKIDAR_INTERVAL: '1000'
+      NODEMON_LEGACY_WATCH: '1'
+    depends_on:
+      - redis
+    ports:
+      - '5000:5000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+  worker:
+    build:
+      context: .
+      dockerfile: DockerFile
+    command: npx ts-node src/api/queues/automation.worker.ts
+    env_file: .env
+    environment:
+      CHOKIDAR_USEPOLLING: '1'
+      CHOKIDAR_INTERVAL: '1000'
+      NODEMON_LEGACY_WATCH: '1'
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  redis_data:
