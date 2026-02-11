@@ -140,6 +140,16 @@ const projectGetFormatted = async (
             email: cont.contact?.email ?? cont.email
           }
         })) || [],
+      consultants:
+        project.consultants?.map((cons: any) => ({
+          name: cons.name,
+          source: cons.source,
+          website: cons.contact?.website ?? cons.website,
+          contact: {
+            phone: cons.contact?.phone ?? cons.phone,
+            email: cons.contact?.email ?? cons.email
+          }
+        })) || [],
       media: project.projectMedias,
       sources: project.sourceLinks
     };

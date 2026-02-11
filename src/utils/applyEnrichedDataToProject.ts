@@ -93,6 +93,20 @@ import { Architect } from '../interfaces/Architect';
 import { Contractor } from '../interfaces/Contractor';
 import { ProjectMedia } from '../interfaces/ProjectMedia';
 import { postSourceLink } from '../api/models/sourceLinkModel';
+import {
+  checkConsultantExistsByName,
+  postConsultant,
+  putConsultant
+} from '../api/models/consultantModel';
+import {
+  checkProjectConsultantExists,
+  postProjectConsultant
+} from '../api/models/projectConstultantModel';
+import {
+  checkConsultantsPresenceExists,
+  postConsultantsPresence
+} from '../api/models/consultantsPresenceModel';
+import { Consultant } from '../interfaces/Consultant';
 
 const applyEnrichedDataToProject = async (
   projectId: number,
@@ -375,6 +389,74 @@ const applyEnrichedDataToProject = async (
         }
       } catch (error) {
         console.warn(`Failed to add contractor ${cont.name}:`, error);
+      }
+    }
+  }
+  //Update consultants
+  const newConsultants = [];
+  if (enrichedData.consultants?.length) {
+    for (const cons of enrichedData.consultants) {
+      if (!cons.name) continue;
+      try {
+        let consId = await checkConsultantExistsByName(cons.name);
+        if (consId === 0) {
+          consId = await postConsultant({
+            name: cons.name,
+            website: cons.website || null,
+            hqCountryId: countryId !== 0 ? countryId : null,
+            email: cons.contact?.email || null,
+            phone: cons.contact?.phone || null
+          });
+          const linkExists = await checkProjectConsultantExists(
+            projectId,
+            consId
+          );
+          if (!linkExists) {
+            await postProjectConsultant({
+              projectId,
+              consultantId: consId,
+              source: cons.source
+            });
+            newConsultants.push({ id: consId, name: cons.name });
+          }
+          if (countryId !== 0) {
+            const presenceExists = await checkConsultantsPresenceExists(
+              consId as number,
+              countryId
+            );
+            if (!presenceExists) {
+              await postConsultantsPresence({
+                consultantId: consId as number,
+                countryId
+              });
+            }
+          }
+        } else {
+          // Update existing consultant
+          await putConsultant(
+            {
+              name: cons.name,
+              website: cons.website || null,
+              email: cons.contact?.email || null,
+              phone: cons.contact?.phone || null
+            },
+            consId as number
+          );
+          const linkExists = await checkProjectConsultantExists(
+            projectId,
+            consId as number
+          );
+          if (!linkExists) {
+            await postProjectConsultant({
+              projectId,
+              consultantId: consId as number,
+              source: cons.source
+            });
+            newConsultants.push({ id: consId, name: cons.name });
+          }
+        }
+      } catch (error) {
+        console.warn(`Failed to add consultant ${cons.name}:`, error);
       }
     }
   }
@@ -780,6 +862,42 @@ const addNewProjectToDB = async (proj: any, changeType?: string) => {
         if (!contractorPresenceExists) {
           await postContractorsPresence({
             contractorId: contractorId,
+            countryId: countryID
+          });
+        }
+      }
+    }
+    for (const consultant of proj.consultants || []) {
+      const consultantExists = await checkConsultantExistsByName(
+        consultant.name
+      );
+      let consultantId = consultantExists;
+      if (consultantExists === 0) {
+        const c: Consultant = {
+          name: consultant.name,
+          website: consultant.website,
+          hqCountryId: null,
+          email: consultant.contact?.email,
+          phone: consultant.contact?.phone
+        };
+        consultantId = await postConsultant(c);
+      }
+      if (consultantId === 0) {
+        throw new CustomError('Failed to create consultant', 500);
+      }
+      await postProjectConsultant({
+        projectId: projectId,
+        consultantId: consultantId as number,
+        source: consultant.source as string
+      });
+      if (countryID !== 0) {
+        const consultantPresenceExists = await checkConsultantsPresenceExists(
+          consultantId as number,
+          countryID
+        );
+        if (!consultantPresenceExists) {
+          await postConsultantsPresence({
+            consultantId: consultantId as number,
             countryId: countryID
           });
         }

@@ -128,6 +128,20 @@ export const ProjectSchema = z.object({
     )
     .default([]),
 
+  consultants: z
+    .array(
+      z.object({
+        name: z.string().default(''),
+        website: z.string().default(''),
+        contact: z.object({
+          email: z.string().default(''),
+          phone: z.string().default('')
+        }),
+        source: z.string().default('')
+      })
+    )
+    .default([]),
+
   media: z
     .array(
       z.object({

@@ -9,6 +9,7 @@ import {
 
 import CustomError from '../../classes/CustomError';
 import { ResultSetHeader } from 'mysql2';
+import { toSnake } from '../../utils/utilities';
 
 const getAllSearches = async (): Promise<Search[]> => {
   const [rows] = await promisePool.query<GetSearch[]>(
@@ -65,8 +66,9 @@ const putSearch = async (
   searchData: PutSearch,
   id: number
 ): Promise<boolean> => {
+  const snakeCaseData = toSnake(searchData) as any;
   const sql = promisePool.format('UPDATE searches SET ? WHERE id = ?', [
-    searchData,
+    snakeCaseData,
     id
   ]);
   const [headers] = await promisePool.query<ResultSetHeader>(sql);

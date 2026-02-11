@@ -8,6 +8,7 @@ import { Contractor } from './Contractor';
 import { ProjectMedia } from './ProjectMedia';
 import { SourceLink } from './SourceLink';
 import { Country } from './Country';
+import { Consultant } from './Consultant';
 
 interface Project {
   id?: number;
@@ -58,6 +59,7 @@ interface Project {
   developers?: Developer[];
   architects?: Architect[];
   contractors?: Contractor[];
+  consultants?: Consultant[];
   media?: ProjectMedia[];
   sources?: SourceLink[];
   projects?: Project[];

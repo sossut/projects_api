@@ -14,6 +14,15 @@ import {
   postBuildingUse
 } from '../api/models/buildingUseModel';
 import {
+  checkConsultantExistsByName,
+  postConsultant,
+  putConsultant
+} from '../api/models/consultantModel';
+import {
+  checkConsultantsPresenceExists,
+  postConsultantsPresence
+} from '../api/models/consultantsPresenceModel';
+import {
   checkContractorExistsByName,
   postContractor,
   putContractor
@@ -38,6 +47,7 @@ import {
   checkProjectBuildingUseExists,
   postProjectBuildingUse
 } from '../api/models/projectBuildingUseModel';
+import { postProjectConsultant } from '../api/models/projectConstultantModel';
 import { postProjectContractor } from '../api/models/projectContractorModel';
 import { postProjectDeveloper } from '../api/models/projectDeveloperModel';
 import {
@@ -125,6 +135,16 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
         contact: {
           phone: cont.contact?.phone ?? cont.phone,
           email: cont.contact?.email ?? cont.email
+        }
+      })) || [],
+    consultants:
+      p.consultants?.map((cons: any) => ({
+        name: cons.name,
+        source: cons.source,
+        website: cons.contact?.website ?? cons.website,
+        contact: {
+          phone: cons.contact?.phone ?? cons.phone,
+          email: cons.contact?.email ?? cons.email
         }
       })) || [],
     media: p.projectMedias,
@@ -403,6 +423,61 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
           fieldName: 'architects.updated',
           oldValue: JSON.stringify(oldA),
           newValue: JSON.stringify(newA),
+          changeType: 'manual',
+          changedBy: null
+        });
+      }
+    }
+  }
+
+  //Audit Consultants
+  // (Similar to architects, developers, contractors - omitted for brevity)
+  const oldConsultants = formattedProjectOld.consultants || [];
+  const newConsultants = req.body.consultants || [];
+  const oldConsultantMap = new Map();
+  for (const c of oldConsultants) {
+    oldConsultantMap.set(c.name, c);
+  }
+  const newConsultantMap = new Map();
+  for (const c of newConsultants) {
+    newConsultantMap.set(c.name, c);
+  }
+  // Detect removals
+  for (const [name, oldC] of oldConsultantMap.entries()) {
+    if (!newConsultantMap.has(name)) {
+      await postProjectAudit({
+        projectId: projectId as number,
+        fieldName: 'consultants.removed',
+        oldValue: JSON.stringify(oldC),
+        newValue: null,
+        changeType: 'manual',
+        changedBy: null
+      });
+    }
+  }
+  // Detect additions
+  for (const [name, newC] of newConsultantMap.entries()) {
+    if (!oldConsultantMap.has(name)) {
+      await postProjectAudit({
+        projectId: projectId as number,
+        fieldName: 'consultants.added',
+        oldValue: null,
+        newValue: JSON.stringify(newC),
+        changeType: 'manual',
+        changedBy: null
+      });
+    }
+  }
+  // Detect updates
+  for (const [name, oldC] of oldConsultantMap.entries()) {
+    if (newConsultantMap.has(name)) {
+      const newC = newConsultantMap.get(name);
+      if (JSON.stringify(oldC) !== JSON.stringify(newC)) {
+        await postProjectAudit({
+          projectId: projectId as number,
+          fieldName: 'consultants.updated',
+          oldValue: JSON.stringify(oldC),
+          newValue: JSON.stringify(newC),
           changeType: 'manual',
           changedBy: null
         });
@@ -689,6 +764,53 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
       );
     }
   }
+  for (const consultant of req.body.consultants || []) {
+    const checkedConsultant = await checkConsultantExistsByName(
+      consultant.name
+    );
+    let consultantId = checkedConsultant;
+    if (checkedConsultant === 0) {
+      if (consultant.name) {
+        consultantId = await postConsultant({
+          name: consultant.name,
+          website: consultant.website,
+          hqCountryId: null,
+          email: consultant.contact?.email,
+          phone: consultant.contact?.phone
+        });
+        await postProjectConsultant({
+          projectId: projectId as number,
+          consultantId: consultantId,
+          source: consultant.source as string
+        });
+        if (countryId !== 0) {
+          const consultantPresenceExists = await checkConsultantsPresenceExists(
+            consultantId,
+            countryId
+          );
+          if (!consultantPresenceExists) {
+            await postConsultantsPresence({
+              consultantId: consultantId,
+              countryId: countryId
+            });
+          }
+        }
+      }
+    } else {
+      // Update existing consultant details
+      await putConsultant(
+        {
+          name: consultant.name,
+          website: consultant.website,
+          // hqCountryId: null,
+          email: consultant.contact?.email,
+          phone: consultant.contact?.phone
+        },
+        consultantId as number
+      );
+    }
+  }
+
   for (const media of req.body.media || []) {
     if (!media.url) continue;
     const checkMedia = await checkProjectMediaExistsByUrl(media.url);

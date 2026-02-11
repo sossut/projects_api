@@ -273,6 +273,16 @@ export const enrichProjectWithGPT5 = async (projectId: number) => {
             email: cont.contact?.email ?? cont.email
           }
         })) || [],
+      consultans:
+        project.consultants?.map((cons: any) => ({
+          name: cons.name,
+          source: cons.source,
+          website: cons.contact?.website ?? cons.website,
+          contact: {
+            phone: cons.contact?.phone ?? cons.phone,
+            email: cons.contact?.email ?? cons.email
+          }
+        })) || [],
       media: project.projectMedias,
       sources: project.sourceLinks
     };
@@ -365,6 +375,17 @@ export const enrichProjectAfterFirstPassWithGPT5 = async (
         }
       ],
       contractors: [
+        {
+          name: null,
+          source: null,
+          website: null,
+          contact: {
+            phone: null,
+            email: null
+          }
+        }
+      ],
+      consultans: [
         {
           name: null,
           source: null,
