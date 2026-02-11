@@ -1,4 +1,39 @@
+import Fuse from 'fuse.js';
+import { getAllMetroAreas } from '../api/models/metroAreaModel';
+
+/**
+ * Find metro area ID by fuzzy matching normalized name.
+ * Returns metro area ID or null if not found.
+ */
 import CustomError from '../classes/CustomError';
+/**
+ * Normalize metro area names for robust matching.
+ * Removes common suffixes/prefixes and lowercases/trims.
+ * Example: "Greater Toronto Area (GTA)" → "toronto"
+ */
+const normalizeMetroAreaName = (name: string): string => {
+  return name
+    .toLowerCase()
+    .replace(/(metropolitan area|region|greater|area|\(.*\))/gi, '')
+    .replace(/[.,]/g, '')
+    .trim();
+};
+
+const findMetroAreaIdByName = async (
+  inputName: string
+): Promise<number | null> => {
+  const metroAreas = await getAllMetroAreas(); // [{ id, name }]
+  const fuse = new Fuse(
+    metroAreas.map((ma) => ({
+      ...ma,
+      normalized: normalizeMetroAreaName(ma.name)
+    })),
+    { keys: ['normalized'], threshold: 0.3 }
+  );
+  const normalizedInput = normalizeMetroAreaName(inputName);
+  const result = fuse.search(normalizedInput);
+  return result.length && result[0].item.id !== undefined ? result[0].item.id : null;
+};
 
 const toSnake = (obj: Record<string, any>) => {
   const out: Record<string, any> = {};
@@ -129,4 +164,11 @@ const parseToStandardDate = (dateStr: string | null): string | null => {
   return null;
 };
 
-export { toSnake, toCamel, throwIfValidationErrors, parseToStandardDate };
+export {
+  normalizeMetroAreaName,
+  findMetroAreaIdByName,
+  toSnake,
+  toCamel,
+  throwIfValidationErrors,
+  parseToStandardDate
+};

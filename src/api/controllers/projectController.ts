@@ -224,10 +224,10 @@ const projectPost = async (
     const skippedProjects: string[] = [];
 
     for (const proj of req.body.projects || []) {
-      const projectId = await addNewProjectToDB(proj);
+      const project = await addNewProjectToDB(proj, 'manual');
 
-      if (projectId) {
-        createdProjectIds.push(projectId);
+      if (project) {
+        createdProjectIds.push(project.projectId as number);
       }
     }
 

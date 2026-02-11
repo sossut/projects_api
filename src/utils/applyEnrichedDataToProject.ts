@@ -1,3 +1,4 @@
+import { postProjectAudit } from '../api/models/projectAuditModel';
 import {
   getAddressByProjectId,
   postAddress,
@@ -33,10 +34,7 @@ import {
   checkContinentExistsByName,
   postContinent
 } from '../api/models/continentModel';
-import {
-  checkMetroAreaExistsByName,
-  postMetroArea
-} from '../api/models/metroAreaModel';
+import { postMetroArea } from '../api/models/metroAreaModel';
 import { checkCityExistsByName, postCity } from '../api/models/cityModel';
 import {
   checkDeveloperExistsByName,
@@ -77,7 +75,7 @@ import {
   postProjectWebsite
 } from '../api/models/projectWebsiteModel';
 import { Address } from '../interfaces/Address';
-import { parseToStandardDate } from './utilities';
+import { findMetroAreaIdByName, parseToStandardDate } from './utilities';
 import CustomError from '../classes/CustomError';
 import { Continent } from '../interfaces/Continent';
 import { Country } from '../interfaces/Country';
@@ -96,15 +94,11 @@ import { Contractor } from '../interfaces/Contractor';
 import { ProjectMedia } from '../interfaces/ProjectMedia';
 import { postSourceLink } from '../api/models/sourceLinkModel';
 
-const applyEnrichedDataToProject = async ({
-  projectId,
-  project,
-  enrichedData
-}: {
-  projectId: number;
-  project: any;
-  enrichedData: any;
-}) => {
+const applyEnrichedDataToProject = async (
+  projectId: number,
+  project: any,
+  enrichedData: any
+) => {
   // Prepare updates
   const updates: any = {};
   const timeNow = new Date();
@@ -452,8 +446,25 @@ const applyEnrichedDataToProject = async ({
 
   // Update project
   updates.lastVerifiedDate = timeNow;
+  let updated = false;
   if (Object.keys(updates).length > 0) {
     await putProject(updates, projectId);
+    updated = true;
+  }
+
+  // Log project enrichment in project audits
+  try {
+    await postProjectAudit({
+      projectId,
+      searchId: null,
+      fieldName: 'project.enriched',
+      oldValue: null,
+      newValue: JSON.stringify(enrichedData),
+      changeType: 'automated',
+      changedBy: null
+    });
+  } catch (err) {
+    console.warn('Failed to log project enrichment audit:', err);
   }
 
   return {
@@ -464,11 +475,13 @@ const applyEnrichedDataToProject = async ({
     newArchitects: newArchitects.length,
     newContractors: newContractors.length,
     newMedia: newMedia.length,
-    updates
+    updates,
+    auditLogged: true,
+    updated
   };
 };
 
-const addNewProjectToDB = async (proj: any) => {
+const addNewProjectToDB = async (proj: any, changeType?: string) => {
   try {
     if (!proj.name || !proj.location) {
       throw new CustomError('Project name and location are required', 400);
@@ -532,15 +545,13 @@ const addNewProjectToDB = async (proj: any) => {
       countryId: countryID,
       lastSearchedAt: timeNow
     };
-    const metroAreaExists = await checkMetroAreaExistsByName(
-      proj.location.metroArea
-    );
-    let metroAreaId = metroAreaExists;
-    if (metroAreaExists === 0) {
+    let metroAreaId = await findMetroAreaIdByName(proj.location.metroArea);
+
+    if (!metroAreaId) {
       metroAreaId = await postMetroArea(metroArea);
     }
 
-    if (metroAreaId === 0) {
+    if (!metroAreaId) {
       throw new CustomError('Failed to create metro area', 500);
     }
 
@@ -548,7 +559,7 @@ const addNewProjectToDB = async (proj: any) => {
     let cityId = cityExists;
     const city: City = {
       name: proj.location.city,
-      metroAreaId: metroAreaId
+      metroAreaId: metroAreaId as number
     };
     if (cityExists === 0) {
       cityId = await postCity(city);
@@ -622,6 +633,27 @@ const addNewProjectToDB = async (proj: any) => {
     };
     console.log(project);
     const projectId = await postProject(project);
+    // Log project creation in project audits
+    if (changeType === 'manual') {
+      await postProjectAudit({
+        projectId,
+        searchId: null,
+        fieldName: 'project.added',
+        oldValue: null,
+        newValue: JSON.stringify(proj),
+        changeType: 'manual',
+        changedBy: null
+      });
+    }
+    await postProjectAudit({
+      projectId,
+      searchId: null,
+      fieldName: 'project.added',
+      oldValue: null,
+      newValue: JSON.stringify(proj),
+      changeType: 'automated',
+      changedBy: null
+    });
     for (const url of proj.projectWebsites || []) {
       await postProjectWebsite({ projectId: projectId, url: url });
     }
@@ -773,9 +805,32 @@ const addNewProjectToDB = async (proj: any) => {
         accessedAt: source.accessedAt
       });
     }
-    return projectId;
+    // Compose a detailed result object
+    return {
+      projectId,
+      projectName: proj.name,
+      location: proj.location,
+      buildingType: proj.buildingType,
+      status: proj.status,
+      budgetEur: proj.budgetEur,
+      glassFacade: proj.glassFacade,
+      lastVerifiedDate: proj.lastVerifiedDate,
+      developers: proj.developers?.map((d: any) => d.name) || [],
+      architects: proj.architects?.map((a: any) => a.name) || [],
+      contractors: proj.contractors?.map((c: any) => c.name) || [],
+      media: proj.media?.map((m: any) => m.url) || [],
+      projectWebsites: proj.projectWebsites || [],
+      sources: proj.sources || [],
+      auditLogged: true,
+      created: true
+    };
   } catch (error) {
     console.warn('Failed to add project:', error);
+    return {
+      projectId: null,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      created: false
+    };
   }
 };
 

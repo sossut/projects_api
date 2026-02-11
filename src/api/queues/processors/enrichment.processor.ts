@@ -1,6 +1,7 @@
 import { Job } from 'bullmq';
 import {
   enrichProject,
+  enrichProjectAfterFirstPassWithGPT5,
   enrichProjectsBatch
 } from '../../services/automation.service';
 import { postSearch, putSearch } from '../../models/searchModel';
@@ -110,6 +111,48 @@ export const processBatchEnrichment = async (job: Job) => {
       }
     }
 
+    throw error;
+  }
+};
+
+export const processFirstPassProjectEnrichment = async (job: Job) => {
+  const { firstPassProjectId } = job.data;
+
+  console.log(
+    `Processing first pass enrichment for project ID: ${firstPassProjectId}`
+  );
+
+  await job.updateProgress(10);
+  try {
+    const newSearch = await postSearch({
+      targetType: 'project_first_pass',
+      targetId: firstPassProjectId,
+      startedAt: new Date()
+    });
+    const result =
+      await enrichProjectAfterFirstPassWithGPT5(firstPassProjectId);
+
+    await job.updateProgress(100);
+
+    if (result) {
+      await putSearch(
+        {
+          finishedAt: new Date(),
+          status: 'completed',
+          fieldsUpdated: Object.keys(result) as any[]
+        },
+        newSearch
+      );
+    }
+    return {
+      success: true,
+      ...result
+    };
+  } catch (error) {
+    console.error(
+      `First pass enrichment failed for project ${firstPassProjectId}:`,
+      error
+    );
     throw error;
   }
 };

@@ -178,7 +178,7 @@ router
     body('name').optional().isString().notEmpty().escape(),
     body('buildingType').optional().isString().notEmpty().escape(),
     body('buildingUse').optional().isArray({ min: 1 }),
-    body('buildingUse.*').isString().notEmpty().escape(),
+    body('buildingUse.*').isObject().notEmpty().escape(),
     body('buildingHeightMeters')
       .if((value) => value !== null && value !== undefined)
       .isFloat({ min: 0 })

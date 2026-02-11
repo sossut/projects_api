@@ -27,11 +27,11 @@ router.post('/enrich/:id/immediate', projectEnrichImmediate);
 
 // Test Tavily enrichment
 router.post('/enrich/:id/tavily', projectEnrichTavily);
-// Test GPT-5 project search
+// Find Projects no worker
 router.post('/find-projects/gpt5', projectsFindGPT5);
 // Queue GPT-5 project search
 router.post('/find-projects/gpt5/queue', projectsFindGPT5Queued);
-// Test GPT-5 batch enrichment
+// Enrich projects no worker
 router.post('/enrich-batch/gpt5', projectEnrichBatchGPT5);
 
 // Batch enrich projects

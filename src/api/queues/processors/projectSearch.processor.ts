@@ -4,7 +4,7 @@ import {
   findProjectsWithGPT5
 } from '../../services/automation.service';
 import { postSearch, putSearch } from '../../models/searchModel';
-import { checkMetroAreaExistsByName } from '../../models/metroAreaModel';
+import { findMetroAreaIdByName } from '../../../utils/utilities';
 
 // BullMQ processor for project search jobs
 export const processProjectSearch = async (job: Job) => {
@@ -24,11 +24,12 @@ export const processProjectSearch = async (job: Job) => {
   try {
     // Posting to searches table
     let searchId;
-    const metroAreadId = await checkMetroAreaExistsByName(location);
-    if (location && metroAreadId) {
+
+    const metroAreaId = await findMetroAreaIdByName(location);
+    if (location && metroAreaId) {
       searchId = await postSearch({
         targetType: 'metro_area',
-        targetId: metroAreadId,
+        targetId: metroAreaId || 0,
         startedAt: new Date()
       });
     }

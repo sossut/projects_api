@@ -4,7 +4,8 @@ import { processProjectSearch } from './processors/projectSearch.processor';
 import { processCompanyExtract } from './processors/companyExtract.processor';
 import {
   processProjectEnrichment,
-  processBatchEnrichment
+  processBatchEnrichment,
+  processFirstPassProjectEnrichment
 } from './processors/enrichment.processor';
 
 const connection = {
@@ -70,13 +71,7 @@ export const automationWorker = new Worker(
         return processBatchEnrichment(job);
 
       case 'enrich-after-first-pass-gpt5':
-        // Import here to avoid circular dependency at top
-        const {
-          enrichProjectAfterFirstPassWithGPT5
-        } = require('../services/automation.service');
-        return enrichProjectAfterFirstPassWithGPT5(
-          Number(job.data.fPProjectId)
-        );
+        return processFirstPassProjectEnrichment(job);
 
       default:
         throw new Error(`Unknown job type: ${job.name}`);
