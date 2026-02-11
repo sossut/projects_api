@@ -32,6 +32,7 @@ const getAllProjects = async (
   filters?: { [key: string]: string | number }
 ): Promise<Project[]> => {
   // Whitelist allowed sort fields to prevent SQL injection
+  console.log(order);
   const allowedFields = [
     'id',
     'expected_date',

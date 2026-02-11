@@ -90,7 +90,8 @@ const projectListGet = async (
 ) => {
   try {
     const sortBy = req.query.sortBy as string | undefined;
-    const order = req.query.order as 'asc' | 'desc' | undefined;
+    const order =
+      (req.query.order as 'asc' | 'desc' | undefined)?.toLowerCase() || 'asc';
 
     // Build filters object from query params
     const filters: { [key: string]: string | number } = {};
