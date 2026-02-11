@@ -116,21 +116,20 @@ export const processBatchEnrichment = async (job: Job) => {
 };
 
 export const processFirstPassProjectEnrichment = async (job: Job) => {
-  const { firstPassProjectId } = job.data;
+  const { fPProjectId } = job.data;
 
   console.log(
-    `Processing first pass enrichment for project ID: ${firstPassProjectId}`
+    `Processing first pass enrichment for project ID: ${fPProjectId}`
   );
 
   await job.updateProgress(10);
   try {
     const newSearch = await postSearch({
       targetType: 'project_first_pass',
-      targetId: firstPassProjectId,
+      targetId: fPProjectId,
       startedAt: new Date()
     });
-    const result =
-      await enrichProjectAfterFirstPassWithGPT5(firstPassProjectId);
+    const result = await enrichProjectAfterFirstPassWithGPT5(fPProjectId);
 
     await job.updateProgress(100);
 
@@ -139,7 +138,7 @@ export const processFirstPassProjectEnrichment = async (job: Job) => {
         {
           finishedAt: new Date(),
           status: 'completed',
-          fieldsUpdated: Object.keys(result) as any[]
+          fieldsUpdated: JSON.stringify(Object.keys(result))
         },
         newSearch
       );
@@ -150,7 +149,7 @@ export const processFirstPassProjectEnrichment = async (job: Job) => {
     };
   } catch (error) {
     console.error(
-      `First pass enrichment failed for project ${firstPassProjectId}:`,
+      `First pass enrichment failed for project ${fPProjectId}:`,
       error
     );
     throw error;

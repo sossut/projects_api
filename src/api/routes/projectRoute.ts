@@ -5,7 +5,8 @@ import {
   projectPost,
   projectPut,
   projectDelete,
-  projectGetFormatted
+  projectGetFormatted,
+  projectPutWithoutIdParam
 } from '../controllers/projectController';
 import { body, param } from 'express-validator';
 import passport from 'passport';
@@ -165,6 +166,156 @@ router
     body('projects.*.sources.*.accessedAt').optional().isISO8601().toDate(),
     projectPost
   );
+router.route('/edit').put(
+  // passport.authenticate('jwt', { session: false }),
+  body('id').isInt({ gt: 0 }).toInt(),
+  body('name').optional().isString().notEmpty().escape(),
+  body('buildingType').optional().isString().notEmpty().escape(),
+  body('buildingUse').optional().isArray({ min: 1 }),
+  body('buildingUse.*').isObject().notEmpty().escape(),
+  body('buildingHeightMeters')
+    .if((value) => value !== null && value !== undefined)
+    .isFloat({ min: 0 })
+    .toFloat(),
+  body('buildingHeightFloors')
+    .optional()
+    .isInt({ min: 0 })
+    .toInt()
+    .customSanitizer((value) => (value === null ? null : value)),
+  body('glassFacade')
+    .optional()
+    .isIn(['yes', 'no', 'unknown', null, 'null', true, false, 0, 1]),
+  body('facadeBasis').optional().isString().notEmpty().escape(),
+  body('status')
+    .optional()
+    .isIn([
+      'planned',
+      'approved',
+      'proposed',
+      'on_hold',
+      'under_construction',
+      'completed',
+      'cancelled'
+    ]),
+  body('budgetEur').optional({ nullable: true }).isFloat({ gt: 0 }).toFloat(),
+  body('expectedCompletionWindow').optional().isObject(),
+  body('expectedCompletionWindow.expected')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .customSanitizer((value) =>
+      typeof value === 'number' ? value.toString() : value
+    )
+    .isString()
+    .escape(),
+  body('expectedCompletionWindow.earliest')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .customSanitizer((value) =>
+      typeof value === 'number' ? value.toString() : value
+    )
+    .isString()
+    .escape(),
+  body('expectedCompletionWindow.latest')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .customSanitizer((value) =>
+      typeof value === 'number' ? value.toString() : value
+    )
+    .isString()
+    .escape(),
+  body('location').optional().isObject(),
+  body('location.continent')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('location.country')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('location.city')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('location.metroArea')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('location.address')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('location.postcode')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('projectWebsites').optional().isArray(),
+  body('projectWebsites.*')
+    .custom((value) => {
+      if (typeof value === 'string') return true;
+      if (typeof value === 'object' && value.url) return true;
+      throw new Error('Must be a URL string or object with url property');
+    })
+    .customSanitizer((value) =>
+      typeof value === 'string' ? value : value.url
+    ),
+  body('developers').optional().isArray(),
+  body('developers.*.name')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('developers.*.website')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .isURL(),
+  body('developers.*.contact').optional().isObject(),
+  body('developers.*.contact.email')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isEmail()
+    .normalizeEmail(),
+  body('developers.*.contact.phone')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('architects').optional().isArray(),
+  body('architects.*.name')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('architects.*.website')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .isURL(),
+  body('architects.*.contact').optional().isObject(),
+  body('architects.*.contact.email')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isEmail()
+    .normalizeEmail(),
+  body('architects.*.contact.phone')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('contractors').optional().isArray(),
+  body('contractors.*.name')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('contractors.*.website')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .isURL(),
+  body('contractors.*.contact').optional().isObject(),
+  body('contractors.*.contact.email')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isEmail()
+    .normalizeEmail(),
+  body('contractors.*.contact.phone')
+    .if((value) => value !== null && value !== undefined && value !== '')
+    .isString()
+    .escape(),
+  body('sources').optional().isArray(),
+  body('sources.*.url').isString().notEmpty().isURL(),
+  body('sources.*.sourceType').optional().isString().notEmpty().escape(),
+  body('sources.*.publisher').optional().isString().notEmpty().escape(),
+  body('sources.*.accessedAt').optional().isISO8601().toDate(),
+  projectPutWithoutIdParam
+);
 router
   .route('/:id')
   .get(
@@ -333,4 +484,5 @@ router.route('/formatted/:id').get(
   param('id').isInt({ gt: 0 }).toInt(),
   projectGetFormatted
 );
+
 export default router;

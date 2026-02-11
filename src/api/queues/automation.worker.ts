@@ -55,6 +55,7 @@ const scheduleProjectSearch = async () => {
 export const automationWorker = new Worker(
   'automation',
   async (job) => {
+    console.log(job);
     console.log(`Processing job ${job.id} of type ${job.name}`);
 
     switch (job.name) {
