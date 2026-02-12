@@ -21,6 +21,7 @@ const parseProjectRows = (rows: GetProject[]): Project[] => {
     developers: JSON.parse(row.developers as unknown as string),
     architects: JSON.parse(row.architects as unknown as string),
     contractors: JSON.parse(row.contractors as unknown as string),
+    consultants: JSON.parse(row.consultants as unknown as string),
     projectMedias: JSON.parse(row.projectMedias as unknown as string),
     sourceLinks: JSON.parse(row.sourceLinks as unknown as string)
   }));

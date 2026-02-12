@@ -74,6 +74,16 @@ const projectsQueryString = `SELECT projects.id, projects.name,
           )
         ), ']') AS contractors,
     CONCAT('[', GROUP_CONCAT(DISTINCT
+    JSON_OBJECT(
+      'id', consultants.id,
+      'name', consultants.name,
+      'website', consultants.website,
+      'phone', consultants.phone,
+      'email', consultants.email,
+      'source', project_consultants.source
+          )
+        ), ']') AS consultants, 
+    CONCAT('[', GROUP_CONCAT(DISTINCT
       JSON_OBJECT(
         'id', project_medias.id,
         'mediaType', project_medias.media_type,
@@ -107,6 +117,8 @@ const projectsQueryString = `SELECT projects.id, projects.name,
     LEFT JOIN architects ON project_architects.architect_id = architects.id
     LEFT JOIN project_contractors ON projects.id = project_contractors.project_id
     LEFT JOIN contractors ON project_contractors.contractor_id = contractors.id
+    LEFT JOIN project_consultants ON projects.id = project_consultants.project_id
+    LEFT JOIN consultants ON project_consultants.consultant_id = consultants.id
     LEFT JOIN project_medias ON projects.id = project_medias.project_id
     LEFT JOIN source_links ON projects.id = source_links.project_id`;
 
