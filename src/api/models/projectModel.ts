@@ -129,6 +129,27 @@ const getProject = async (id: number): Promise<Project> => {
   return parseProjectRows(rows)[0];
 };
 
+const getProjectNamesByMetroAreaAndBuildingType = async (
+  metroAreaId: number,
+  buildingTypeId: number
+): Promise<string[]> => {
+  const [rows] = await promisePool.query<GetProject[]>(
+    `SELECT projects.name
+    FROM projects
+    JOIN addresses ON projects.address_id = addresses.id
+    JOIN cities ON addresses.city_id = cities.id
+    JOIN metro_areas ON cities.metro_area_id = metro_areas.id
+    JOIN building_types ON projects.building_type_id = building_types.id
+    WHERE metro_areas.id = ?
+    AND building_types.id = ?`,
+    [metroAreaId, buildingTypeId]
+  );
+  if (rows.length === 0) {
+    return [];
+  }
+  return rows.map((row) => row.name);
+};
+
 const checkIfProjectExistsByKey = async (
   projectKey: string
 ): Promise<boolean> => {
@@ -201,6 +222,7 @@ const deleteProject = async (id: number): Promise<boolean> => {
 export {
   getAllProjects,
   getProject,
+  getProjectNamesByMetroAreaAndBuildingType,
   checkIfProjectExistsByKey,
   postProject,
   putProject,

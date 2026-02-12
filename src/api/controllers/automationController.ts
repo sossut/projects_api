@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/indent */
 import { Request, Response, NextFunction } from 'express';
 import { automationQueue } from '../queues/automation.queue';
 import {
@@ -9,6 +10,9 @@ import {
 } from '../services/automation.service';
 import { enrichProjectWithTavily } from '../services/enrichmentTavily.service';
 import MessageResponse from '../../interfaces/MessageResponse';
+import { checkCountryExistsByName } from '../models/countryModel';
+import { findMetroAreaIdByName } from '../../utils/utilities';
+import { postMetroArea } from '../models/metroAreaModel';
 
 // Trigger project enrichment job
 const projectEnrich = async (
@@ -111,6 +115,24 @@ const jobStatus = async (
   }
 };
 
+const stopJob = async (
+  req: Request<{ jobId: string }>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { jobId } = req.params;
+    const job = await automationQueue.getJob(jobId);
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+    await job.remove();
+    res.json({ message: 'Job stopped and removed', jobId });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // Enrich project with GPT-5 immediately (for testing)
 const projectEnrichGPT5 = async (
   req: Request<{ id: number }, {}, {}>,
@@ -168,28 +190,59 @@ const projectsFindGPT5 = async (
 
 // Queue GPT-5 project search
 const projectsFindGPT5Queued = async (
-  req: Request<{}, {}, { location: string; buildingType: string }>,
+  req: Request<
+    {},
+    {},
+    { location: string; buildingType: string; country: string }
+  >,
   res: Response<MessageResponse>,
   next: NextFunction
 ) => {
   try {
-    const { location, buildingType } = req.body;
+    const { location, buildingType, country } = req.body;
 
-    if (!location || !buildingType) {
+    if (!location || !buildingType || !country) {
       return res.status(400).json({
-        message: 'location and buildingType are required'
+        message: 'location, buildingType, and country are required'
+      });
+    }
+    let countryId = await checkCountryExistsByName(country);
+    if (countryId === 0) {
+      return res.status(400).json({
+        message: `Country '${country}' not found`
       });
     }
 
+    // Accept only 'Greater <location> Area' or '<location> Metropolitan Area' formats, otherwise append 'Metropolitan Area'
+    let formattedLocation = location.trim();
+    const greaterAreaPattern = /^Greater\s+.+\s+Area$/i;
+    const metroAreaPattern = /^.+\s+Metropolitan\s+Area$/i;
+    if (
+      !greaterAreaPattern.test(formattedLocation) &&
+      !metroAreaPattern.test(formattedLocation)
+    ) {
+      res.json({
+        message: `Location '${location}' does not match expected formats. Please use 'Greater <location> Area' or '<location> Metropolitan Area'.`
+      });
+      return;
+    }
+    let metroAreaId = await findMetroAreaIdByName(formattedLocation);
+    if (!metroAreaId) {
+      metroAreaId = await postMetroArea({
+        name: formattedLocation,
+        countryId,
+        lastSearchedAt: new Date(Date.now())
+      });
+    }
     const job = await automationQueue.add('project-search', {
-      location,
+      location: formattedLocation,
       buildingType
     });
 
     res.json({
       message: 'Project search queued',
       jobId: job.id as string,
-      location,
+      location: formattedLocation,
       buildingType
     });
   } catch (err) {
@@ -265,6 +318,7 @@ export {
   projectEnrichImmediate,
   projectEnrichBatch,
   jobStatus,
+  stopJob,
   projectsFindGPT5,
   projectsFindGPT5Queued,
   projectEnrichGPT5,

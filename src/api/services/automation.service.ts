@@ -20,6 +20,7 @@ import { enrichProjectWithTavily } from './enrichmentTavily.service';
 
 import {
   getProjectFirstPass,
+  getProjectFirstPassNamesByMetroAreaAndBuildingType,
   postProjectFirstPass
 } from '../models/projectFirstPassModel';
 import { postSearch } from '../models/searchModel';
@@ -140,7 +141,18 @@ export const findProjectsWithGPT5 = async (
   try {
     let count = 0;
     const existingProjects = [];
-    const resultsText = await openAIWebSearchList(location, buildingType);
+    const existingProjectNames: string[] =
+      await getProjectFirstPassNamesByMetroAreaAndBuildingType(
+        location,
+        buildingType
+      );
+    console.log({ buildingType, location });
+    console.log(existingProjectNames);
+    const resultsText = await openAIWebSearchList(
+      location,
+      buildingType,
+      existingProjectNames
+    );
 
     const results = JSON.parse(resultsText.output_text || '{}');
     console.log(results);

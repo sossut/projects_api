@@ -183,7 +183,8 @@ Be conservative - don't guess or infer.`
 
 export const openAIWebSearchList = async (
   location: string,
-  buildingType: string
+  buildingType: string,
+  existingProjectNames: string[]
 ) => {
   const response = await openai.responses.create({
     model: 'gpt-5',
@@ -219,6 +220,9 @@ Note: buildingUse is an ARRAY. Include all applicable uses (1+). If unclear, use
 
 STATUS (OUTPUT — USE ONLY THESE VALUES)
 "planned" | "approved" | "proposed" | "under_construction" | "on_hold" | "completed"
+
+Here are the projects already in the database for this location/type (do not include these in your results, but use them to avoid duplicates and to help identify new projects):
+${existingProjectNames.length > 0 ? existingProjectNames.join('\n') : 'None'}
 
 INCLUSION / EXCLUSION RULES
 
@@ -282,7 +286,7 @@ JSON OUTPUT SCHEMA (MUST MATCH EXACTLY)
 
 PARAMETERS (INPUT)
 [TYPE] = A | B | C | D 
-[LOCATION] = Metro area name eg Location Metropolitan Area`
+[LOCATION] = Metro area name eg Location Metropolitan Area, Greater Location Area.`
       },
       {
         role: 'user',

@@ -35,6 +35,33 @@ const getProjectFirstPass = async (id: number): Promise<ProjectFirstPass> => {
   return rows[0];
 };
 
+const getProjectFirstPassNamesByMetroAreaAndBuildingType = async (
+  metroArea: string,
+  buildingType: string
+): Promise<string[]> => {
+  let buildingTypeName;
+  if (buildingType === 'A') {
+    buildingTypeName = 'Skyscraper';
+  } else if (buildingType === 'B') {
+    buildingTypeName = 'High-rise';
+  } else if (buildingType === 'C') {
+    buildingTypeName = 'Major civic or commercial building';
+  } else if (buildingType === 'D') {
+    buildingTypeName = 'Industrial building';
+  }
+  const [rows] = await promisePool.query<GetProjectFirstPass[]>(
+    `SELECT project_first_passes.name
+    FROM project_first_passes
+    WHERE project_first_passes.metro_area = ?
+    AND project_first_passes.building_type = ?`,
+    [metroArea, buildingTypeName]
+  );
+  if (rows.length === 0) {
+    return [];
+  }
+  return rows.map((row) => row.name);
+};
+
 const postProjectFirstPass = async (
   projectFirstPassData: PostProjectFirstPass
 ): Promise<number> => {
@@ -119,6 +146,7 @@ const deleteProjectFirstPass = async (id: number): Promise<boolean> => {
 export {
   getAllProjectFirstPasses,
   getProjectFirstPass,
+  getProjectFirstPassNamesByMetroAreaAndBuildingType,
   postProjectFirstPass,
   putProjectFirstPass,
   deleteProjectFirstPass
