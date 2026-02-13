@@ -53,9 +53,7 @@ const checkConsultantExistsByName = async (
     id FROM consultants WHERE name = ?`,
     [name]
   );
-  if (rows.length === 0) {
-    return null;
-  }
+
   return rows.length > 0 ? (rows[0].id as number) : 0;
 };
 

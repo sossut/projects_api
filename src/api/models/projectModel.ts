@@ -30,7 +30,9 @@ const queryBase = projectsQueryString;
 const getAllProjects = async (
   sortBy: string = 'id',
   order: 'ASC' | 'DESC' = 'ASC',
-  filters?: { [key: string]: string | number }
+  filters?: { [key: string]: string | number },
+  limit?: number,
+  offset?: number
 ): Promise<Project[]> => {
   // Whitelist allowed sort fields to prevent SQL injection
   console.log(order);
@@ -49,9 +51,8 @@ const getAllProjects = async (
   let whereClause = '';
   const params: any[] = [];
 
+  const conditions: string[] = [];
   if (filters) {
-    const conditions: string[] = [];
-
     if (filters.status) {
       conditions.push('projects.status = ?');
       params.push(filters.status);
@@ -97,19 +98,24 @@ const getAllProjects = async (
       conditions.push('building_uses.building_use = ?');
       params.push(filters.buildingUse);
     }
-
-    if (conditions.length > 0) {
-      whereClause = 'WHERE ' + conditions.join(' AND ');
-    }
   }
+  // Always exclude completed projects
+  conditions.push("projects.status != 'completed'");
+  if (conditions.length > 0) {
+    whereClause = 'WHERE ' + conditions.join(' AND ');
+  }
+  limit = limit ?? 50; // Default limit to 50 if not provided
+  offset = offset ?? 0;
 
   const [rows] = await promisePool.query<GetProject[]>(
     `${queryBase}
     ${whereClause}
     GROUP BY projects.id
-    ORDER BY ${validSortBy} ${validOrder}`,
-    params
+    ORDER BY ${validSortBy} ${validOrder}
+    LIMIT ? OFFSET ?`,
+    [...params, limit, offset]
   );
+
   if (rows.length === 0) {
     throw new CustomError('No projects found', 404);
   }

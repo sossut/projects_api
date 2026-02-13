@@ -178,7 +178,7 @@ router.route('/edit').put(
     .isFloat({ min: 0 })
     .toFloat(),
   body('buildingHeightFloors')
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 0 })
     .toInt()
     .customSanitizer((value) => (value === null ? null : value)),
@@ -335,7 +335,7 @@ router
       .isFloat({ min: 0 })
       .toFloat(),
     body('buildingHeightFloors')
-      .optional()
+      .optional({ nullable: true })
       .isInt({ min: 0 })
       .toInt()
       .customSanitizer((value) => (value === null ? null : value)),

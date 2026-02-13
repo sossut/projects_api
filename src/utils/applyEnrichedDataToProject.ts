@@ -684,6 +684,7 @@ const addNewProjectToDB = async (proj: any, changeType?: string) => {
     const expectedDate = parseToStandardDate(
       proj.expectedCompletionWindow?.expected || ''
     );
+
     const project: Project = {
       name: proj.name,
       expectedDateText:
@@ -714,40 +715,45 @@ const addNewProjectToDB = async (proj: any, changeType?: string) => {
       buildingHeightFloors: proj.buildingHeightFloors
     };
     console.log(project);
-    const projectId = await postProject(project);
-    // Log project creation in project audits
-    if (changeType === 'manual') {
+    let projectId = 0;
+    try {
+      projectId = await postProject(project);
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    }
+    try {
+      if (changeType === 'manual') {
+        await postProjectAudit({
+          projectId,
+          searchId: null,
+          fieldName: 'project.added',
+          oldValue: null,
+          newValue: JSON.stringify(proj),
+          changeType: 'manual',
+          changedBy: null
+        });
+      }
       await postProjectAudit({
         projectId,
         searchId: null,
         fieldName: 'project.added',
         oldValue: null,
         newValue: JSON.stringify(proj),
-        changeType: 'manual',
+        changeType: 'automated',
         changedBy: null
       });
+    } catch (error) {
+      console.warn('Failed to log project creation audit:', error);
     }
-    await postProjectAudit({
-      projectId,
-      searchId: null,
-      fieldName: 'project.added',
-      oldValue: null,
-      newValue: JSON.stringify(proj),
-      changeType: 'automated',
-      changedBy: null
-    });
-    for (const url of proj.projectWebsites || []) {
-      await postProjectWebsite({ projectId: projectId, url: url });
+    try {
+      for (const url of proj.projectWebsites || []) {
+        await postProjectWebsite({ projectId: projectId, url: url });
+      }
+    } catch (error) {
+      console.warn('Failed to add project website:', error);
     }
-    for (const media of proj.media || []) {
-      await postProjectMedia({
-        projectId: projectId,
-        url: media.url,
-        title: media.title,
-        mediaType: media.mediaType,
-        sourcePage: media.sourcePage || null
-      });
-    }
+
+    // Log project creation in project audits
     for (const bu of proj.buildingUse || []) {
       const buildingUseExists = await checkBuildingUseExistsByName(bu);
       let buildingUseId = buildingUseExists;
@@ -763,165 +769,193 @@ const addNewProjectToDB = async (proj: any, changeType?: string) => {
       };
       await postProjectBuildingUse(projectBuildingUse);
     }
-    for (const developer of proj.developers || []) {
-      const developerExists = await checkDeveloperExistsByName(developer.name);
-      let developerId = developerExists;
-      if (developerExists === 0) {
-        const d: Developer = {
-          name: developer.name,
-          website: developer.website,
-          hqCountryId: null,
-          email: developer.contact?.email,
-          phone: developer.contact?.phone
-        };
-        developerId = await postDeveloper(d);
-      }
-      if (developerId === 0) {
-        throw new CustomError('Failed to create developer', 500);
-      }
-      await postProjectDeveloper({
-        projectId: projectId,
-        developerId: developerId,
-        source: developer.source as string
-      });
-      if (countryID !== 0) {
-        const developerPresenceExists = await checkDeveloperPresenceInCountry(
-          developerId,
-          countryID
+    try {
+      for (const developer of proj.developers || []) {
+        const developerExists = await checkDeveloperExistsByName(
+          developer.name
         );
-        if (!developerPresenceExists) {
-          await postDevelopersPresence({
-            developerId: developerId,
-            countryId: countryID
-          });
+        let developerId = developerExists;
+        if (developerExists === 0) {
+          const d: Developer = {
+            name: developer.name,
+            website: developer.website,
+            hqCountryId: null,
+            email: developer.contact?.email,
+            phone: developer.contact?.phone
+          };
+          developerId = await postDeveloper(d);
+        }
+        if (developerId === 0) {
+          throw new CustomError('Failed to create developer', 500);
+        }
+        await postProjectDeveloper({
+          projectId: projectId,
+          developerId: developerId,
+          source: developer.source as string
+        });
+        if (countryID !== 0) {
+          const developerPresenceExists = await checkDeveloperPresenceInCountry(
+            developerId,
+            countryID
+          );
+          if (!developerPresenceExists) {
+            await postDevelopersPresence({
+              developerId: developerId,
+              countryId: countryID
+            });
+          }
         }
       }
+    } catch (error) {
+      console.warn('Failed to add developer:', error);
     }
-    for (const architect of proj.architects || []) {
-      const architectExists = await checkArchitectExistsByName(architect.name);
-      let architectId = architectExists;
-      if (architectExists === 0) {
-        const a: Architect = {
-          name: architect.name,
-          website: architect.website,
-          hqCountryId: null,
-          email: architect.contact?.email,
-          phone: architect.contact?.phone
-        };
-        architectId = await postArchitect(a);
-      }
-      if (architectId === 0) {
-        throw new CustomError('Failed to create architect', 500);
-      }
-      await postProjectArchitect({
-        projectId: projectId,
-        architectId: architectId,
-        source: architect.source as string
-      });
-      if (countryID !== 0) {
-        const architectPresenceExists = await checkArchitectPresenceInCountry(
-          architectId,
-          countryID
+    try {
+      for (const architect of proj.architects || []) {
+        const architectExists = await checkArchitectExistsByName(
+          architect.name
         );
-        if (!architectPresenceExists) {
-          await postArchitectsPresence({
-            architectId: architectId,
-            countryId: countryID
-          });
+        let architectId = architectExists;
+        if (architectExists === 0) {
+          const a: Architect = {
+            name: architect.name,
+            website: architect.website,
+            hqCountryId: null,
+            email: architect.contact?.email,
+            phone: architect.contact?.phone
+          };
+          architectId = await postArchitect(a);
+        }
+        if (architectId === 0) {
+          throw new CustomError('Failed to create architect', 500);
+        }
+        await postProjectArchitect({
+          projectId: projectId,
+          architectId: architectId,
+          source: architect.source as string
+        });
+        if (countryID !== 0) {
+          const architectPresenceExists = await checkArchitectPresenceInCountry(
+            architectId,
+            countryID
+          );
+          if (!architectPresenceExists) {
+            await postArchitectsPresence({
+              architectId: architectId,
+              countryId: countryID
+            });
+          }
         }
       }
+    } catch (error) {
+      console.warn('Failed to add architect:', error);
     }
-    for (const contractor of proj.contractors || []) {
-      const contractorExists = await checkContractorExistsByName(
-        contractor.name
-      );
-      let contractorId = contractorExists;
-      if (contractorExists === 0) {
-        const c: Contractor = {
-          name: contractor.name,
-          website: contractor.website,
-          hqCountryId: null,
-          email: contractor.contact?.email,
-          phone: contractor.contact?.phone
-        };
-        contractorId = await postContractor(c);
-      }
-      if (contractorId === 0) {
-        throw new CustomError('Failed to create contractor', 500);
-      }
-      await postProjectContractor({
-        projectId: projectId,
-        contractorId: contractorId,
-        source: contractor.source as string
-      });
-      if (countryID !== 0) {
-        const contractorPresenceExists = await checkContractorPresenceInCountry(
-          contractorId,
-          countryID
+    try {
+      for (const contractor of proj.contractors || []) {
+        const contractorExists = await checkContractorExistsByName(
+          contractor.name
         );
-        if (!contractorPresenceExists) {
-          await postContractorsPresence({
-            contractorId: contractorId,
-            countryId: countryID
-          });
+        let contractorId = contractorExists;
+        if (contractorExists === 0) {
+          const c: Contractor = {
+            name: contractor.name,
+            website: contractor.website,
+            hqCountryId: null,
+            email: contractor.contact?.email,
+            phone: contractor.contact?.phone
+          };
+          contractorId = await postContractor(c);
+        }
+        if (contractorId === 0) {
+          throw new CustomError('Failed to create contractor', 500);
+        }
+        await postProjectContractor({
+          projectId: projectId,
+          contractorId: contractorId,
+          source: contractor.source as string
+        });
+        if (countryID !== 0) {
+          const contractorPresenceExists =
+            await checkContractorPresenceInCountry(contractorId, countryID);
+          if (!contractorPresenceExists) {
+            await postContractorsPresence({
+              contractorId: contractorId,
+              countryId: countryID
+            });
+          }
         }
       }
+    } catch (error) {
+      console.warn('Failed to add contractor:', error);
     }
-    for (const consultant of proj.consultants || []) {
-      const consultantExists = await checkConsultantExistsByName(
-        consultant.name
-      );
-      let consultantId = consultantExists;
-      if (consultantExists === 0) {
-        const c: Consultant = {
-          name: consultant.name,
-          website: consultant.website,
-          hqCountryId: null,
-          email: consultant.contact?.email,
-          phone: consultant.contact?.phone
-        };
-        consultantId = await postConsultant(c);
-      }
-      if (consultantId === 0) {
-        throw new CustomError('Failed to create consultant', 500);
-      }
-      await postProjectConsultant({
-        projectId: projectId,
-        consultantId: consultantId as number,
-        source: consultant.source as string
-      });
-      if (countryID !== 0) {
-        const consultantPresenceExists = await checkConsultantsPresenceExists(
-          consultantId as number,
-          countryID
+    try {
+      for (const consultant of proj.consultants || []) {
+        const consultantExists = await checkConsultantExistsByName(
+          consultant.name
         );
-        if (!consultantPresenceExists) {
-          await postConsultantsPresence({
-            consultantId: consultantId as number,
-            countryId: countryID
-          });
+        let consultantId = consultantExists;
+        console.log({ consultantId });
+        if (consultantExists === 0) {
+          const c: Consultant = {
+            name: consultant.name,
+            website: consultant.website,
+            hqCountryId: null,
+            email: consultant.contact?.email,
+            phone: consultant.contact?.phone
+          };
+          consultantId = await postConsultant(c);
+          console.log({ consultantId });
+        }
+        if (consultantId === 0) {
+          throw new CustomError('Failed to create consultant', 500);
+        }
+        await postProjectConsultant({
+          projectId: projectId,
+          consultantId: consultantId as number,
+          source: consultant.source as string
+        });
+        if (countryID !== 0) {
+          const consultantPresenceExists = await checkConsultantsPresenceExists(
+            consultantId as number,
+            countryID
+          );
+          if (!consultantPresenceExists) {
+            await postConsultantsPresence({
+              consultantId: consultantId as number,
+              countryId: countryID
+            });
+          }
         }
       }
+    } catch (error) {
+      console.warn('Failed to add consultant:', error);
     }
-    for (const media of proj.media || []) {
-      const mediaData: ProjectMedia = {
-        url: media.url,
-        projectId: projectId,
-        title: media.title ?? null,
-        mediaType: media.mediaType
-      };
-      //file uploads not yet implemented
-      await postProjectMedia(mediaData);
+    try {
+      for (const media of proj.media || []) {
+        const mediaData: ProjectMedia = {
+          url: media.url,
+          projectId: projectId,
+          title: media.title ?? null,
+          mediaType: media.mediaType
+        };
+        //file uploads not yet implemented
+        await postProjectMedia(mediaData);
+      }
+    } catch (error) {
+      console.warn('Failed to add media:', error);
     }
-    for (const source of proj.sources || []) {
-      console.log(source);
-      await postSourceLink({
-        projectId: projectId,
-        url: source.url,
-        sourceType: source.sourceType,
-        publisher: source.publisher,
-        accessedAt: source.accessedAt
-      });
+    try {
+      for (const source of proj.sources || []) {
+        console.log(source);
+        await postSourceLink({
+          projectId: projectId,
+          url: source.url,
+          sourceType: source.sourceType,
+          publisher: source.publisher,
+          accessedAt: source.accessedAt
+        });
+      }
+    } catch (error) {
+      console.warn('Failed to add source link:', error);
     }
     // Compose a detailed result object
     return {

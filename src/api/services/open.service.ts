@@ -186,6 +186,7 @@ export const openAIWebSearchList = async (
   buildingType: string,
   existingProjectNames: string[]
 ) => {
+  console.log(existingProjectNames);
   const response = await openai.responses.create({
     model: 'gpt-5',
     tools: [{ type: 'web_search' }],

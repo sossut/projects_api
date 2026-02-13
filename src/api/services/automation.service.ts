@@ -13,15 +13,20 @@ import {
   postDeveloper
 } from '../models/developerModel';
 
-import { checkIfProjectExistsByKey, getProject } from '../models/projectModel';
+import {
+  checkIfProjectExistsByKey,
+  getProject,
+  getProjectNamesByMetroAreaAndBuildingType
+} from '../models/projectModel';
 
-import { toCamel } from '../../utils/utilities';
+import { findMetroAreaIdByName, toCamel } from '../../utils/utilities';
 import { enrichProjectWithTavily } from './enrichmentTavily.service';
 
 import {
   getProjectFirstPass,
   getProjectFirstPassNamesByMetroAreaAndBuildingType,
-  postProjectFirstPass
+  postProjectFirstPass,
+  putProjectFirstPass
 } from '../models/projectFirstPassModel';
 import { postSearch } from '../models/searchModel';
 
@@ -141,13 +146,33 @@ export const findProjectsWithGPT5 = async (
   try {
     let count = 0;
     const existingProjects = [];
-    const existingProjectNames: string[] =
+    const existingProjectNames = [] as string[];
+    const existingFirstPassProjects =
       await getProjectFirstPassNamesByMetroAreaAndBuildingType(
         location,
         buildingType
       );
-    console.log({ buildingType, location });
-    console.log(existingProjectNames);
+    existingFirstPassProjects.forEach((proj) => {
+      existingProjectNames.push(proj.toLowerCase());
+    });
+
+    const metroAreaId = await findMetroAreaIdByName(location);
+
+    let buildingTypeId = 0;
+    if (buildingType === 'A') buildingTypeId = 2;
+    else if (buildingType === 'B') buildingTypeId = 1;
+    else if (buildingType === 'C') buildingTypeId = 3;
+    else if (buildingType === 'D') buildingTypeId = 4;
+    const existingMainProjects =
+      await getProjectNamesByMetroAreaAndBuildingType(
+        metroAreaId as number,
+        buildingTypeId
+      );
+
+    existingMainProjects.forEach((proj) => {
+      existingProjectNames.push(proj.toLowerCase());
+    });
+
     const resultsText = await openAIWebSearchList(
       location,
       buildingType,
@@ -328,6 +353,11 @@ export const enrichProjectAfterFirstPassWithGPT5 = async (
         `First pass project with ID ${firstPassProjectId} not found`
       );
     }
+    if (firstPassProject.status == 'completed') {
+      throw new Error(
+        `First pass project with ID ${firstPassProjectId} is already completed`
+      );
+    }
     console.log('First pass project data:', firstPassProject);
     // Build formatted project data for enrichment
     const formattedProject = {
@@ -436,6 +466,13 @@ export const enrichProjectAfterFirstPassWithGPT5 = async (
     // Here you would implement logic to update the first pass project with the enriched data
     // Similar to enrichProjectWithGPT5 but updating the first pass table instead
     const project = await addNewProjectToDB(enrichedData);
+    await putProjectFirstPass(
+      {
+        promoted: 1,
+        updatedAt: new Date(Date.now())
+      },
+      firstPassProjectId
+    );
     return project;
   } catch (error) {
     console.error(

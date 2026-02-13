@@ -15,6 +15,8 @@ interface ProjectFirstPass {
   status: string;
   expectedDateText: string;
   lastVerifiedDate: Date;
+  promoted?: 0 | 1;
+  updatedAt?: Date;
   sources: {
     publisher: string;
     url: string;
