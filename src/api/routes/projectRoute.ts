@@ -6,7 +6,8 @@ import {
   projectPut,
   projectDelete,
   projectGetFormatted,
-  projectPutWithoutIdParam
+  projectPutWithoutIdParam,
+  projectListGetSimple
 } from '../controllers/projectController';
 import { body, param } from 'express-validator';
 import passport from 'passport';
@@ -166,6 +167,12 @@ router
     body('projects.*.sources.*.accessedAt').optional().isISO8601().toDate(),
     projectPost
   );
+
+router.route('/simple').get(
+  // passport.authenticate('jwt', { session: false }),
+  projectListGetSimple
+);
+
 router.route('/edit').put(
   // passport.authenticate('jwt', { session: false }),
   body('id').isInt({ gt: 0 }).toInt(),

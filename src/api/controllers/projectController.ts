@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import {
   deleteProject,
   getAllProjects,
+  getAllProjectsSimple,
   getProject
 } from '../models/projectModel';
 
@@ -51,6 +52,52 @@ const projectListGet = async (
     const offset = (page - 1) * (limit ?? 50);
 
     const rows = await getAllProjects(
+      sortBy,
+      order === 'desc' ? 'DESC' : 'ASC',
+      Object.keys(filters).length > 0 ? filters : undefined,
+      limit,
+      offset
+    );
+    const projects = rows.map((row) => toCamel(row));
+    res.json(projects);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectListGetSimple = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const sortBy = req.query.sortBy as string | undefined;
+    const order =
+      (req.query.order as 'asc' | 'desc' | undefined)?.toLowerCase() || 'asc';
+
+    // Build filters object from query params
+    const filters: { [key: string]: string | number } = {};
+    if (req.query.status) filters.status = req.query.status as string;
+    if (req.query.city) filters.city = req.query.city as string;
+    if (req.query.metroArea) filters.metroArea = req.query.metroArea as string;
+    if (req.query.country) filters.country = req.query.country as string;
+    if (req.query.continent) filters.continent = req.query.continent as string;
+    if (req.query.buildingType)
+      filters.buildingType = req.query.buildingType as string;
+    if (req.query.minBudget)
+      filters.minBudget = parseFloat(req.query.minBudget as string);
+    if (req.query.maxBudget)
+      filters.maxBudget = parseFloat(req.query.maxBudget as string);
+
+    // Validate limit and page query parameters
+    const MAX_LIMIT = 100;
+    let limit = Number(req.query.limit) || 50;
+    if (limit > MAX_LIMIT) limit = MAX_LIMIT;
+
+    const page = Number(req.query.page) || 1;
+    const offset = (page - 1) * (limit ?? 50);
+
+    const rows = await getAllProjectsSimple(
       sortBy,
       order === 'desc' ? 'DESC' : 'ASC',
       Object.keys(filters).length > 0 ? filters : undefined,
@@ -263,6 +310,7 @@ const projectDelete = async (
 
 export {
   projectListGet,
+  projectListGetSimple,
   projectGet,
   projectGetFormatted,
   projectPost,

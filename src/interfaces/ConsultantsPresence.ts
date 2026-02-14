@@ -1,9 +1,10 @@
 import { RowDataPacket } from 'mysql2';
 import { Country } from './Country';
-import { Contractor } from './Contractor';
+
+import { Consultant } from './Consultant';
 
 interface ConsultantsPresence {
-  consultantId: number | Contractor;
+  consultantId: number | Consultant;
   countryId: number | Country;
 }
 
