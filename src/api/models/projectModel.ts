@@ -86,6 +86,16 @@ const getAllProjects = async (
       params.push(filters.maxBudget);
     }
 
+    if (filters.maxHeightMeters) {
+      conditions.push('projects.building_height_meters <= ?');
+      params.push(filters.maxHeightMeters);
+    }
+
+    if (filters.minHeightMeters) {
+      conditions.push('projects.building_height_meters >= ?');
+      params.push(filters.minHeightMeters);
+    }
+
     if (filters.confidenceScore) {
       conditions.push('projects.confidence_score = ?');
       params.push(filters.confidenceScore);
@@ -187,6 +197,17 @@ const getAllProjectsSimple = async (
       conditions.push('projects.budget_eur <= ?');
       params.push(filters.maxBudget);
     }
+
+    if (filters.maxHeightMeters) {
+      conditions.push('projects.building_height_meters <= ?');
+      params.push(filters.maxHeightMeters);
+    }
+
+    if (filters.minHeightMeters) {
+      conditions.push('projects.building_height_meters >= ?');
+      params.push(filters.minHeightMeters);
+    }
+
     if (filters.confidenceScore) {
       conditions.push('projects.confidence_score = ?');
       params.push(filters.confidenceScore);
@@ -205,6 +226,10 @@ const getAllProjectsSimple = async (
   if (conditions.length > 0) {
     whereClause = 'WHERE ' + conditions.join(' AND ');
   }
+
+  limit = limit ?? 100; // Default limit to 50 if not provided
+  offset = offset ?? 0;
+
   const [rows] = await promisePool.query<GetProject[]>(
     `SELECT
     projects.id, projects.name, projects.status,
@@ -240,7 +265,8 @@ const getAllProjectsSimple = async (
     LEFT JOIN project_medias ON projects.id = project_medias.project_id
     ${whereClause}
     GROUP BY projects.id
-    ORDER BY ${validSortBy} ${validOrder}`,
+    ORDER BY ${validSortBy} ${validOrder}
+    LIMIT ? OFFSET ?`,
     [...params, limit, offset]
   );
   if (rows.length === 0) {

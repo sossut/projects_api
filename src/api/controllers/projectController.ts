@@ -46,6 +46,10 @@ const projectListGet = async (
       filters.minBudget = parseFloat(req.query.minBudget as string);
     if (req.query.maxBudget)
       filters.maxBudget = parseFloat(req.query.maxBudget as string);
+    if (req.query.minHeightMeters)
+      filters.minHeightMeters = parseFloat(req.query.minHeightMeters as string);
+    if (req.query.maxHeightMeters)
+      filters.maxHeightMeters = parseFloat(req.query.maxHeightMeters as string);
 
     // Validate limit and page query parameters
     const MAX_LIMIT = 100;
@@ -92,10 +96,14 @@ const projectListGetSimple = async (
       filters.minBudget = parseFloat(req.query.minBudget as string);
     if (req.query.maxBudget)
       filters.maxBudget = parseFloat(req.query.maxBudget as string);
+    if (req.query.minHeightMeters)
+      filters.minHeightMeters = parseFloat(req.query.minHeightMeters as string);
+    if (req.query.maxHeightMeters)
+      filters.maxHeightMeters = parseFloat(req.query.maxHeightMeters as string);
 
     // Validate limit and page query parameters
-    const MAX_LIMIT = 100;
-    let limit = Number(req.query.limit) || 50;
+    const MAX_LIMIT = 200;
+    let limit = Number(req.query.limit) || 100;
     if (limit > MAX_LIMIT) limit = MAX_LIMIT;
 
     const page = Number(req.query.page) || 1;
