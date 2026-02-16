@@ -122,6 +122,16 @@ const getAllProjects = async (
   return parseProjectRows(rows);
 };
 
+const getProjectKeys = async (): Promise<Project[]> => {
+  const [rows] = await promisePool.query<GetProject[]>(
+    'SELECT id, project_key AS projectKey FROM projects'
+  );
+  if (rows.length === 0) {
+    throw new CustomError('No projects found', 404);
+  }
+  return rows;
+};
+
 const getAllProjectsSimple = async (
   sortBy: string = 'id',
   order: 'ASC' | 'DESC' = 'ASC',
@@ -349,6 +359,7 @@ const deleteProject = async (id: number): Promise<boolean> => {
 
 export {
   getAllProjects,
+  getProjectKeys,
   getAllProjectsSimple,
   getProject,
   getProjectNamesByMetroAreaAndBuildingType,

@@ -10,7 +10,12 @@ import {
 import { PostConsultant, PutConsultant } from '../../interfaces/Consultant';
 
 import MessageResponse from '../../interfaces/MessageResponse';
-import { throwIfValidationErrors, toCamel } from '../../utils/utilities';
+import {
+  findConsultantIdByName,
+  throwIfValidationErrors,
+  toCamel
+} from '../../utils/utilities';
+import CustomError from '../../classes/CustomError';
 // import { User } from '../../interfaces/User';
 
 const consultantListGet = async (
@@ -54,6 +59,10 @@ const consultantPost = async (
     // }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
+    const checkExisting = await findConsultantIdByName(req.body.name);
+    if (checkExisting) {
+      throw new CustomError('Consultant already exists', checkExisting);
+    }
     const consultant = await postConsultant(req.body);
     if (consultant) {
       const response: MessageResponse = {

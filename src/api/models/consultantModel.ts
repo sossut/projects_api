@@ -18,7 +18,7 @@ const getAllConsultants = async (): Promise<Consultant[]> => {
       hq_country_id AS hqCountryId,
       website,
       email,
-      phone,
+      phone
       FROM consultants`
   );
   if (rows.length === 0) {

@@ -12,7 +12,11 @@ import { PostDeveloper, PutDeveloper } from '../../interfaces/Developer';
 
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
-import { throwIfValidationErrors, toCamel } from '../../utils/utilities';
+import {
+  findDeveloperIdByName,
+  throwIfValidationErrors,
+  toCamel
+} from '../../utils/utilities';
 import { User } from '../../interfaces/User';
 const developerListGet = async (
   req: Request,
@@ -54,6 +58,10 @@ const developerPost = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
+    const checkExisting = await findDeveloperIdByName(req.body.name);
+    if (checkExisting) {
+      throw new CustomError('Developer already exists', checkExisting);
+    }
     const developer = await postDeveloper(req.body);
     if (developer) {
       const response: MessageResponse = {

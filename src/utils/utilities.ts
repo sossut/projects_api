@@ -6,6 +6,11 @@ import { getAllMetroAreas } from '../api/models/metroAreaModel';
  * Returns metro area ID or null if not found.
  */
 import CustomError from '../classes/CustomError';
+import { getAllDevelopers } from '../api/models/developerModel';
+import { getAllConsultants } from '../api/models/consultantModel';
+import { getAllArchitects } from '../api/models/architectModel';
+import { getAllContractors } from '../api/models/contractorModel';
+import { getProjectKeys } from '../api/models/projectModel';
 /**
  * Normalize metro area names for robust matching.
  * Removes common suffixes/prefixes and lowercases/trims.
@@ -17,6 +22,16 @@ const normalizeMetroAreaName = (name: string): string => {
     .replace(/(metropolitan area|region|greater|area|\(.*\))/gi, '')
     .replace(/[.,]/g, '')
     .trim();
+};
+
+const findProjectIdByKey = async (key: string): Promise<number | null> => {
+  const projects = await getProjectKeys();
+  const fuse = new Fuse(projects, { keys: ['projectKey'], threshold: 0.3 });
+  const result = fuse.search(key);
+  console.log('result KEY:', result);
+  return result.length && result[0].item.id !== undefined
+    ? result[0].item.id
+    : null;
 };
 
 const findMetroAreaIdByName = async (
@@ -32,7 +47,45 @@ const findMetroAreaIdByName = async (
   );
   const normalizedInput = normalizeMetroAreaName(inputName);
   const result = fuse.search(normalizedInput);
-  return result.length && result[0].item.id !== undefined ? result[0].item.id : null;
+  return result.length && result[0].item.id !== undefined
+    ? result[0].item.id
+    : null;
+};
+
+const findDeveloperIdByName = async (name: string): Promise<number | null> => {
+  const developers = await getAllDevelopers(); // [{ id, name }]
+  const fuse = new Fuse(developers, { keys: ['name'], threshold: 0.3 });
+  const result = fuse.search(name);
+  return result.length && result[0].item.id !== undefined
+    ? result[0].item.id
+    : null;
+};
+
+const findContractorIdByName = async (name: string): Promise<number | null> => {
+  const contractors = await getAllContractors(); // [{ id, name }]
+  const fuse = new Fuse(contractors, { keys: ['name'], threshold: 0.3 });
+  const result = fuse.search(name);
+  return result.length && result[0].item.id !== undefined
+    ? result[0].item.id
+    : null;
+};
+
+const findArchitectIdByName = async (name: string): Promise<number | null> => {
+  const architects = await getAllArchitects(); // [{ id, name }]
+  const fuse = new Fuse(architects, { keys: ['name'], threshold: 0.3 });
+  const result = fuse.search(name);
+  return result.length && result[0].item.id !== undefined
+    ? result[0].item.id
+    : null;
+};
+
+const findConsultantIdByName = async (name: string): Promise<number | null> => {
+  const consultants = await getAllConsultants(); // [{ id, name }]
+  const fuse = new Fuse(consultants, { keys: ['name'], threshold: 0.3 });
+  const result = fuse.search(name);
+  return result.length && result[0].item.id !== undefined
+    ? result[0].item.id
+    : null;
 };
 
 const toSnake = (obj: Record<string, any>) => {
@@ -166,7 +219,12 @@ const parseToStandardDate = (dateStr: string | null): string | null => {
 
 export {
   normalizeMetroAreaName,
+  findProjectIdByKey,
   findMetroAreaIdByName,
+  findDeveloperIdByName,
+  findContractorIdByName,
+  findArchitectIdByName,
+  findConsultantIdByName,
   toSnake,
   toCamel,
   throwIfValidationErrors,

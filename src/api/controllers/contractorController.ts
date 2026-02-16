@@ -10,7 +10,11 @@ import {
 import { PostContractor, PutContractor } from '../../interfaces/Contractor';
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
-import { throwIfValidationErrors, toCamel } from '../../utils/utilities';
+import {
+  findContractorIdByName,
+  throwIfValidationErrors,
+  toCamel
+} from '../../utils/utilities';
 import { User } from '../../interfaces/User';
 const contractorListGet = async (
   req: Request,
@@ -53,6 +57,10 @@ const contractorPost = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
+    const checkExisting = await findContractorIdByName(req.body.name);
+    if (checkExisting) {
+      throw new CustomError('Contractor already exists', checkExisting);
+    }
     const contractor = await postContractor(req.body);
     if (contractor) {
       const response: MessageResponse = {

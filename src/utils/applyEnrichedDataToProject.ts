@@ -75,7 +75,11 @@ import {
   postProjectWebsite
 } from '../api/models/projectWebsiteModel';
 import { Address } from '../interfaces/Address';
-import { findMetroAreaIdByName, parseToStandardDate } from './utilities';
+import {
+  findMetroAreaIdByName,
+  findProjectIdByKey,
+  parseToStandardDate
+} from './utilities';
 import CustomError from '../classes/CustomError';
 import { Continent } from '../interfaces/Continent';
 import { Country } from '../interfaces/Country';
@@ -573,7 +577,13 @@ const addNewProjectToDB = async (proj: any, changeType?: string) => {
       proj.location.city.trim().toLowerCase() +
       '|' +
       proj.location.country.trim().toLowerCase()) as string;
-
+    const checkProjectId = await findProjectIdByKey(pK);
+    if (checkProjectId) {
+      throw new CustomError(
+        'Project with same name and location already exists',
+        400
+      );
+    }
     const checkProjectKey = await checkIfProjectExistsByKey(pK);
     if (checkProjectKey) {
       throw new CustomError(

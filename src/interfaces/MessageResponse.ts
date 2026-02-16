@@ -6,4 +6,10 @@ export default interface MessageResponse {
   location?: string;
   skipped?: any[];
   buildingType?: string;
+  data?: {
+    newDevelopers?: any[];
+    newArchitects?: any[];
+    newContractors?: any[];
+    newConsultants?: any[];
+  };
 }

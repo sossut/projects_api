@@ -13,7 +13,11 @@ import { PostArchitect, PutArchitect } from '../../interfaces/Architect';
 
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
-import { throwIfValidationErrors, toCamel } from '../../utils/utilities';
+import {
+  findArchitectIdByName,
+  throwIfValidationErrors,
+  toCamel
+} from '../../utils/utilities';
 import { User } from '../../interfaces/User';
 
 const architectListGet = async (
@@ -55,6 +59,10 @@ const architectPost = async (
     }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
+    const checkExisting = await findArchitectIdByName(req.body.name);
+    if (checkExisting) {
+      throw new CustomError('Architect already exists', checkExisting);
+    }
     const architect = await postArchitect(req.body);
     if (architect) {
       const response: MessageResponse = {

@@ -12,7 +12,11 @@ import { PostProject, Project } from '../../interfaces/Project';
 
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
-import { throwIfValidationErrors, toCamel } from '../../utils/utilities';
+import {
+  findProjectIdByKey,
+  throwIfValidationErrors,
+  toCamel
+} from '../../utils/utilities';
 import { User } from '../../interfaces/User';
 import {} from '../models/continentModel';
 
@@ -227,6 +231,18 @@ const projectPost = async (
     const skippedProjects: string[] = [];
 
     for (const proj of req.body.projects || []) {
+      const projectKey: string =
+        proj.name.trim().toLowerCase() +
+        '|' +
+        proj.location?.city.trim().toLowerCase() +
+        '|' +
+        proj.location?.country.trim().toLowerCase();
+
+      const existingProjectId = await findProjectIdByKey(projectKey);
+      if (existingProjectId) {
+        skippedProjects.push(projectKey);
+        continue;
+      }
       const project = await addNewProjectToDB(proj, 'manual');
 
       if (project) {
