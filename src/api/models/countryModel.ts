@@ -11,7 +11,7 @@ import {
 
 const getAllCountries = async (): Promise<Country[]> => {
   const [rows] = await promisePool.query<GetCountry[]>(
-    'SELECT id, name, code FROM countries'
+    'SELECT id, name, code FROM countries ORDER BY name'
   );
   if (rows.length === 0) {
     throw new CustomError('No countries found', 404);
