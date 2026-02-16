@@ -10,6 +10,7 @@ import companiesRoute from './routes/companiesRoute';
 import automationRoute from './routes/automationRoute';
 import metroAreaRoute from './routes/metroAreaRoute';
 import cityRoute from './routes/cityRoute';
+import buildingUseRoute from './routes/buildingUseRoute';
 
 const router = express.Router();
 
@@ -27,5 +28,6 @@ router.use('/projects', projectRoute);
 router.use('/companies', companiesRoute);
 router.use('/automation', automationRoute);
 router.use('/cities', cityRoute);
+router.use('/building-uses', buildingUseRoute);
 
 export default router;
