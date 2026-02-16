@@ -254,7 +254,8 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
     }
   ];
   for (const f of auditFields) {
-    if (f.old !== f.new) {
+    if (f.old !== f.new && f.new) {
+      console.log({ f });
       await postProjectAudit({
         projectId: projectId as number,
         fieldName: f.field,

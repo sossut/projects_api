@@ -38,7 +38,8 @@ interface Project {
     | 'on_hold'
     | 'under_construction'
     | 'completed'
-    | 'cancelled';
+    | 'cancelled'
+    | 'pre_construction';
   lastVerifiedDate?: Date;
   confidenceScore?: 'low' | 'medium' | 'high';
   isActive?: boolean;

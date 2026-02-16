@@ -45,7 +45,8 @@ const ProjectsListSchema = z.object({
           'proposed',
           'under_construction',
           'on_hold',
-          'completed'
+          'completed',
+          'pre_construction'
         ]),
 
         expectedDateText: z.string().default(''),

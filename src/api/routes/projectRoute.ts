@@ -46,7 +46,8 @@ router
         'on_hold',
         'under_construction',
         'completed',
-        'cancelled'
+        'cancelled',
+        'pre_construction'
       ]),
     body('projects.*.budgetEur').optional().isFloat({ gt: 0 }).toFloat(),
     body('projects.*.expectedCompletionWindow').optional().isObject(),
@@ -202,7 +203,8 @@ router.route('/edit').put(
       'on_hold',
       'under_construction',
       'completed',
-      'cancelled'
+      'cancelled',
+      'pre_construction'
     ]),
   body('budgetEur').optional({ nullable: true }).isFloat({ gt: 0 }).toFloat(),
   body('expectedCompletionWindow').optional().isObject(),
@@ -359,7 +361,8 @@ router
         'on_hold',
         'under_construction',
         'completed',
-        'cancelled'
+        'cancelled',
+        'pre_construction'
       ]),
     body('budgetEur').optional({ nullable: true }).isFloat({ gt: 0 }).toFloat(),
     body('expectedCompletionWindow').optional().isObject(),
