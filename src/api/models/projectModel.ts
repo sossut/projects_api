@@ -43,7 +43,9 @@ const getAllProjects = async (
     'budget_eur',
     'status',
     'confidence_score',
-    'last_verified_date'
+    'last_verified_date',
+    'building_height_meters',
+    'building_height_floors'
   ];
   const validSortBy = allowedFields.includes(sortBy) ? sortBy : 'id';
   const validOrder = order === 'DESC' ? 'DESC' : 'ASC';
@@ -157,7 +159,9 @@ const getAllProjectsSimple = async (
     'budget_eur',
     'status',
     'confidence_score',
-    'last_verified_date'
+    'last_verified_date',
+    'building_height_meters',
+    'building_height_floors'
   ];
   const validSortBy = allowedFields.includes(sortBy) ? sortBy : 'id';
   const validOrder = order === 'DESC' ? 'DESC' : 'ASC';
