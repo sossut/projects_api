@@ -12,6 +12,7 @@ import metroAreaRoute from './routes/metroAreaRoute';
 import cityRoute from './routes/cityRoute';
 import buildingUseRoute from './routes/buildingUseRoute';
 import countryRoute from './routes/countryRoute';
+import buildingTypeRoute from './routes/buildingTypeRoute';
 
 const router = express.Router();
 
@@ -31,5 +32,6 @@ router.use('/automation', automationRoute);
 router.use('/cities', cityRoute);
 router.use('/building-uses', buildingUseRoute);
 router.use('/countries', countryRoute);
+router.use('/building-types', buildingTypeRoute);
 
 export default router;

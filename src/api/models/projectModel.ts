@@ -6,7 +6,7 @@ import {
   PostProject,
   PutProject
 } from '../../interfaces/Project';
-
+import { RowDataPacket } from 'mysql2';
 import CustomError from '../../classes/CustomError';
 import { ResultSetHeader } from 'mysql2';
 import { toSnake } from '../../utils/utilities';
@@ -132,6 +132,13 @@ const getAllProjects = async (
     throw new CustomError('No projects found', 404);
   }
   return parseProjectRows(rows);
+};
+
+const getProjectCount = async (): Promise<number> => {
+  const [rows] = await promisePool.query<RowDataPacket[]>(
+    'SELECT COUNT(*) AS count FROM projects'
+  );
+  return rows[0].count as number;
 };
 
 const getProjectKeys = async (): Promise<Project[]> => {
@@ -318,6 +325,13 @@ const getProjectNamesByMetroAreaAndBuildingType = async (
   return rows.map((row) => row.name);
 };
 
+const getStatuses = async (): Promise<string[]> => {
+  const [rows] = await promisePool.query<RowDataPacket[]>(
+    'SELECT DISTINCT status FROM projects'
+  );
+  return (rows as { status: string }[]).map((row) => row.status);
+};
+
 const checkIfProjectExistsByKey = async (
   projectKey: string
 ): Promise<boolean> => {
@@ -390,8 +404,10 @@ const deleteProject = async (id: number): Promise<boolean> => {
 export {
   getAllProjects,
   getProjectKeys,
+  getProjectCount,
   getAllProjectsSimple,
   getProject,
+  getStatuses,
   getProjectNamesByMetroAreaAndBuildingType,
   checkIfProjectExistsByKey,
   postProject,

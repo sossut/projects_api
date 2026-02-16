@@ -7,7 +7,9 @@ import {
   projectDelete,
   projectGetFormatted,
   projectPutWithoutIdParam,
-  projectListGetSimple
+  projectListGetSimple,
+  projectStatusesGet,
+  projectGetCount
 } from '../controllers/projectController';
 import { body, param } from 'express-validator';
 import passport from 'passport';
@@ -172,6 +174,16 @@ router
 router.route('/simple').get(
   // passport.authenticate('jwt', { session: false }),
   projectListGetSimple
+);
+
+router.route('/count').get(
+  // passport.authenticate('jwt', { session: false }),
+  projectGetCount
+);
+
+router.route('/statuses').get(
+  // passport.authenticate('jwt', { session: false }),
+  projectStatusesGet
 );
 
 router.route('/edit').put(

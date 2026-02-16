@@ -826,10 +826,12 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
   }
   for (const bu of req.body.buildingUse || []) {
     console.log({ bu });
-    const buildingUseExists = await checkBuildingUseExistsByName(bu);
+    const buildingUseExists = await checkBuildingUseExistsByName(
+      bu.buildingUse
+    );
     let buildingUseId = buildingUseExists;
     if (buildingUseExists === 0) {
-      buildingUseId = await postBuildingUse({ buildingUse: bu });
+      buildingUseId = await postBuildingUse({ buildingUse: bu.buildingUse });
     }
     if (buildingUseId === 0) {
       throw new CustomError('Failed to create building use', 500);

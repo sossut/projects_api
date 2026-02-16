@@ -4,7 +4,9 @@ import {
   deleteProject,
   getAllProjects,
   getAllProjectsSimple,
-  getProject
+  getProject,
+  getProjectCount,
+  getStatuses
 } from '../models/projectModel';
 
 import { Request, Response, NextFunction } from 'express';
@@ -100,6 +102,8 @@ const projectListGetSimple = async (
       filters.minHeightMeters = parseFloat(req.query.minHeightMeters as string);
     if (req.query.maxHeightMeters)
       filters.maxHeightMeters = parseFloat(req.query.maxHeightMeters as string);
+    if (req.query.buildingUse)
+      filters.buildingUse = req.query.buildingUse as string;
 
     // Validate limit and page query parameters
     const MAX_LIMIT = 200;
@@ -123,6 +127,19 @@ const projectListGetSimple = async (
   }
 };
 
+const projectGetCount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const count = await getProjectCount();
+    res.json({ count });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const projectGet = async (
   req: Request<{ id: number }, {}, {}>,
   res: Response,
@@ -133,6 +150,19 @@ const projectGet = async (
     throwIfValidationErrors(errors);
     const project = toCamel(await getProject(req.params.id as number));
     res.json(project);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectStatusesGet = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const statuses = await getStatuses();
+    res.json(statuses);
   } catch (err) {
     next(err);
   }
@@ -336,6 +366,8 @@ export {
   projectListGet,
   projectListGetSimple,
   projectGet,
+  projectGetCount,
+  projectStatusesGet,
   projectGetFormatted,
   projectPost,
   projectPut,
