@@ -29,7 +29,9 @@ export const processProjectEnrichment = async (job: Job) => {
         {
           finishedAt: new Date(),
           status: 'completed',
-          fieldsUpdated: (result.fieldsUpdated as any) || []
+          fieldsUpdated: Array.isArray(result.fieldsUpdated)
+            ? result.fieldsUpdated.join(',')
+            : (result.fieldsUpdated || '')
         },
         newSearch
       );
@@ -83,7 +85,9 @@ export const processBatchEnrichment = async (job: Job) => {
           {
             finishedAt: new Date(),
             status: 'completed',
-            fieldsUpdated: entry?.fieldsUpdated || []
+            fieldsUpdated: Array.isArray(entry?.fieldsUpdated)
+              ? entry.fieldsUpdated.join(',')
+              : (entry?.fieldsUpdated || '')
           },
           searchId
         );

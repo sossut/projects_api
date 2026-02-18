@@ -4,6 +4,7 @@ import {
   projectEnrichImmediate,
   projectEnrichBatch,
   jobStatus,
+  stopJob,
   // projectEnrichGPT5,
   // projectEnrichTavily,
   // projectEnrichBatchGPT5,
@@ -47,4 +48,6 @@ router.post(
 );
 // Check job status
 router.get('/job/:jobId', jobStatus);
+
+router.post('/job/:jobId/stop', stopJob);
 export default router;

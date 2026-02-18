@@ -24,7 +24,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-  worker:
+  automation-worker:
     build:
       context: .
       dockerfile: Dockerfile
@@ -39,6 +39,20 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-
+  enrichment-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npx ts-node src/api/queues/enrichment.worker.ts
+    env_file: .env
+    environment:
+      CHOKIDAR_USEPOLLING: '1'
+      CHOKIDAR_INTERVAL: '1000'
+      NODEMON_LEGACY_WATCH: '1'
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+      - /app/node_modules
 volumes:
   redis_data:
