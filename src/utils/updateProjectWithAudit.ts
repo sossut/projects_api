@@ -96,7 +96,7 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
       latest: p.latestDateText
     },
     buildingType: p.buildingType,
-    buildingUse: p.buildingUses?.map((bu: any) => ({
+    buildingUses: p.buildingUses?.map((bu: any) => ({
       buildingUse: bu.buildingUse
     })),
     budgetEur: p.budgetEur,
@@ -824,8 +824,8 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
       });
     }
   }
-  for (const bu of req.body.buildingUse || []) {
-    console.log({ bu });
+
+  for (const bu of req.body.buildingUses || []) {
     const buildingUseExists = await checkBuildingUseExistsByName(
       bu.buildingUse
     );

@@ -60,16 +60,34 @@ const getAllProjects = async (
       params.push(filters.status);
     }
     if (filters.city) {
-      conditions.push('cities.name = ?');
-      params.push(filters.city);
+      if (Array.isArray(filters.city)) {
+        const placeholders = filters.city.map(() => '?').join(', ');
+        conditions.push(`cities.name IN (${placeholders})`);
+        params.push(...filters.city);
+      } else {
+        conditions.push('cities.name = ?');
+        params.push(filters.city);
+      }
     }
     if (filters.metroArea) {
-      conditions.push('metro_areas.name = ?');
-      params.push(filters.metroArea);
+      if (Array.isArray(filters.metroArea)) {
+        const placeholders = filters.metroArea.map(() => '?').join(', ');
+        conditions.push(`metro_areas.name IN (${placeholders})`);
+        params.push(...filters.metroArea);
+      } else {
+        conditions.push('metro_areas.name = ?');
+        params.push(filters.metroArea);
+      }
     }
     if (filters.country) {
-      conditions.push('countries.name = ?');
-      params.push(filters.country);
+      if (Array.isArray(filters.country)) {
+        const placeholders = filters.country.map(() => '?').join(', ');
+        conditions.push(`countries.name IN (${placeholders})`);
+        params.push(...filters.country);
+      } else {
+        conditions.push('countries.name = ?');
+        params.push(filters.country);
+      }
     }
     if (filters.continent) {
       conditions.push('continents.name = ?');
@@ -107,8 +125,14 @@ const getAllProjects = async (
       params.push(filters.isActive);
     }
     if (filters.buildingUse) {
-      conditions.push('building_uses.building_use = ?');
-      params.push(filters.buildingUse);
+      if (Array.isArray(filters.buildingUse)) {
+        const placeholders = filters.buildingUse.map(() => '?').join(', ');
+        conditions.push(`building_uses.building_use IN (${placeholders})`);
+        params.push(...filters.buildingUse);
+      } else {
+        conditions.push('building_uses.building_use = ?');
+        params.push(filters.buildingUse);
+      }
     }
   }
   // Always exclude completed projects
@@ -134,9 +158,122 @@ const getAllProjects = async (
   return parseProjectRows(rows);
 };
 
-const getProjectCount = async (): Promise<number> => {
+const getProjectCount = async (filters?: {
+  [key: string]: string | number | string[];
+}): Promise<number> => {
+  let whereClause = '';
+  const params: any[] = [];
+  const conditions: string[] = [];
+  if (filters) {
+    if (filters.status) {
+      conditions.push('projects.status = ?');
+      params.push(filters.status);
+    }
+    if (filters.city) {
+      if (Array.isArray(filters.city)) {
+        const placeholders = filters.city.map(() => '?').join(', ');
+        conditions.push(`cities.name IN (${placeholders})`);
+        params.push(...filters.city);
+      } else {
+        conditions.push('cities.name = ?');
+        params.push(filters.city);
+      }
+    }
+    if (filters.metroArea) {
+      if (Array.isArray(filters.metroArea)) {
+        const placeholders = filters.metroArea.map(() => '?').join(', ');
+        conditions.push(`metro_areas.name IN (${placeholders})`);
+        params.push(...filters.metroArea);
+      } else {
+        conditions.push('metro_areas.name = ?');
+        params.push(filters.metroArea);
+      }
+    }
+    if (filters.country) {
+      if (Array.isArray(filters.country)) {
+        const placeholders = filters.country.map(() => '?').join(', ');
+        conditions.push(`countries.name IN (${placeholders})`);
+        params.push(...filters.country);
+      } else {
+        conditions.push('countries.name = ?');
+        params.push(filters.country);
+      }
+    }
+    if (filters.continent) {
+      conditions.push('continents.name = ?');
+      params.push(filters.continent);
+    }
+    if (filters.buildingType) {
+      conditions.push('building_types.building_type = ?');
+      params.push(filters.buildingType);
+    }
+    if (filters.minBudget) {
+      conditions.push('projects.budget_eur >= ?');
+      params.push(filters.minBudget);
+    }
+    if (filters.maxBudget) {
+      conditions.push('projects.budget_eur <= ?');
+      params.push(filters.maxBudget);
+    }
+
+    if (filters.maxHeightMeters) {
+      conditions.push('projects.building_height_meters <= ?');
+      params.push(filters.maxHeightMeters);
+    }
+
+    if (filters.minHeightMeters) {
+      conditions.push('projects.building_height_meters >= ?');
+      params.push(filters.minHeightMeters);
+    }
+
+    if (filters.confidenceScore) {
+      conditions.push('projects.confidence_score = ?');
+      params.push(filters.confidenceScore);
+    }
+    if (filters.isActive !== undefined) {
+      conditions.push('projects.is_active = ?');
+      params.push(filters.isActive);
+    }
+    if (filters.buildingUse) {
+      if (Array.isArray(filters.buildingUse)) {
+        const placeholders = filters.buildingUse.map(() => '?').join(', ');
+        conditions.push(`building_uses.building_use IN (${placeholders})`);
+        params.push(...filters.buildingUse);
+      } else {
+        conditions.push('building_uses.building_use = ?');
+        params.push(filters.buildingUse);
+      }
+    }
+  }
+  // Always exclude completed projects
+  conditions.push("projects.status != 'completed'");
+  if (conditions.length > 0) {
+    whereClause = 'WHERE ' + conditions.join(' AND ');
+  }
+
+  const sql = promisePool.format(
+    `SELECT COUNT(*) AS count FROM projects
+    JOIN addresses ON projects.address_id = addresses.id
+    JOIN cities ON addresses.city_id = cities.id
+    JOIN metro_areas ON cities.metro_area_id = metro_areas.id
+    JOIN countries ON metro_areas.country_id = countries.id
+    JOIN continents ON countries.continent_id = continents.id
+    JOIN building_types ON projects.building_type_id = building_types.id
+    ${whereClause}`,
+    params
+  );
+  console.log(sql);
+
   const [rows] = await promisePool.query<RowDataPacket[]>(
-    'SELECT COUNT(*) AS count FROM projects'
+    `SELECT COUNT(*) AS count FROM projects
+    JOIN addresses ON projects.address_id = addresses.id
+    JOIN cities ON addresses.city_id = cities.id
+    JOIN metro_areas ON cities.metro_area_id = metro_areas.id
+    JOIN countries ON metro_areas.country_id = countries.id
+    JOIN continents ON countries.continent_id = continents.id
+    JOIN building_types ON projects.building_type_id = building_types.id
+    ${whereClause}`,
+    params
   );
   return rows[0].count as number;
 };
@@ -154,7 +291,7 @@ const getProjectKeys = async (): Promise<Project[]> => {
 const getAllProjectsSimple = async (
   sortBy: string = 'id',
   order: 'ASC' | 'DESC' = 'ASC',
-  filters?: { [key: string]: string | number },
+  filters?: { [key: string]: string | number | string[] },
   limit?: number,
   offset?: number
 ): Promise<Project[]> => {
@@ -181,16 +318,34 @@ const getAllProjectsSimple = async (
       params.push(filters.status);
     }
     if (filters.city) {
-      conditions.push('cities.name = ?');
-      params.push(filters.city);
+      if (Array.isArray(filters.city)) {
+        const placeholders = filters.city.map(() => '?').join(', ');
+        conditions.push(`cities.name IN (${placeholders})`);
+        params.push(...filters.city);
+      } else {
+        conditions.push('cities.name = ?');
+        params.push(filters.city);
+      }
     }
     if (filters.metroArea) {
-      conditions.push('metro_areas.name = ?');
-      params.push(filters.metroArea);
+      if (Array.isArray(filters.metroArea)) {
+        const placeholders = filters.metroArea.map(() => '?').join(', ');
+        conditions.push(`metro_areas.name IN (${placeholders})`);
+        params.push(...filters.metroArea);
+      } else {
+        conditions.push('metro_areas.name = ?');
+        params.push(filters.metroArea);
+      }
     }
     if (filters.country) {
-      conditions.push('countries.name = ?');
-      params.push(filters.country);
+      if (Array.isArray(filters.country)) {
+        const placeholders = filters.country.map(() => '?').join(', ');
+        conditions.push(`countries.name IN (${placeholders})`);
+        params.push(...filters.country);
+      } else {
+        conditions.push('countries.name = ?');
+        params.push(filters.country);
+      }
     }
     if (filters.continent) {
       conditions.push('continents.name = ?');
@@ -228,8 +383,14 @@ const getAllProjectsSimple = async (
       params.push(filters.isActive);
     }
     if (filters.buildingUse) {
-      conditions.push('building_uses.building_use = ?');
-      params.push(filters.buildingUse);
+      if (Array.isArray(filters.buildingUse)) {
+        const placeholders = filters.buildingUse.map(() => '?').join(', ');
+        conditions.push(`building_uses.building_use IN (${placeholders})`);
+        params.push(...filters.buildingUse);
+      } else {
+        conditions.push('building_uses.building_use = ?');
+        params.push(filters.buildingUse);
+      }
     }
   }
   // Always exclude completed projects

@@ -1,9 +1,10 @@
-const projectsQueryString = `SELECT projects.id, projects.name,
+const projectsQueryString = `SELECT projects.id, projects.name, 
     JSON_OBJECT(
       'id', addresses.id,
       'address', addresses.address,
       'cityId', addresses.city_id,
       'postcode', addresses.postcode,
+      
       'location', JSON_OBJECT(
         'latitude', ST_Y(addresses.location),
         'longitude', ST_X(addresses.location)

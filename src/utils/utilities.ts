@@ -217,6 +217,15 @@ const parseToStandardDate = (dateStr: string | null): string | null => {
   return null;
 };
 
+const applyFitersSortingAndOrdering = (query: string, filters: any) => {
+  if (filters.sortBy) {
+    const sortBy = filters.sortBy;
+    const sortOrder = filters.sortOrder === 'desc' ? 'DESC' : 'ASC';
+    query += ` ORDER BY ${sortBy} ${sortOrder}`;
+  }
+  return query;
+};
+
 export {
   normalizeMetroAreaName,
   findProjectIdByKey,
@@ -228,5 +237,6 @@ export {
   toSnake,
   toCamel,
   throwIfValidationErrors,
-  parseToStandardDate
+  parseToStandardDate,
+  applyFitersSortingAndOrdering
 };
