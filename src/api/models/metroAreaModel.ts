@@ -50,6 +50,18 @@ const checkMetroAreaExistsByName = async (name: string): Promise<number> => {
   return rows.length > 0 ? (rows[0].id as number) : 0;
 };
 
+const getAutomatedMetroAreas = async (): Promise<MetroArea[]> => {
+  const [rows] = await promisePool.query<GetMetroArea[]>(
+    `SELECT metro_areas.id, metro_areas.name, metro_areas.last_searched_at
+    FROM metro_areas
+    WHERE do_auto_search = 1`
+  );
+  if (rows.length === 0) {
+    throw new CustomError('No metro areas found with do_auto_search = 1', 404);
+  }
+  return rows;
+};
+
 const postMetroArea = async (metroAreaData: PostMetroArea): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     'INSERT INTO metro_areas (name, country_id, last_searched_at) VALUES (?, ?, ?)',
@@ -90,6 +102,7 @@ const deleteMetroArea = async (id: number): Promise<boolean> => {
 export {
   getAllMetroAreas,
   getMetroArea,
+  getAutomatedMetroAreas,
   postMetroArea,
   putMetroArea,
   deleteMetroArea,

@@ -1,13 +1,15 @@
+/* eslint-disable @typescript-eslint/indent */
 import { Worker } from 'bullmq';
 import { automationQueue } from './automation.queue';
 import { processProjectSearch } from './processors/projectSearch.processor';
 import { processCompanyExtract } from './processors/companyExtract.processor';
-import {
-  processProjectEnrichment,
-  processBatchEnrichment,
-  processFirstPassProjectEnrichment
-} from './processors/enrichment.processor';
-
+// import {
+//   processProjectEnrichment,
+//   processBatchEnrichment,
+//   processFirstPassProjectEnrichment
+// } from './processors/enrichment.processor';
+import { getAutomatedMetroAreas } from '../models/metroAreaModel';
+import { getProjectsForBatchEnrichment } from '../models/projectModel';
 const connection = {
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379')
@@ -27,29 +29,71 @@ const scheduleProjectSearch = async () => {
     return;
   }
 
-  const location = process.env.PROJECT_SEARCH_LOCATION || 'Hanoi';
-  const buildingType =
-    process.env.PROJECT_SEARCH_BUILDING_TYPE || 'residential';
+  const metroAreas = await getAutomatedMetroAreas();
+  if (!metroAreas.length) {
+    console.warn(
+      'No metro areas found for automation. Please add entries to the metro_areas table with automate = true.'
+    );
+    return;
+  }
+  const batchEnrichmentProjects = await getProjectsForBatchEnrichment(
+    metroAreas.map((m) => m.id as number)
+  );
 
-  const existing = await automationQueue.getJobSchedulers();
-  const toRemove = existing.filter((job) => job.name === 'project-search');
-  for (const job of toRemove) {
-    await automationQueue.removeJobScheduler(job.key);
+  const buildingTypes = ['A', 'B', 'C', 'D'];
+
+  for (const metroArea of metroAreas) {
+    for (const buildingType of buildingTypes) {
+      const existing = await automationQueue.getJobSchedulers();
+      const toRemove = existing.filter((job) => job.name === 'project-search');
+      for (const job of toRemove) {
+        await automationQueue.removeJobScheduler(job.key);
+      }
+      await automationQueue.add(
+        'project-search',
+        { location: metroArea.name, buildingType },
+        {
+          repeat: { pattern: cron },
+          jobId: `project-search:${metroArea.name}:${buildingType}`
+        }
+      );
+      console.log(
+        `Scheduled project-search for ${metroArea.name} (${buildingType}) on cron ${cron}`
+      );
+    }
   }
 
-  await automationQueue.add(
-    'project-search',
-    { location, buildingType },
-    {
-      repeat: { pattern: cron },
-      jobId: `project-search:${location}:${buildingType}`
-    }
-  );
-
-  console.log(
-    `Scheduled project-search for ${location} (${buildingType}) on cron ${cron}`
-  );
+  for (const project of batchEnrichmentProjects) {
+    await automationQueue.add(
+      'project-enrich',
+      { projectId: project.id },
+      {
+        jobId: `project-enrich:${project.id}`
+      }
+    );
+  }
 };
+// const location = process.env.PROJECT_SEARCH_LOCATION || 'Hanoi';
+// const buildingType = process.env.PROJECT_SEARCH_BUILDING_TYPE || 'A';
+
+// const existing = await automationQueue.getJobSchedulers();
+// const toRemove = existing.filter((job) => job.name === 'project-search');
+// for (const job of toRemove) {
+//   await automationQueue.removeJobScheduler(job.key);
+// }
+
+// await automationQueue.add(
+//   'project-search',
+//   { location, buildingType },
+//   {
+//     repeat: { pattern: cron },
+//     jobId: `project-search:${location}:${buildingType}`
+//   }
+// );
+
+// console.log(
+//   `Scheduled project-search for ${location} (${buildingType}) on cron ${cron}`
+// );
 
 // Worker for automation queue
 export const automationWorker = new Worker(
@@ -65,14 +109,14 @@ export const automationWorker = new Worker(
       case 'company-extract':
         return processCompanyExtract(job);
 
-      case 'enrich-project':
-        return processProjectEnrichment(job);
+      // case 'enrich-project':
+      //   return processProjectEnrichment(job);
 
-      case 'enrich-batch':
-        return processBatchEnrichment(job);
+      // case 'enrich-batch':
+      //   return processBatchEnrichment(job);
 
-      case 'enrich-after-first-pass-gpt5':
-        return processFirstPassProjectEnrichment(job);
+      // case 'enrich-after-first-pass-gpt5':
+      //   return processFirstPassProjectEnrichment(job);
 
       default:
         throw new Error(`Unknown job type: ${job.name}`);

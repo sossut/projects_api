@@ -6,6 +6,8 @@ import {
 import { postSearch, putSearch } from '../../models/searchModel';
 import { findMetroAreaIdByName } from '../../../utils/utilities';
 
+import { enrichmentQueue } from '../enrichment.queue';
+
 // BullMQ processor for project search jobs
 export const processProjectSearch = async (job: Job) => {
   const { query, location, buildingType } = job.data;
@@ -50,6 +52,17 @@ export const processProjectSearch = async (job: Job) => {
         },
         searchId
       );
+    }
+    //so here?
+    if (
+      'newFirstPassProjectIds' in results &&
+      Array.isArray(results.newFirstPassProjectIds)
+    ) {
+      for (const projectId of results.newFirstPassProjectIds) {
+        await enrichmentQueue.add('enrich-after-first-pass-gpt5', {
+          projectId
+        });
+      }
     }
     return {
       success: true,

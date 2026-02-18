@@ -158,6 +158,26 @@ const getAllProjects = async (
   return parseProjectRows(rows);
 };
 
+const getProjectsForBatchEnrichment = async (
+  metroAreaIds: number[]
+): Promise<Project[]> => {
+  if (metroAreaIds.length === 0) {
+    throw new CustomError('No metro area IDs provided', 400);
+  }
+
+  const [rows] = await promisePool.query<GetProject[]>(
+    `SELECT projects.id, projects.name, projects.status
+    FROM projects
+    JOIN metro_areas ON projects.metro_area_id = metro_areas.id
+    WHERE metro_areas.id IN (${metroAreaIds.map(() => '?').join(', ')})
+    AND projects.status != 'completed'
+    `,
+    metroAreaIds
+  );
+
+  return parseProjectRows(rows);
+};
+
 const getProjectCount = async (filters?: {
   [key: string]: string | number | string[];
 }): Promise<number> => {
@@ -565,6 +585,7 @@ const deleteProject = async (id: number): Promise<boolean> => {
 export {
   getAllProjects,
   getProjectKeys,
+  getProjectsForBatchEnrichment,
   getProjectCount,
   getAllProjectsSimple,
   getProject,

@@ -8,6 +8,7 @@ interface MetroArea {
   lastSearchedAt: Date;
   continent?: Continent;
   country?: Country;
+  do_auto_search?: boolean;
   countryId: number | Country;
 }
 

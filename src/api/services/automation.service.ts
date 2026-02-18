@@ -147,6 +147,7 @@ export const findProjectsWithGPT5 = async (
     let count = 0;
     const existingProjects = [];
     const existingProjectNames = [] as string[];
+    const newFirstPassProjectIds = [] as number[];
     const existingFirstPassProjects =
       await getProjectFirstPassNamesByMetroAreaAndBuildingType(
         location,
@@ -206,6 +207,7 @@ export const findProjectsWithGPT5 = async (
         await checkIfProjectExistsByKey(key);
       if (!checkIfProjectExistsByKeyFields) {
         const newFirstPassProject = await postProjectFirstPass(p);
+        newFirstPassProjectIds.push(newFirstPassProject);
         count++;
         console.log(
           `Project "${p.name}" added to first pass table with ID ${newFirstPassProject}`
@@ -220,7 +222,8 @@ export const findProjectsWithGPT5 = async (
     return {
       projectsFound: results.projects?.length || 0,
       projectsAdded: count,
-      existingProjects
+      existingProjects,
+      newFirstPassProjectIds
     };
   } catch (error) {
     console.error('Error finding projects with GPT-5:', error);
