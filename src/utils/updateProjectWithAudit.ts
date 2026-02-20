@@ -825,6 +825,18 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
       });
     }
   }
+  for (const media of req.body.media || []) {
+    if (!media.url) continue;
+    const checkMedia = await checkProjectMediaExistsByUrl(media.url);
+    if (!checkMedia) {
+      await postProjectMedia({
+        projectId: projectId as number,
+        url: media.url,
+        title: media.title,
+        mediaType: media.mediaType
+      });
+    }
+  }
 
   for (const bu of req.body.buildingUses || []) {
     const buildingUseExists = await checkBuildingUseExistsByName(
