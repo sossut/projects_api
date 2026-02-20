@@ -6,7 +6,8 @@ import {
   getAllArchitects,
   postArchitect,
   putArchitect,
-  deleteArchitect
+  deleteArchitect,
+  getArchitectByCountryId
 } from '../models/architectModel';
 
 import { PostArchitect, PutArchitect } from '../../interfaces/Architect';
@@ -47,6 +48,24 @@ const architectGet = async (
     next(err);
   }
 };
+
+const architecstGetByCountryId = async (
+  req: Request<{ countryId: number }, {}, {}>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+    const architects = await getArchitectByCountryId(
+      req.params.countryId as number
+    );
+    res.json(architects);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const architectPost = async (
   req: Request<{}, {}, PostArchitect>,
   res: Response,
@@ -128,6 +147,7 @@ const architectDelete = async (
 export {
   architectListGet,
   architectGet,
+  architecstGetByCountryId,
   architectPost,
   architectPut,
   architectDelete

@@ -812,7 +812,8 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
     }
   }
 
-  for (const media of req.body.media || []) {
+  for (const media of req.body.projectMedias || []) {
+    console.log(media.url);
     if (!media.url) continue;
     const checkMedia = await checkProjectMediaExistsByUrl(media.url);
     if (!checkMedia) {

@@ -23,6 +23,8 @@ import { User } from '../../interfaces/User';
 
 import { addNewProjectToDB } from '../../utils/applyEnrichedDataToProject';
 import updateProjectWithAudit from '../../utils/updateProjectWithAudit';
+import { ProjectDuplicate } from '../../interfaces/ProjectDuplicate';
+import { postProjectDuplicate } from '../models/projectDuplicateModel';
 
 const projectListGet = async (
   req: Request,
@@ -392,8 +394,19 @@ const projectPost = async (
         proj.location?.country.trim().toLowerCase();
 
       const existingProjectId = await findProjectIdByKey(projectKey);
+      console.log('Existing project ID:', existingProjectId);
       if (existingProjectId) {
         skippedProjects.push(projectKey);
+        const projectDuplicate: ProjectDuplicate = {
+          projectDuplicateName: proj.name,
+          projectDuplicateKey: projectKey,
+          matchedProjectId: existingProjectId.id,
+          projectDuplicateData: JSON.stringify(proj),
+          reason: 'Duplicate project key',
+          similarityScore: existingProjectId.score * 100
+        };
+        console.log('similarity score: ', projectDuplicate.similarityScore);
+        await postProjectDuplicate(projectDuplicate);
         continue;
       }
       const project = await addNewProjectToDB(proj, 'manual');
@@ -420,6 +433,8 @@ const projectPut = async (
   next: NextFunction
 ) => {
   try {
+    console.log('fasdkljflasödkfjlökjasdlöfkasdklfjasdlöfjklödfjköslakdfjlök');
+    console.log({ body: req.body });
     // const user = req.user as User;
     // if (user.role !== 'admin') {
     //   throw new CustomError('Unauthorized', 401);

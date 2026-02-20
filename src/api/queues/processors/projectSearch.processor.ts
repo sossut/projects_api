@@ -53,7 +53,7 @@ export const processProjectSearch = async (job: Job) => {
         searchId
       );
     }
-    //so here?
+
     if (
       'newFirstPassProjectIds' in results &&
       Array.isArray(results.newFirstPassProjectIds)

@@ -14,6 +14,7 @@ import cityRoute from './routes/cityRoute';
 import buildingUseRoute from './routes/buildingUseRoute';
 import countryRoute from './routes/countryRoute';
 import buildingTypeRoute from './routes/buildingTypeRoute';
+import architectRoute from './routes/architectRoute';
 
 const router = express.Router();
 
@@ -35,5 +36,5 @@ router.use('/cities', cityRoute);
 router.use('/building-uses', buildingUseRoute);
 router.use('/countries', countryRoute);
 router.use('/building-types', buildingTypeRoute);
-
+router.use('/architects', architectRoute);
 export default router;

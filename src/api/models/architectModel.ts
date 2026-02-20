@@ -31,6 +31,22 @@ const getArchitect = async (id: number): Promise<Architect> => {
   return rows[0];
 };
 
+const getArchitectByCountryId = async (
+  countryId: number
+): Promise<Architect[]> => {
+  const [rows] = await promisePool.query<GetArchitect[]>(
+    `
+    SELECT a.name
+FROM architects a
+JOIN architects_presence ap ON a.id = ap.architect_id
+JOIN countries c ON ap.country_id = c.id
+WHERE c.id = ?
+    `,
+    [countryId]
+  );
+  return rows;
+};
+
 const checkArchitectExistsByName = async (name: string): Promise<number> => {
   const [rows] = await promisePool.query<GetArchitect[]>(
     'SELECT id FROM architects WHERE name = ?',
@@ -87,6 +103,7 @@ const deleteArchitect = async (id: number): Promise<boolean> => {
 export {
   getAllArchitects,
   getArchitect,
+  getArchitectByCountryId,
   checkArchitectExistsByName,
   postArchitect,
   putArchitect,

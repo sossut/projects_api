@@ -24,14 +24,25 @@ const normalizeMetroAreaName = (name: string): string => {
     .trim();
 };
 
-const findProjectIdByKey = async (key: string): Promise<number | null> => {
+interface ProjectKeyMatch {
+  id: number;
+  score: number;
+}
+
+const findProjectIdByKey = async (
+  key: string
+): Promise<ProjectKeyMatch | null> => {
   const projects = await getProjectKeys();
   const fuse = new Fuse(projects, { keys: ['projectKey'], threshold: 0.3 });
   const result = fuse.search(key);
   console.log('result KEY:', result);
-  return result.length && result[0].item.id !== undefined
-    ? result[0].item.id
-    : null;
+  if (result.length && result[0].item.id !== undefined) {
+    return {
+      id: result[0].item.id,
+      score: result[0].score ?? 0
+    };
+  }
+  return null;
 };
 
 const findMetroAreaIdByName = async (

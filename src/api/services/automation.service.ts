@@ -14,12 +14,15 @@ import {
 } from '../models/developerModel';
 
 import {
-  checkIfProjectExistsByKey,
   getProject,
   getProjectNamesByMetroAreaAndBuildingType
 } from '../models/projectModel';
 
-import { findMetroAreaIdByName, toCamel } from '../../utils/utilities';
+import {
+  findMetroAreaIdByName,
+  findProjectIdByKey,
+  toCamel
+} from '../../utils/utilities';
 import { enrichProjectWithTavily } from './enrichmentTavily.service';
 
 import {
@@ -34,6 +37,8 @@ import {
   addNewProjectToDB,
   applyEnrichedDataToProject
 } from '../../utils/applyEnrichedDataToProject';
+import { postProjectDuplicate } from '../models/projectDuplicateModel';
+import { ProjectDuplicate } from '../../interfaces/ProjectDuplicate';
 
 // Main automation service for project discovery
 export const discoverProjects = async (userQuery: string) => {
@@ -203,8 +208,7 @@ export const findProjectsWithGPT5 = async (
       console.log('Found project:', JSON.stringify(p, null, 2));
 
       const key = `${p.name}|${p.city}|${p.country}`.toLowerCase();
-      const checkIfProjectExistsByKeyFields =
-        await checkIfProjectExistsByKey(key);
+      const checkIfProjectExistsByKeyFields = await findProjectIdByKey(key);
       if (!checkIfProjectExistsByKeyFields) {
         const newFirstPassProject = await postProjectFirstPass(p);
         newFirstPassProjectIds.push(newFirstPassProject);
@@ -217,6 +221,15 @@ export const findProjectsWithGPT5 = async (
         console.log(
           `Project "${p.name}" already exists in the database, skipping.`
         );
+        const projectDuplicate: ProjectDuplicate = {
+          projectDuplicateName: p.name,
+          projectDuplicateKey: key,
+          projectDuplicateData: JSON.stringify(p),
+          reason: 'GPT-5 first pass search identified as duplicate',
+          similarityScore: checkIfProjectExistsByKeyFields.score * 100,
+          matchedFirstPassProjectId: checkIfProjectExistsByKeyFields.id
+        };
+        await postProjectDuplicate(projectDuplicate);
       }
     }
     return {
