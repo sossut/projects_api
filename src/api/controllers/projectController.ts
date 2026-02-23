@@ -4,6 +4,7 @@ import {
   deleteProject,
   getAllProjects,
   getAllProjectsSimple,
+  getProjectSimple,
   getProject,
   getProjectCount,
   getStatuses
@@ -25,6 +26,11 @@ import { addNewProjectToDB } from '../../utils/applyEnrichedDataToProject';
 import updateProjectWithAudit from '../../utils/updateProjectWithAudit';
 import { ProjectDuplicate } from '../../interfaces/ProjectDuplicate';
 import { postProjectDuplicate } from '../models/projectDuplicateModel';
+import { deleteProjectArchitect } from '../models/projectArchitectModel';
+import { deleteProjectDeveloper } from '../models/projectDeveloperModel';
+import { deleteProjectContractor } from '../models/projectContractorModel';
+import { deleteProjectConsultant } from '../models/projectConstultantModel';
+import { deleteProjectMedia } from '../models/projectMediaModel';
 
 const projectListGet = async (
   req: Request,
@@ -175,6 +181,19 @@ const projectListGetSimple = async (
   }
 };
 
+const projectGetSimple = async (
+  req: Request<{ id: number }, {}, {}>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const project = toCamel(await getProjectSimple(req.params.id as number));
+    res.json(project);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const projectGetCount = async (
   req: Request,
   res: Response,
@@ -302,6 +321,7 @@ const projectGetFormatted = async (
       buildingHeightMeters: project.buildingHeightMeters,
       buildingHeightFloors: project.buildingHeightFloors,
       location: {
+        addressId: project.addressId,
         address: project.address.address,
         city: project.address.city.name,
         country: project.address.country.name,
@@ -316,7 +336,8 @@ const projectGetFormatted = async (
       },
       buildingType: project.buildingType,
       buildingUses: project.buildingUses?.map((bu: any) => ({
-        buildingUse: bu.buildingUse
+        buildingUse: bu.buildingUse,
+        buildingUseId: bu.id
       })),
       budgetEur: project.budgetEur,
       glassFacade: project.glassFacade,
@@ -338,6 +359,7 @@ const projectGetFormatted = async (
         })) || [],
       architects:
         project.architects?.map((arch: any) => ({
+          id: arch.id,
           name: arch.name,
           website: arch.contact?.website ?? arch.website,
           source: arch.source,
@@ -348,6 +370,7 @@ const projectGetFormatted = async (
         })) || [],
       contractors:
         project.contractors?.map((cont: any) => ({
+          id: cont.id,
           name: cont.name,
           source: cont.source,
           website: cont.contact?.website ?? cont.website,
@@ -358,6 +381,7 @@ const projectGetFormatted = async (
         })) || [],
       consultants:
         project.consultants?.map((cons: any) => ({
+          id: cons.id,
           name: cons.name,
           source: cons.source,
           website: cons.contact?.website ?? cons.website,
@@ -434,7 +458,7 @@ const projectPut = async (
 ) => {
   try {
     console.log('fasdkljflasödkfjlökjasdlöfkasdklfjasdlöfjklödfjköslakdfjlök');
-    console.log({ body: req.body });
+    console.log('Request body:', req.body);
     // const user = req.user as User;
     // if (user.role !== 'admin') {
     //   throw new CustomError('Unauthorized', 401);
@@ -442,6 +466,116 @@ const projectPut = async (
 
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
+    if (req.body.removals) {
+      console.log('Deleting properties:', req.body.removals);
+      try {
+      } catch (error) {}
+      if (req.body.removals.developers) {
+        for (
+          let i = 0;
+          i < ((req.body.removals.developers ?? []) as unknown[]).length;
+          i++
+        ) {
+          try {
+            const developerId = (req.body.removals.developers as unknown[])[
+              i
+            ] as number;
+            console.log('developerId to be removed', developerId);
+            if (!developerId) {
+              throw new CustomError('Invalid developer ID', 400);
+            }
+            await deleteProjectDeveloper(req.params.id, developerId);
+          } catch (error) {
+            console.error('Error deleting developer:', error);
+            throw error; // Rethrow to be caught by outer catch
+          }
+        }
+      } else if (req.body.removals.architects) {
+        for (
+          let i = 0;
+          i < ((req.body.removals.architects ?? []) as unknown[]).length;
+          i++
+        ) {
+          try {
+            const architectId = (req.body.removals.architects as unknown[])[
+              i
+            ] as number;
+            console.log('architectId to be removed', architectId);
+            if (!architectId) {
+              throw new CustomError('Invalid architect ID', 400);
+            }
+            await deleteProjectArchitect(req.params.id, architectId);
+          } catch (error) {
+            console.error('Error deleting architect:', error);
+            throw error; // Rethrow to be caught by outer catch
+          }
+        }
+      } else if (req.body.removals.contractors) {
+        for (
+          let i = 0;
+          i < ((req.body.removals.contractors ?? []) as unknown[]).length;
+          i++
+        ) {
+          try {
+            const contractorId = (req.body.removals.contractors as unknown[])[
+              i
+            ] as number;
+            console.log('contractorId to be removed', contractorId);
+            if (!contractorId) {
+              throw new CustomError('Invalid contractor ID', 400);
+            }
+            await deleteProjectContractor(req.params.id, contractorId);
+          } catch (error) {
+            console.error('Error deleting contractor:', error);
+            throw error; // Rethrow to be caught by outer catch
+          }
+        }
+      } else if (req.body.removals.consultants) {
+        for (
+          let i = 0;
+          i < ((req.body.removals.consultants ?? []) as unknown[]).length;
+          i++
+        ) {
+          try {
+            const consultantId = (req.body.removals.consultants as unknown[])[
+              i
+            ] as number;
+            console.log('consultantId to be removed', consultantId);
+            if (!consultantId) {
+              throw new CustomError('Invalid consultant ID', 400);
+            }
+            await deleteProjectConsultant(req.params.id, consultantId);
+          } catch (error) {
+            console.error('Error deleting consultant:', error);
+            throw error; // Rethrow to be caught by outer catch
+          }
+        }
+      } else if (req.body.removals.media) {
+        for (
+          let i = 0;
+          i < ((req.body.removals.media ?? []) as unknown[]).length;
+          i++
+        ) {
+          console.log(i);
+          try {
+            const mediaId = (req.body.removals.media as unknown[])[i] as number;
+            console.log('mediaId to be removed', mediaId);
+            if (!mediaId) {
+              throw new CustomError('Invalid media ID', 400);
+            }
+            await deleteProjectMedia(mediaId);
+          } catch (error) {
+            console.error('Error deleting media:', error);
+            throw error; // Rethrow to be caught by outer catch
+          }
+        }
+      } else if (req.body.removals.sources) {
+        // Handle sourceLinks deletion if needed
+      }
+
+      delete req.body.removals; // Remove the removals field from the body before updating
+    }
+    console.log('Request body after deletions:', req.body);
     const response = await updateProjectWithAudit(req.params.id as number, req);
     res.json(response);
   } catch (err) {
@@ -495,6 +629,7 @@ const projectDelete = async (
 export {
   projectListGet,
   projectListGetSimple,
+  projectGetSimple,
   projectGet,
   projectGetCount,
   projectStatusesGet,

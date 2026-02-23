@@ -53,10 +53,10 @@ const metroAreaPost = async (
   next: NextFunction
 ) => {
   try {
-    const user = req.user as User;
-    if (user.role !== 'admin') {
-      throw new CustomError('Unauthorized', 401);
-    }
+    // const user = req.user as User;
+    // if (user.role !== 'admin') {
+    //   throw new CustomError('Unauthorized', 401);
+    // }
     const errors = validationResult(req);
     console.log('Validation errors:', errors.array());
     throwIfValidationErrors(errors);
@@ -119,10 +119,10 @@ const metroAreaPut = async (
   next: NextFunction
 ) => {
   try {
-    const user = req.user as User;
-    if (user.role !== 'admin') {
-      throw new CustomError('Unauthorized', 401);
-    }
+    // const user = req.user as User;
+    // if (user.role !== 'admin') {
+    //   throw new CustomError('Unauthorized', 401);
+    // }
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
     req.body.lastSearchedAt = new Date(Date.now());

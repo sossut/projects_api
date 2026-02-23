@@ -66,6 +66,15 @@ interface Project {
   projects?: Project[];
   address?: Address;
   country?: Country;
+  removals?: {
+    developers?: number[]; // List of developer IDs to delete
+    architects?: number[]; // List of architect IDs to delete
+    contractors?: number[]; // List of contractor IDs to delete
+    consultants?: number[]; // List of consultant IDs to delete
+    projectWebsites?: number[]; // List of project website IDs to delete
+    media?: number[]; // List of media IDs to delete
+    sources?: number[]; // List of source link IDs to delete
+  }; // List of properties to delete (set to null)
 }
 
 interface GetProject extends RowDataPacket, Project {}

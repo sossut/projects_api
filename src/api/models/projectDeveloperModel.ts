@@ -111,11 +111,29 @@ const putProjectDeveloper = async (
   return true;
 };
 
+const deleteProjectDeveloper = async (
+  projectId: number,
+  developerId: number
+): Promise<boolean> => {
+  const [headers] = await promisePool.execute<ResultSetHeader>(
+    'DELETE FROM project_developers WHERE project_id = ? AND developer_id = ?',
+    [projectId, developerId]
+  );
+  if (headers.affectedRows === 0) {
+    throw new CustomError(
+      `ProjectDeveloper with projectId ${projectId} and developerId ${developerId} not found`,
+      404
+    );
+  }
+  return true;
+};
+
 export {
   getAllProjectDevelopers,
   getProjectDeveloper,
   getProjectsDevelopers,
   checkProjectDeveloperExists,
   postProjectDeveloper,
-  putProjectDeveloper
+  putProjectDeveloper,
+  deleteProjectDeveloper
 };

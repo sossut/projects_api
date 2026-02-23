@@ -14,7 +14,8 @@ const getAllMetroAreas = async (): Promise<MetroArea[]> => {
   const [rows] = await promisePool.query<GetMetroArea[]>(
     `SELECT metro_areas.id, metro_areas.name, metro_areas.last_searched_at,
       countries.id AS country_id, countries.name AS country_name,
-      continents.id AS continent_id, continents.name AS continent_name
+      continents.id AS continent_id, continents.name AS continent_name,
+        do_automation AS doAutomation
     FROM metro_areas
       JOIN countries ON metro_areas.country_id = countries.id
       JOIN continents ON countries.continent_id = continents.id`
@@ -29,7 +30,8 @@ const getMetroArea = async (id: number): Promise<MetroArea> => {
   const [rows] = await promisePool.query<GetMetroArea[]>(
     `SELECT metro_areas.id, metro_areas.name, metro_areas.last_searched_at,
       countries.id AS country_id, countries.name AS country_name,
-      continents.id AS continent_id, continents.name AS continent_name
+      continents.id AS continent_id, continents.name AS continent_name,
+        do_automation AS doAutomation
     FROM metro_areas
       JOIN countries ON metro_areas.country_id = countries.id
       JOIN continents ON countries.continent_id = continents.id

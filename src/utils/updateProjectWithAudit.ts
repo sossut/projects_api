@@ -812,19 +812,18 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
     }
   }
 
-  for (const media of req.body.projectMedias || []) {
-    console.log(media.url);
-    if (!media.url) continue;
-    const checkMedia = await checkProjectMediaExistsByUrl(media.url);
-    if (!checkMedia) {
-      await postProjectMedia({
-        projectId: projectId as number,
-        url: media.url,
-        title: media.title,
-        mediaType: media.mediaType
-      });
-    }
-  }
+  // for (const media of req.body.projectMedias || []) {
+  //   if (!media.url) continue;
+  //   const checkMedia = await checkProjectMediaExistsByUrl(media.url);
+  //   if (!checkMedia) {
+  //     await postProjectMedia({
+  //       projectId: projectId as number,
+  //       url: media.url,
+  //       title: media.title,
+  //       mediaType: media.mediaType
+  //     });
+  //   }
+  // }
   for (const media of req.body.media || []) {
     if (!media.url) continue;
     const checkMedia = await checkProjectMediaExistsByUrl(media.url);

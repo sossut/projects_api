@@ -92,6 +92,10 @@ const putProjectMedia = async (
 };
 
 const deleteProjectMedia = async (id: number): Promise<boolean> => {
+  const sql = promisePool.format('DELETE FROM project_medias WHERE id = ?', [
+    id
+  ]);
+  console.log(sql);
   const [headers] = await promisePool.execute<ResultSetHeader>(
     'DELETE FROM project_medias WHERE id = ?',
     [id]

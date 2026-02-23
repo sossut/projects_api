@@ -43,12 +43,12 @@ router
 router
   .route('/:id')
   .get(
-    passport.authenticate('jwt', { session: false }),
+    // passport.authenticate('jwt', { session: false }),
     param('id').isInt({ gt: 0 }).toInt(),
     metroAreaGet
   )
   .put(
-    passport.authenticate('jwt', { session: false }),
+    // passport.authenticate('jwt', { session: false }),
     param('id').isInt({ gt: 0 }).toInt(),
     body('name').optional().isString().notEmpty().escape(),
     body('countryId').optional().isInt({ gt: 0 }).toInt().notEmpty().escape(),
