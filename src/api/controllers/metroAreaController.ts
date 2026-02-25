@@ -60,42 +60,42 @@ const metroAreaPost = async (
     const errors = validationResult(req);
     console.log('Validation errors:', errors.array());
     throwIfValidationErrors(errors);
-    if (!req.body.continent || !req.body.country) {
-      throw new CustomError(
-        'Continent and Country information are required',
-        400
-      );
-    }
-    const continentExists = await checkContinentExistsByName(
-      req.body.continent.name
-    );
-    let continentID = continentExists;
-    if (!req.body.continent.code) {
-      req.body.continent.code = null;
-    }
-    if (continentExists === 0) {
-      continentID = await postContinent(req.body.continent);
-    }
-    if (!continentID) {
-      throw new CustomError('Failed to create continent', 500);
-    }
+    // if (!req.body.continent || !req.body.country) {
+    //   throw new CustomError(
+    //     'Continent and Country information are required',
+    //     400
+    //   );
+    // }
+    // const continentExists = await checkContinentExistsByName(
+    //   req.body.continent.name
+    // );
+    // let continentID = continentExists;
+    // if (!req.body.continent.code) {
+    //   req.body.continent.code = null;
+    // }
+    // if (continentExists === 0) {
+    //   continentID = await postContinent(req.body.continent);
+    // }
+    // if (!continentID) {
+    //   throw new CustomError('Failed to create continent', 500);
+    // }
 
-    const countryExists = await checkCountryExistsByName(req.body.country.name);
-    let countryID = countryExists;
+    // const countryExists = await checkCountryExistsByName(req.body.country.name);
+    // let countryID = countryExists;
 
-    console.log(req.body.country);
-    if (countryExists === 0) {
-      countryID = await postCountry({
-        name: req.body.country.name,
-        code: req.body.country.code ? req.body.country.code : null,
-        continentId: continentID
-      });
-    }
+    // console.log(req.body.country);
+    // if (countryExists === 0) {
+    //   countryID = await postCountry({
+    //     name: req.body.country.name,
+    //     code: req.body.country.code ? req.body.country.code : null,
+    //     continentId: continentID
+    //   });
+    // }
 
-    if (!countryID) {
-      throw new CustomError('Failed to create country', 500);
-    }
-    req.body.countryId = countryID;
+    // if (!countryID) {
+    //   throw new CustomError('Failed to create country', 500);
+    // }
+    // req.body.countryId = countryID;
 
     req.body.lastSearchedAt = new Date(Date.now());
     const metroAreaId = await postMetroArea(req.body);

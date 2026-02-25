@@ -17,24 +17,25 @@ router
   .post(
     passport.authenticate('jwt', { session: false }),
     body('name').isString().notEmpty().escape(),
-    body('continent').custom((value) => {
-      if (typeof value !== 'object' || value === null) {
-        throw new Error('continent must be an object');
-      }
-      if (!value.name || typeof value.name !== 'string') {
-        throw new Error('continent.name is required and must be a string');
-      }
-      return true;
-    }),
-    body('country').custom((value) => {
-      if (typeof value !== 'object' || value === null) {
-        throw new Error('country must be an object');
-      }
-      if (!value.name || typeof value.name !== 'string') {
-        throw new Error('country.name is required and must be a string');
-      }
-      return true;
-    }),
+    // body('continent').custom((value) => {
+    //   if (typeof value !== 'object' || value === null) {
+    //     throw new Error('continent must be an object');
+    //   }
+    //   if (!value.name || typeof value.name !== 'string') {
+    //     throw new Error('continent.name is required and must be a string');
+    //   }
+    //   return true;
+    // }),
+    // body('country').custom((value) => {
+    //   if (typeof value !== 'object' || value === null) {
+    //     throw new Error('country must be an object');
+    //   }
+    //   if (!value.name || typeof value.name !== 'string') {
+    //     throw new Error('country.name is required and must be a string');
+    //   }
+    //   return true;
+    // }),
+    body('countryId').optional().isInt({ gt: 0 }).toInt().notEmpty().escape(),
     metroAreaPost
   );
 router
