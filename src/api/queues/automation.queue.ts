@@ -9,7 +9,7 @@ const connection = {
 export const automationQueue = new Queue('automation', {
   connection,
   defaultJobOptions: {
-    attempts: 3,
+    attempts: 1,
     backoff: {
       type: 'exponential',
       delay: 2000

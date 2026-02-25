@@ -25,13 +25,12 @@ export const processProjectEnrichment = async (job: Job) => {
     await job.updateProgress(100);
     if (result) {
       // Update search record with finishedAt and result count
+      const fieldsUpdated = JSON.stringify(result.fieldsUpdated ?? []);
       await putSearch(
         {
           finishedAt: new Date(),
           status: 'completed',
-          fieldsUpdated: Array.isArray(result.fieldsUpdated)
-            ? result.fieldsUpdated.join(',')
-            : (result.fieldsUpdated || '')
+          fieldsUpdated: fieldsUpdated
         },
         newSearch
       );
@@ -87,7 +86,7 @@ export const processBatchEnrichment = async (job: Job) => {
             status: 'completed',
             fieldsUpdated: Array.isArray(entry?.fieldsUpdated)
               ? entry.fieldsUpdated.join(',')
-              : (entry?.fieldsUpdated || '')
+              : entry?.fieldsUpdated || ''
           },
           searchId
         );

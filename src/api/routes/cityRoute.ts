@@ -13,10 +13,7 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(
-    // passport.authenticate('jwt', { session: false }),
-    cityListGet
-  )
+  .get(passport.authenticate('jwt', { session: false }), cityListGet)
   .post(
     passport.authenticate('jwt', { session: false }),
     body('name').isString().notEmpty().escape(),

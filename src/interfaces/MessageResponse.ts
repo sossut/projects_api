@@ -3,9 +3,11 @@ export default interface MessageResponse {
   id?: number;
   ids?: number[];
   jobId?: string;
+  jobIds?: string[];
   location?: string;
   skipped?: any[];
   buildingType?: string;
+  buildingTypes?: string;
   data?: {
     newDevelopers?: any[];
     newArchitects?: any[];

@@ -13,10 +13,7 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(
-    // passport.authenticate('jwt', { session: false }),
-    metroAreaListGet
-  )
+  .get(passport.authenticate('jwt', { session: false }), metroAreaListGet)
   .post(
     passport.authenticate('jwt', { session: false }),
     body('name').isString().notEmpty().escape(),
@@ -43,12 +40,12 @@ router
 router
   .route('/:id')
   .get(
-    // passport.authenticate('jwt', { session: false }),
+    passport.authenticate('jwt', { session: false }),
     param('id').isInt({ gt: 0 }).toInt(),
     metroAreaGet
   )
   .put(
-    // passport.authenticate('jwt', { session: false }),
+    passport.authenticate('jwt', { session: false }),
     param('id').isInt({ gt: 0 }).toInt(),
     body('name').optional().isString().notEmpty().escape(),
     body('countryId').optional().isInt({ gt: 0 }).toInt().notEmpty().escape(),

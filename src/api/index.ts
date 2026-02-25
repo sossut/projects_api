@@ -15,6 +15,7 @@ import buildingUseRoute from './routes/buildingUseRoute';
 import countryRoute from './routes/countryRoute';
 import buildingTypeRoute from './routes/buildingTypeRoute';
 import architectRoute from './routes/architectRoute';
+import queueInfoRoute from './routes/queueInfoRoute';
 
 const router = express.Router();
 
@@ -37,4 +38,5 @@ router.use('/building-uses', buildingUseRoute);
 router.use('/countries', countryRoute);
 router.use('/building-types', buildingTypeRoute);
 router.use('/architects', architectRoute);
+router.use('/queue-info', queueInfoRoute);
 export default router;

@@ -21,7 +21,7 @@ router
   .route('/')
   .get(projectListGet)
   .post(
-    // passport.authenticate('jwt', { session: false }),
+    passport.authenticate('jwt', { session: false }),
     body('projects').isArray({ min: 1 }),
     body('projects.*.name').isString().notEmpty().escape(),
     body('projects.*.buildingType').isString().notEmpty().escape(),
@@ -172,28 +172,24 @@ router
     projectPost
   );
 
-router.route('/simple').get(
-  // passport.authenticate('jwt', { session: false }),
-  projectListGetSimple
-);
+router
+  .route('/simple')
+  .get(passport.authenticate('jwt', { session: false }), projectListGetSimple);
 
-router.route('/simple/:id').get(
-  // passport.authenticate('jwt', { session: false }),
-  projectGetSimple
-);
+router
+  .route('/simple/:id')
+  .get(passport.authenticate('jwt', { session: false }), projectGetSimple);
 
-router.route('/count').get(
-  // passport.authenticate('jwt', { session: false }),
-  projectGetCount
-);
+router
+  .route('/count')
+  .get(passport.authenticate('jwt', { session: false }), projectGetCount);
 
-router.route('/statuses').get(
-  // passport.authenticate('jwt', { session: false }),
-  projectStatusesGet
-);
+router
+  .route('/statuses')
+  .get(passport.authenticate('jwt', { session: false }), projectStatusesGet);
 
 router.route('/edit').put(
-  // passport.authenticate('jwt', { session: false }),
+  passport.authenticate('jwt', { session: false }),
   body('id').isInt({ gt: 0 }).toInt(),
   body('name').optional().isString().notEmpty().escape(),
   body('buildingType').optional().isString().notEmpty().escape(),
@@ -346,12 +342,12 @@ router.route('/edit').put(
 router
   .route('/:id')
   .get(
-    // passport.authenticate('jwt', { session: false }),
+    passport.authenticate('jwt', { session: false }),
     param('id').isInt({ gt: 0 }).toInt(),
     projectGet
   )
   .put(
-    // passport.authenticate('jwt', { session: false }),
+    passport.authenticate('jwt', { session: false }),
     param('id').isInt({ gt: 0 }).toInt(),
     body('name').optional().isString().notEmpty().escape(),
     body('buildingType').optional().isString().notEmpty().escape(),
@@ -507,10 +503,12 @@ router
     param('id').isInt({ gt: 0 }).toInt(),
     projectDelete
   );
-router.route('/formatted/:id').get(
-  // passport.authenticate('jwt', { session: false }),
-  param('id').isInt({ gt: 0 }).toInt(),
-  projectGetFormatted
-);
+router
+  .route('/formatted/:id')
+  .get(
+    passport.authenticate('jwt', { session: false }),
+    param('id').isInt({ gt: 0 }).toInt(),
+    projectGetFormatted
+  );
 
 export default router;

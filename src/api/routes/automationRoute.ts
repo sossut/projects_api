@@ -3,7 +3,8 @@ import {
   // projectEnrich,
   // projectEnrichImmediate,
   // projectEnrichBatch,
-  jobStatus
+  jobStatus,
+  stopJob
   // projectEnrichGPT5,
   // projectEnrichTavily,
   // projectEnrichBatchGPT5,
@@ -13,7 +14,7 @@ import {
   // immediateProjectAfterFirstPassEnrichWithGPT5,
   // projectEnrichBatchGPT5
 } from '../controllers/automationController';
-
+import passport from 'passport';
 const router = express.Router();
 
 // // Enrich single project (queued)
@@ -46,5 +47,15 @@ const router = express.Router();
 //   immediateProjectAfterFirstPassEnrichWithGPT5
 // );
 // Check job status
-router.get('/job/:jobId', jobStatus);
+router.get(
+  '/job/:jobId',
+  passport.authenticate('jwt', { session: false }),
+  jobStatus
+);
+// Stop job
+router.post(
+  '/job/:jobId/stop',
+  passport.authenticate('jwt', { session: false }),
+  stopJob
+);
 export default router;

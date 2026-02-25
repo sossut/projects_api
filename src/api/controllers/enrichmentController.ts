@@ -171,7 +171,7 @@ const projectEnrichTavily = async (
     next(err);
   }
 };
-
+//immediate batch enrich with GPT-5 (for testing)
 const projectsFindGPT5 = async (
   req: Request<{}, {}, { location: string; buildingType: string }>,
   res: Response<MessageResponse>,
@@ -194,15 +194,15 @@ const projectsFindGPT5Queued = async (
   req: Request<
     {},
     {},
-    { location: string; buildingType: string; country: string }
+    { location: string; buildingTypes: string[]; country: string }
   >,
   res: Response<MessageResponse>,
   next: NextFunction
 ) => {
   try {
-    const { location, buildingType, country } = req.body;
+    const { location, buildingTypes, country } = req.body;
 
-    if (!location || !buildingType || !country) {
+    if (!location || !buildingTypes || !country) {
       return res.status(400).json({
         message: 'location, buildingType, and country are required'
       });
@@ -216,17 +216,17 @@ const projectsFindGPT5Queued = async (
 
     // Accept only 'Greater <location> Area' or '<location> Metropolitan Area' formats, otherwise append 'Metropolitan Area'
     let formattedLocation = location.trim();
-    const greaterAreaPattern = /^Greater\s+.+\s+Area$/i;
-    const metroAreaPattern = /^.+\s+Metropolitan\s+Area$/i;
-    if (
-      !greaterAreaPattern.test(formattedLocation) &&
-      !metroAreaPattern.test(formattedLocation)
-    ) {
-      res.json({
-        message: `Location '${location}' does not match expected formats. Please use 'Greater <location> Area' or '<location> Metropolitan Area'.`
-      });
-      return;
-    }
+    // const greaterAreaPattern = /^Greater\s+.+\s+Area$/i;
+    // const metroAreaPattern = /^.+\s+Metropolitan\s+Area$/i;
+    // if (
+    //   !greaterAreaPattern.test(formattedLocation) &&
+    //   !metroAreaPattern.test(formattedLocation)
+    // ) {
+    //   res.json({
+    //     message: `Location '${location}' does not match expected formats. Please use 'Greater <location> Area' or '<location> Metropolitan Area'.`
+    //   });
+    //   return;
+    // }
     let metroAreaId = await findMetroAreaIdByName(formattedLocation);
     if (!metroAreaId) {
       metroAreaId = await postMetroArea({
@@ -235,16 +235,27 @@ const projectsFindGPT5Queued = async (
         lastSearchedAt: new Date(Date.now())
       });
     }
-    const job = await enrichmentQueue.add('project-search', {
-      location: formattedLocation,
-      buildingType
+    const jobIds = [] as string[];
+    buildingTypes.forEach(async (buildingType) => {
+      const job = await enrichmentQueue.add('project-search', {
+        location: formattedLocation,
+        buildingType
+      });
+      jobIds.push(job.id as string);
+      console.log(
+        `Queued project search for ${formattedLocation} (${buildingType}) with job ID ${job.id}`
+      );
     });
+    // const job = await enrichmentQueue.add('project-search', {
+    //   location: formattedLocation,
+    //   buildingType
+    // });
 
     res.json({
       message: 'Project search queued',
-      jobId: job.id as string,
+      jobIds,
       location: formattedLocation,
-      buildingType
+      buildingTypes: buildingTypes.join(', ')
     });
   } catch (err) {
     next(err);
