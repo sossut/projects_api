@@ -111,7 +111,6 @@ import {
   postConsultantsPresence
 } from '../api/models/consultantsPresenceModel';
 import { Consultant } from '../interfaces/Consultant';
-import { postProjectDuplicate } from '../api/models/projectDuplicateModel';
 
 const applyEnrichedDataToProject = async (
   projectId: number,
@@ -579,15 +578,8 @@ const addNewProjectToDB = async (proj: any, changeType?: string) => {
       '|' +
       proj.location.country.trim().toLowerCase()) as string;
     const checkProjectId = await findProjectIdByKey(pK);
-    if (checkProjectId) {
-      await postProjectDuplicate({
-        projectDuplicateName: proj.name,
-        projectDuplicateKey: pK,
-        matchedProjectId: checkProjectId.id,
-        reason: 'Project with same name and location already exists',
-        similarityScore: checkProjectId.score,
-        projectDuplicateData: JSON.stringify(proj)
-      });
+    console.log('checkProjectId', checkProjectId);
+    if (checkProjectId && checkProjectId.score < 0.3) {
       throw new CustomError(
         'Project with same name and location already exists',
         400

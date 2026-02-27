@@ -33,9 +33,17 @@ const findProjectIdByKey = async (
   key: string
 ): Promise<ProjectKeyMatch | null> => {
   const projects = await getProjectKeys();
-  const fuse = new Fuse(projects, { keys: ['projectKey'], threshold: 0.3 });
+  const fuse = new Fuse(projects, {
+    keys: ['projectKey'],
+    threshold: 0.3,
+    includeScore: true
+  });
   const result = fuse.search(key);
+  result.forEach((r) => {
+    console.log('score:', r.score, 'projectKey:', r.item.projectKey);
+  });
   console.log('result KEY:', result);
+  console.log('KEY: ', key);
   if (result.length && result[0].item.id !== undefined) {
     return {
       id: result[0].item.id,
@@ -54,7 +62,7 @@ const findMetroAreaIdByName = async (
       ...ma,
       normalized: normalizeMetroAreaName(ma.name)
     })),
-    { keys: ['normalized'], threshold: 0.3 }
+    { keys: ['normalized'], threshold: 0.3, includeScore: true }
   );
   const normalizedInput = normalizeMetroAreaName(inputName);
   const result = fuse.search(normalizedInput);
@@ -65,7 +73,11 @@ const findMetroAreaIdByName = async (
 
 const findDeveloperIdByName = async (name: string): Promise<number | null> => {
   const developers = await getAllDevelopers(); // [{ id, name }]
-  const fuse = new Fuse(developers, { keys: ['name'], threshold: 0.3 });
+  const fuse = new Fuse(developers, {
+    keys: ['name'],
+    threshold: 0.3,
+    includeScore: true
+  });
   const result = fuse.search(name);
   return result.length && result[0].item.id !== undefined
     ? result[0].item.id
@@ -74,7 +86,11 @@ const findDeveloperIdByName = async (name: string): Promise<number | null> => {
 
 const findContractorIdByName = async (name: string): Promise<number | null> => {
   const contractors = await getAllContractors(); // [{ id, name }]
-  const fuse = new Fuse(contractors, { keys: ['name'], threshold: 0.3 });
+  const fuse = new Fuse(contractors, {
+    keys: ['name'],
+    threshold: 0.3,
+    includeScore: true
+  });
   const result = fuse.search(name);
   return result.length && result[0].item.id !== undefined
     ? result[0].item.id
@@ -83,7 +99,11 @@ const findContractorIdByName = async (name: string): Promise<number | null> => {
 
 const findArchitectIdByName = async (name: string): Promise<number | null> => {
   const architects = await getAllArchitects(); // [{ id, name }]
-  const fuse = new Fuse(architects, { keys: ['name'], threshold: 0.3 });
+  const fuse = new Fuse(architects, {
+    keys: ['name'],
+    threshold: 0.3,
+    includeScore: true
+  });
   const result = fuse.search(name);
   return result.length && result[0].item.id !== undefined
     ? result[0].item.id
@@ -92,7 +112,11 @@ const findArchitectIdByName = async (name: string): Promise<number | null> => {
 
 const findConsultantIdByName = async (name: string): Promise<number | null> => {
   const consultants = await getAllConsultants(); // [{ id, name }]
-  const fuse = new Fuse(consultants, { keys: ['name'], threshold: 0.3 });
+  const fuse = new Fuse(consultants, {
+    keys: ['name'],
+    threshold: 0.3,
+    includeScore: true
+  });
   const result = fuse.search(name);
   return result.length && result[0].item.id !== undefined
     ? result[0].item.id
