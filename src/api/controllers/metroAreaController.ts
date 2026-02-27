@@ -13,11 +13,6 @@ import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
 import { throwIfValidationErrors, toCamel } from '../../utils/utilities';
 import { User } from '../../interfaces/User';
-import {
-  checkContinentExistsByName,
-  postContinent
-} from '../models/continentModel';
-import { checkCountryExistsByName, postCountry } from '../models/countryModel';
 
 const metroAreaListGet = async (
   req: Request,

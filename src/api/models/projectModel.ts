@@ -9,7 +9,7 @@ import {
 import { RowDataPacket } from 'mysql2';
 import CustomError from '../../classes/CustomError';
 import { ResultSetHeader } from 'mysql2';
-import { toSnake } from '../../utils/utilities';
+import { toSnake, applyOrderAndFilters } from '../../utils/utilities';
 import { projectsQueryString } from '../../database/queryStrings';
 
 const parseProjectRows = (rows: GetProject[]): Project[] => {
@@ -35,121 +35,19 @@ const getAllProjects = async (
   offset?: number
 ): Promise<Project[]> => {
   // Whitelist allowed sort fields to prevent SQL injection
-  console.log(order);
-  const allowedFields = [
-    'id',
-    'expected_date',
-    'name',
-    'budget_eur',
-    'status',
-    'confidence_score',
-    'last_verified_date',
-    'building_height_meters',
-    'building_height_floors'
-  ];
-  const validSortBy = allowedFields.includes(sortBy) ? sortBy : 'id';
-  const validOrder = order === 'DESC' ? 'DESC' : 'ASC';
 
-  let whereClause = '';
-  const params: any[] = [];
+  const filtered = applyOrderAndFilters(sortBy, order, filters);
 
-  const conditions: string[] = [];
-  if (filters) {
-    if (filters.status) {
-      conditions.push('projects.status = ?');
-      params.push(filters.status);
-    }
-    if (filters.city) {
-      if (Array.isArray(filters.city)) {
-        const placeholders = filters.city.map(() => '?').join(', ');
-        conditions.push(`cities.name IN (${placeholders})`);
-        params.push(...filters.city);
-      } else {
-        conditions.push('cities.name = ?');
-        params.push(filters.city);
-      }
-    }
-    if (filters.metroArea) {
-      if (Array.isArray(filters.metroArea)) {
-        const placeholders = filters.metroArea.map(() => '?').join(', ');
-        conditions.push(`metro_areas.name IN (${placeholders})`);
-        params.push(...filters.metroArea);
-      } else {
-        conditions.push('metro_areas.name = ?');
-        params.push(filters.metroArea);
-      }
-    }
-    if (filters.country) {
-      if (Array.isArray(filters.country)) {
-        const placeholders = filters.country.map(() => '?').join(', ');
-        conditions.push(`countries.name IN (${placeholders})`);
-        params.push(...filters.country);
-      } else {
-        conditions.push('countries.name = ?');
-        params.push(filters.country);
-      }
-    }
-    if (filters.continent) {
-      conditions.push('continents.name = ?');
-      params.push(filters.continent);
-    }
-    if (filters.buildingType) {
-      conditions.push('building_types.building_type = ?');
-      params.push(filters.buildingType);
-    }
-    if (filters.minBudget) {
-      conditions.push('projects.budget_eur >= ?');
-      params.push(filters.minBudget);
-    }
-    if (filters.maxBudget) {
-      conditions.push('projects.budget_eur <= ?');
-      params.push(filters.maxBudget);
-    }
-
-    if (filters.maxHeightMeters) {
-      conditions.push('projects.building_height_meters <= ?');
-      params.push(filters.maxHeightMeters);
-    }
-
-    if (filters.minHeightMeters) {
-      conditions.push('projects.building_height_meters >= ?');
-      params.push(filters.minHeightMeters);
-    }
-
-    if (filters.confidenceScore) {
-      conditions.push('projects.confidence_score = ?');
-      params.push(filters.confidenceScore);
-    }
-    if (filters.isActive !== undefined) {
-      conditions.push('projects.is_active = ?');
-      params.push(filters.isActive);
-    }
-    if (filters.buildingUse) {
-      if (Array.isArray(filters.buildingUse)) {
-        const placeholders = filters.buildingUse.map(() => '?').join(', ');
-        conditions.push(`building_uses.building_use IN (${placeholders})`);
-        params.push(...filters.buildingUse);
-      } else {
-        conditions.push('building_uses.building_use = ?');
-        params.push(filters.buildingUse);
-      }
-    }
-  }
-  // Always exclude completed projects
-  conditions.push("projects.status != 'completed'");
-  if (conditions.length > 0) {
-    whereClause = 'WHERE ' + conditions.join(' AND ');
-  }
   limit = limit ?? 50; // Default limit to 50 if not provided
   offset = offset ?? 0;
 
   const [rows] = await promisePool.query<GetProject[]>(
     `${queryBase}
-    ${whereClause}
+    ${filtered.whereClause}
     GROUP BY projects.id
-    ORDER BY ${validSortBy} ${validOrder}
+    ORDER BY ${filtered.validSortBy} ${filtered.validOrder}
     LIMIT ? OFFSET ?`,
-    [...params, limit, offset]
+    [...filtered.params, limit, offset]
   );
 
   if (rows.length === 0) {
@@ -181,95 +79,7 @@ const getProjectsForBatchEnrichment = async (
 const getProjectCount = async (filters?: {
   [key: string]: string | number | string[];
 }): Promise<number> => {
-  let whereClause = '';
-  const params: any[] = [];
-  const conditions: string[] = [];
-  if (filters) {
-    if (filters.status) {
-      conditions.push('projects.status = ?');
-      params.push(filters.status);
-    }
-    if (filters.city) {
-      if (Array.isArray(filters.city)) {
-        const placeholders = filters.city.map(() => '?').join(', ');
-        conditions.push(`cities.name IN (${placeholders})`);
-        params.push(...filters.city);
-      } else {
-        conditions.push('cities.name = ?');
-        params.push(filters.city);
-      }
-    }
-    if (filters.metroArea) {
-      if (Array.isArray(filters.metroArea)) {
-        const placeholders = filters.metroArea.map(() => '?').join(', ');
-        conditions.push(`metro_areas.name IN (${placeholders})`);
-        params.push(...filters.metroArea);
-      } else {
-        conditions.push('metro_areas.name = ?');
-        params.push(filters.metroArea);
-      }
-    }
-    if (filters.country) {
-      if (Array.isArray(filters.country)) {
-        const placeholders = filters.country.map(() => '?').join(', ');
-        conditions.push(`countries.name IN (${placeholders})`);
-        params.push(...filters.country);
-      } else {
-        conditions.push('countries.name = ?');
-        params.push(filters.country);
-      }
-    }
-    if (filters.continent) {
-      conditions.push('continents.name = ?');
-      params.push(filters.continent);
-    }
-    if (filters.buildingType) {
-      conditions.push('building_types.building_type = ?');
-      params.push(filters.buildingType);
-    }
-    if (filters.minBudget) {
-      conditions.push('projects.budget_eur >= ?');
-      params.push(filters.minBudget);
-    }
-    if (filters.maxBudget) {
-      conditions.push('projects.budget_eur <= ?');
-      params.push(filters.maxBudget);
-    }
-
-    if (filters.maxHeightMeters) {
-      conditions.push('projects.building_height_meters <= ?');
-      params.push(filters.maxHeightMeters);
-    }
-
-    if (filters.minHeightMeters) {
-      conditions.push('projects.building_height_meters >= ?');
-      params.push(filters.minHeightMeters);
-    }
-
-    if (filters.confidenceScore) {
-      conditions.push('projects.confidence_score = ?');
-      params.push(filters.confidenceScore);
-    }
-    if (filters.isActive !== undefined) {
-      conditions.push('projects.is_active = ?');
-      params.push(filters.isActive);
-    }
-    if (filters.buildingUse) {
-      if (Array.isArray(filters.buildingUse)) {
-        const placeholders = filters.buildingUse.map(() => '?').join(', ');
-        conditions.push(`building_uses.building_use IN (${placeholders})`);
-        params.push(...filters.buildingUse);
-      } else {
-        conditions.push('building_uses.building_use = ?');
-        params.push(filters.buildingUse);
-      }
-    }
-  }
-  // Always exclude completed projects
-  conditions.push("projects.status != 'completed'");
-  if (conditions.length > 0) {
-    whereClause = 'WHERE ' + conditions.join(' AND ');
-  }
+  const filtered = applyOrderAndFilters('projects.id', 'ASC', filters);
 
   const sql = promisePool.format(
     `SELECT COUNT(*) AS count FROM projects
@@ -279,22 +89,12 @@ const getProjectCount = async (filters?: {
     JOIN countries ON metro_areas.country_id = countries.id
     JOIN continents ON countries.continent_id = continents.id
     JOIN building_types ON projects.building_type_id = building_types.id
-    ${whereClause}`,
-    params
+    ${filtered.whereClause}`,
+    filtered.params
   );
   console.log(sql);
 
-  const [rows] = await promisePool.query<RowDataPacket[]>(
-    `SELECT COUNT(*) AS count FROM projects
-    JOIN addresses ON projects.address_id = addresses.id
-    JOIN cities ON addresses.city_id = cities.id
-    JOIN metro_areas ON cities.metro_area_id = metro_areas.id
-    JOIN countries ON metro_areas.country_id = countries.id
-    JOIN continents ON countries.continent_id = continents.id
-    JOIN building_types ON projects.building_type_id = building_types.id
-    ${whereClause}`,
-    params
-  );
+  const [rows] = await promisePool.query<RowDataPacket[]>(sql);
   return rows[0].count as number;
 };
 
@@ -315,114 +115,12 @@ const getAllProjectsSimple = async (
   limit?: number,
   offset?: number
 ): Promise<Project[]> => {
-  // Whitelist allowed sort fields to prevent SQL injection
-  const allowedFields = [
-    'id',
-    'expected_date',
-    'name',
-    'budget_eur',
-    'status',
-    'confidence_score',
-    'last_verified_date',
-    'building_height_meters',
-    'building_height_floors'
-  ];
-  const validSortBy = allowedFields.includes(sortBy) ? sortBy : 'id';
-  const validOrder = order === 'DESC' ? 'DESC' : 'ASC';
-  let whereClause = '';
-  const params: any[] = [];
-  const conditions: string[] = [];
-  if (filters) {
-    if (filters.status) {
-      conditions.push('projects.status = ?');
-      params.push(filters.status);
-    }
-    if (filters.city) {
-      if (Array.isArray(filters.city)) {
-        const placeholders = filters.city.map(() => '?').join(', ');
-        conditions.push(`cities.name IN (${placeholders})`);
-        params.push(...filters.city);
-      } else {
-        conditions.push('cities.name = ?');
-        params.push(filters.city);
-      }
-    }
-    if (filters.metroArea) {
-      if (Array.isArray(filters.metroArea)) {
-        const placeholders = filters.metroArea.map(() => '?').join(', ');
-        conditions.push(`metro_areas.name IN (${placeholders})`);
-        params.push(...filters.metroArea);
-      } else {
-        conditions.push('metro_areas.name = ?');
-        params.push(filters.metroArea);
-      }
-    }
-    if (filters.country) {
-      if (Array.isArray(filters.country)) {
-        const placeholders = filters.country.map(() => '?').join(', ');
-        conditions.push(`countries.name IN (${placeholders})`);
-        params.push(...filters.country);
-      } else {
-        conditions.push('countries.name = ?');
-        params.push(filters.country);
-      }
-    }
-    if (filters.continent) {
-      conditions.push('continents.name = ?');
-      params.push(filters.continent);
-    }
-    if (filters.buildingType) {
-      conditions.push('building_types.building_type = ?');
-      params.push(filters.buildingType);
-    }
-    if (filters.minBudget) {
-      conditions.push('projects.budget_eur >= ?');
-      params.push(filters.minBudget);
-    }
-    if (filters.maxBudget) {
-      conditions.push('projects.budget_eur <= ?');
-      params.push(filters.maxBudget);
-    }
-
-    if (filters.maxHeightMeters) {
-      conditions.push('projects.building_height_meters <= ?');
-      params.push(filters.maxHeightMeters);
-    }
-
-    if (filters.minHeightMeters) {
-      conditions.push('projects.building_height_meters >= ?');
-      params.push(filters.minHeightMeters);
-    }
-
-    if (filters.confidenceScore) {
-      conditions.push('projects.confidence_score = ?');
-      params.push(filters.confidenceScore);
-    }
-    if (filters.isActive !== undefined) {
-      conditions.push('projects.is_active = ?');
-      params.push(filters.isActive);
-    }
-    if (filters.buildingUse) {
-      if (Array.isArray(filters.buildingUse)) {
-        const placeholders = filters.buildingUse.map(() => '?').join(', ');
-        conditions.push(`building_uses.building_use IN (${placeholders})`);
-        params.push(...filters.buildingUse);
-      } else {
-        conditions.push('building_uses.building_use = ?');
-        params.push(filters.buildingUse);
-      }
-    }
-  }
-  // Always exclude completed projects
-  conditions.push("projects.status != 'completed'");
-  if (conditions.length > 0) {
-    whereClause = 'WHERE ' + conditions.join(' AND ');
-  }
-
   limit = limit ?? 100; // Default limit to 50 if not provided
   offset = offset ?? 0;
 
-  const [rows] = await promisePool.query<GetProject[]>(
+  const filtered = applyOrderAndFilters(sortBy, order, filters);
+
+  const sql = promisePool.format(
     `SELECT
     projects.id, projects.name, projects.status,
     projects.expected_date_text AS expectedDateText,
@@ -455,12 +153,15 @@ const getAllProjectsSimple = async (
     LEFT JOIN project_building_uses ON projects.id = project_building_uses.project_id
     LEFT JOIN building_uses ON project_building_uses.building_use_id = building_uses.id
     LEFT JOIN project_medias ON projects.id = project_medias.project_id
-    ${whereClause}
+    ${filtered.whereClause}
     GROUP BY projects.id
-    ORDER BY ${validSortBy} ${validOrder}
+    ORDER BY ${filtered.validSortBy} ${filtered.validOrder}
     LIMIT ? OFFSET ?`,
-    [...params, limit, offset]
+    [...filtered.params, limit, offset]
   );
+  console.log(sql);
+
+  const [rows] = await promisePool.query<GetProject[]>(sql);
   if (rows.length === 0) {
     throw new CustomError('No projects found', 404);
   }
@@ -563,12 +264,12 @@ const getStatuses = async (): Promise<string[]> => {
 
 const checkIfProjectExistsByKey = async (
   projectKey: string
-): Promise<boolean> => {
+): Promise<number> => {
   const [rows] = await promisePool.query<GetProject[]>(
     'SELECT id FROM projects WHERE project_key = ?',
     [projectKey]
   );
-  return true ? rows.length > 0 : false;
+  return rows.length > 0 ? (rows[0].id as number) : 0;
 };
 
 const postProject = async (projectData: PostProject): Promise<number> => {

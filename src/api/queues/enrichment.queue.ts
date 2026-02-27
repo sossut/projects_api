@@ -17,7 +17,7 @@ export const enrichmentQueue = new Queue('enrichment', {
       count: 100 // Keep last 100 completed jobs
     },
     removeOnFail: {
-      count: 10 // Keep last 10 failed jobs
+      count: 500 // Keep last 500failed jobs
     }
   }
 });

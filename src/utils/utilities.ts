@@ -217,6 +217,13 @@ const parseToStandardDate = (dateStr: string | null): string | null => {
   } else if (dateStr.match(/^\d{4}$/)) {
     // Just a year (2025)
     return `${dateStr}-01-01`;
+  } else if (dateStr.match(/^\d{4}[-\/]\d{4}$/)) {
+    // Handle year range (2026-2027 or 2026/2027)
+
+    // Extract the latest year
+    const years = dateStr.split(/[-\/]?/);
+    const latestYear = years[1];
+    return `${latestYear}-01-01`;
   } else {
     // Full date - validate it's valid
     const date = new Date(dateStr);
@@ -237,6 +244,136 @@ const applyFitersSortingAndOrdering = (query: string, filters: any) => {
   return query;
 };
 
+const applyOrderAndFilters = (
+  sortBy: string = 'id',
+  order: 'ASC' | 'DESC' = 'ASC',
+  filters?: { [key: string]: string | number | string[] }
+) => {
+  // Whitelist allowed sort fields to prevent SQL injection
+  const allowedFields = [
+    'id',
+    'expected_date',
+    'name',
+    'budget_eur',
+    'status',
+    'confidence_score',
+    'last_verified_date',
+    'building_height_meters',
+    'building_height_floors'
+  ];
+  const validSortBy = allowedFields.includes(sortBy) ? sortBy : 'id';
+  const validOrder = order === 'DESC' ? 'DESC' : 'ASC';
+  let whereClause = '';
+  const params: any[] = [];
+  const conditions: string[] = [];
+  if (filters) {
+    if (filters.status) {
+      if (Array.isArray(filters.status)) {
+        const placeholders = filters.status.map(() => '?').join(', ');
+        conditions.push(`projects.status IN (${placeholders})`);
+        params.push(...filters.status);
+      } else {
+        conditions.push('projects.status = ?');
+        params.push(filters.status);
+      }
+    }
+    if (filters.city) {
+      if (Array.isArray(filters.city)) {
+        const placeholders = filters.city.map(() => '?').join(', ');
+        conditions.push(`cities.name IN (${placeholders})`);
+        params.push(...filters.city);
+      } else {
+        conditions.push('cities.name = ?');
+        params.push(filters.city);
+      }
+    }
+    if (filters.metroArea) {
+      if (Array.isArray(filters.metroArea)) {
+        const placeholders = filters.metroArea.map(() => '?').join(', ');
+        conditions.push(`metro_areas.name IN (${placeholders})`);
+        params.push(...filters.metroArea);
+      } else {
+        conditions.push('metro_areas.name = ?');
+        params.push(filters.metroArea);
+      }
+    }
+    if (filters.country) {
+      if (Array.isArray(filters.country)) {
+        const placeholders = filters.country.map(() => '?').join(', ');
+        conditions.push(`countries.name IN (${placeholders})`);
+        params.push(...filters.country);
+      } else {
+        conditions.push('countries.name = ?');
+        params.push(filters.country);
+      }
+    }
+    if (filters.continent) {
+      conditions.push('continents.name = ?');
+      params.push(filters.continent);
+    }
+    if (filters.buildingType) {
+      if (Array.isArray(filters.buildingType)) {
+        const placeholders = filters.buildingType.map(() => '?').join(', ');
+        conditions.push(`building_types.building_type IN (${placeholders})`);
+        params.push(...filters.buildingType);
+      } else {
+        conditions.push('building_types.building_type = ?');
+        params.push(filters.buildingType);
+      }
+    }
+    if (filters.minBudget) {
+      conditions.push('projects.budget_eur >= ?');
+      params.push(filters.minBudget);
+    }
+    if (filters.maxBudget) {
+      conditions.push('projects.budget_eur <= ?');
+      params.push(filters.maxBudget);
+    }
+
+    if (filters.maxHeightMeters) {
+      conditions.push('projects.building_height_meters <= ?');
+      params.push(filters.maxHeightMeters);
+    }
+
+    if (filters.minHeightMeters) {
+      conditions.push('projects.building_height_meters >= ?');
+      params.push(filters.minHeightMeters);
+    }
+
+    if (filters.confidenceScore) {
+      conditions.push('projects.confidence_score = ?');
+      params.push(filters.confidenceScore);
+    }
+    if (filters.isActive !== undefined) {
+      conditions.push('projects.is_active = ?');
+      params.push(filters.isActive);
+    }
+    if (filters.buildingUse) {
+      if (Array.isArray(filters.buildingUse)) {
+        const placeholders = filters.buildingUse.map(() => '?').join(', ');
+        conditions.push(`building_uses.building_use IN (${placeholders})`);
+        params.push(...filters.buildingUse);
+      } else {
+        conditions.push('building_uses.building_use = ?');
+        params.push(filters.buildingUse);
+      }
+    }
+  }
+  // Always exclude completed projects
+  conditions.push("projects.status != 'completed'");
+  if (conditions.length > 0) {
+    whereClause = 'WHERE ' + conditions.join(' AND ');
+  }
+
+  return {
+    whereClause,
+    validOrder,
+    validSortBy,
+    params,
+    orderBy: `ORDER BY ${validSortBy} ${validOrder}`
+  };
+};
+
 export {
   normalizeMetroAreaName,
   findProjectIdByKey,
@@ -249,5 +386,6 @@ export {
   toCamel,
   throwIfValidationErrors,
   parseToStandardDate,
-  applyFitersSortingAndOrdering
+  applyFitersSortingAndOrdering,
+  applyOrderAndFilters
 };

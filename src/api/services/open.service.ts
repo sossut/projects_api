@@ -332,6 +332,7 @@ export const openAIWebSearch = async (projectJSON: any) => {
           - lastVerifiedDate must be today in YYYY-MM-DD format.
           - Images: media.url must be a direct image URL ending .jpg/.png/.webp if reliably found.
             If not, set media.url to "" and put the page URL into projectWebsites or sources instead.
+          - Add contact info for developers/architects/contractors/consultants if you can find it (email or phone).
 
           Project JSON:
           ${JSON.stringify(projectJSON)}

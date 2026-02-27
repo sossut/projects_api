@@ -14,6 +14,7 @@ import { checkCountryExistsByName } from '../models/countryModel';
 import { findMetroAreaIdByName } from '../../utils/utilities';
 import { postMetroArea } from '../models/metroAreaModel';
 import { enrichmentQueue } from '../queues/enrichment.queue';
+import { getProjectFirstPass } from '../models/projectFirstPassModel';
 
 // Trigger project enrichment job
 const projectEnrich = async (
@@ -291,6 +292,13 @@ const projectAfterFirstPassEnrichWithGPT5 = async (
 ) => {
   try {
     const fPProjectId = req.params.id;
+    const fPP = await getProjectFirstPass(Number(fPProjectId));
+    if (fPP.promoted) {
+      return res.status(400).json({
+        message:
+          'Project has already been promoted to main project table, cannot enrich after first pass.'
+      });
+    }
     // Add to queue for background processing
     const job = await enrichmentQueue.add('enrich-after-first-pass-gpt5', {
       fPProjectId

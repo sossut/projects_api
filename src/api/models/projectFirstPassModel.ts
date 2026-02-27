@@ -9,6 +9,7 @@ import {
 
 import CustomError from '../../classes/CustomError';
 import { ResultSetHeader } from 'mysql2';
+import { toSnake } from '../../utils/utilities';
 
 const getAllProjectFirstPasses = async (): Promise<ProjectFirstPass[]> => {
   const [rows] = await promisePool.query<GetProjectFirstPass[]>(
@@ -121,9 +122,10 @@ const putProjectFirstPass = async (
   projectFirstPassData: PutProjectFirstPass,
   id: number
 ): Promise<boolean> => {
+  const snakeData = toSnake(projectFirstPassData);
   const sql = promisePool.format(
     'UPDATE project_first_passes SET ? WHERE id = ?',
-    [projectFirstPassData, id]
+    [snakeData, id]
   );
   const [headers] = await promisePool.query<ResultSetHeader>(sql);
   if (headers.affectedRows === 0) {

@@ -60,7 +60,7 @@ export const processProjectSearch = async (job: Job) => {
     ) {
       for (const projectId of results.newFirstPassProjectIds) {
         await enrichmentQueue.add('enrich-after-first-pass-gpt5', {
-          projectId
+          fPProjectId: projectId
         });
       }
     }
