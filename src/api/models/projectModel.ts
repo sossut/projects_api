@@ -30,7 +30,7 @@ const queryBase = projectsQueryString;
 const getAllProjects = async (
   sortBy: string = 'id',
   order: 'ASC' | 'DESC' = 'ASC',
-  filters?: { [key: string]: string | number },
+  filters?: { [key: string]: string | number | string[] },
   limit?: number,
   offset?: number
 ): Promise<Project[]> => {
