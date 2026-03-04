@@ -4,8 +4,10 @@ interface Person {
   id?: number;
   name: string;
   role?: string;
-  companyType?: string;
-  companyId: number;
+  developerId?: number;
+  architectId?: number;
+  contractorId?: number;
+  consultantId?: number;
   linkedinUrl?: string;
   twitterUrl?: string;
   email?: string;
