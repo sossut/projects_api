@@ -1,8 +1,8 @@
 import { RowDataPacket } from 'mysql2';
 
 interface ProjectPerson {
-  personId: number;
   projectId: number;
+  personId: number;
   role?: string;
   createdAt?: Date;
   updatedAt?: Date;
