@@ -269,8 +269,9 @@ const projectPost = async (
   try {
     const createdProjectIds: number[] = [];
     const skippedProjects: string[] = [];
-
+    console.log(req.body);
     for (const proj of req.body.projects || []) {
+      console.log(proj);
       const projectKey: string =
         proj.name.trim().toLowerCase() +
         '|' +
