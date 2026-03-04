@@ -209,14 +209,11 @@ export const findProjectsWithGPT5 = async (
 
       const key = `${p.name}|${p.city}|${p.country}`.toLowerCase();
       const checkIfProjectExistsByKeyFields = await findProjectIdByKey(key);
-      if (!checkIfProjectExistsByKeyFields) {
-        const newFirstPassProject = await postProjectFirstPass(p);
-        newFirstPassProjectIds.push(newFirstPassProject);
-        count++;
-        console.log(
-          `Project "${p.name}" added to first pass table with ID ${newFirstPassProject}`
-        );
-      } else {
+
+      if (
+        checkIfProjectExistsByKeyFields &&
+        checkIfProjectExistsByKeyFields.score < 0.3
+      ) {
         existingProjects.push(key);
         console.log(
           `Project "${p.name}" already exists in the database, skipping.`
@@ -230,7 +227,37 @@ export const findProjectsWithGPT5 = async (
           matchedFirstPassProjectId: checkIfProjectExistsByKeyFields.id
         };
         await postProjectDuplicate(projectDuplicate);
+      } else {
+        const newFirstPassProject = await postProjectFirstPass(p);
+        newFirstPassProjectIds.push(newFirstPassProject);
+        count++;
+        console.log(
+          `Project "${p.name}" added to first pass table with ID ${newFirstPassProject}`
+        );
       }
+
+      // if (!checkIfProjectExistsByKeyFields) {
+      //   const newFirstPassProject = await postProjectFirstPass(p);
+      //   newFirstPassProjectIds.push(newFirstPassProject);
+      //   count++;
+      //   console.log(
+      //     `Project "${p.name}" added to first pass table with ID ${newFirstPassProject}`
+      //   );
+      // } else {
+      //   existingProjects.push(key);
+      //   console.log(
+      //     `Project "${p.name}" already exists in the database, skipping.`
+      //   );
+      //   const projectDuplicate: ProjectDuplicate = {
+      //     projectDuplicateName: p.name,
+      //     projectDuplicateKey: key,
+      //     projectDuplicateData: JSON.stringify(p),
+      //     reason: 'GPT-5 first pass search identified as duplicate',
+      //     similarityScore: checkIfProjectExistsByKeyFields.score * 100,
+      //     matchedFirstPassProjectId: checkIfProjectExistsByKeyFields.id
+      //   };
+      //   await postProjectDuplicate(projectDuplicate);
+      // }
     }
     return {
       projectsFound: results.projects?.length || 0,
