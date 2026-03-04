@@ -9,7 +9,6 @@ interface Person {
   contractorId?: number;
   consultantId?: number;
   linkedinUrl?: string;
-  twitterUrl?: string;
   email?: string;
   phone?: string;
   createdAt?: Date;
