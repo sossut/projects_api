@@ -76,76 +76,7 @@ const projectListGetSimple = async (
   try {
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    // const sortBy = req.query.sortBy as string | undefined;
-    // const order =
-    //   (req.query.order as 'asc' | 'desc' | undefined)?.toLowerCase() || 'asc';
 
-    // // Build filters object from query params
-    // const filters: { [key: string]: string | number | string[] } = {};
-
-    // if (req.query.status) {
-    //   if (Array.isArray(req.query.status)) {
-    //     filters.status = (req.query.status as (string | undefined)[]).filter(
-    //       Boolean
-    //     ) as string[];
-    //   } else {
-    //     filters.status = [req.query.status as string];
-    //   }
-    // }
-    // if (req.query.city) {
-    //   if (Array.isArray(req.query.city)) {
-    //     filters.city = (req.query.city as (string | undefined)[]).filter(
-    //       Boolean
-    //     ) as string[];
-    //   } else {
-    //     filters.city = [req.query.city as string];
-    //   }
-    // }
-    // if (req.query.metroArea) {
-    //   if (Array.isArray(req.query.metroArea)) {
-    //     filters.metroArea = (
-    //       req.query.metroArea as (string | undefined)[]
-    //     ).filter(Boolean) as string[];
-    //   } else {
-    //     filters.metroArea = [req.query.metroArea as string];
-    //   }
-    // }
-    // if (req.query.country) {
-    //   if (Array.isArray(req.query.country)) {
-    //     filters.country = (req.query.country as (string | undefined)[]).filter(
-    //       Boolean
-    //     ) as string[];
-    //   } else {
-    //     filters.country = [req.query.country as string];
-    //   }
-    // }
-    // if (req.query.continent) filters.continent = req.query.continent as string;
-    // if (req.query.buildingType)
-    //   if (Array.isArray(req.query.buildingType)) {
-    //     filters.buildingType = (
-    //       req.query.buildingType as (string | undefined)[]
-    //     ).filter(Boolean) as string[];
-    //   } else {
-    //     filters.buildingType = [req.query.buildingType as string];
-    //   }
-    // if (req.query.minBudget)
-    //   filters.minBudget = parseFloat(req.query.minBudget as string);
-    // if (req.query.maxBudget)
-    //   filters.maxBudget = parseFloat(req.query.maxBudget as string);
-    // if (req.query.minHeightMeters)
-    //   filters.minHeightMeters = parseFloat(req.query.minHeightMeters as string);
-    // if (req.query.maxHeightMeters)
-    //   filters.maxHeightMeters = parseFloat(req.query.maxHeightMeters as string);
-    // if (req.query.buildingUse) {
-    //   // Support multiple buildingUse values (array or string)
-    //   if (Array.isArray(req.query.buildingUse)) {
-    //     filters.buildingUse = (
-    //       req.query.buildingUse as (string | undefined)[]
-    //     ).filter(Boolean) as string[];
-    //   } else {
-    //     filters.buildingUse = [req.query.buildingUse as string];
-    //   }
-    // }
     const parsedFilters = parseFilters(req);
     // Validate limit and page query parameters
     const MAX_LIMIT = 200;
@@ -192,72 +123,7 @@ const projectGetCount = async (
   try {
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    // // Build filters object from query params
-    // const filters: { [key: string]: string | number | string[] } = {};
 
-    // if (req.query.status) {
-    //   if (Array.isArray(req.query.status)) {
-    //     filters.status = (req.query.status as (string | undefined)[]).filter(
-    //       Boolean
-    //     ) as string[];
-    //   } else {
-    //     filters.status = [req.query.status as string];
-    //   }
-    // }
-    // if (req.query.city) {
-    //   if (Array.isArray(req.query.city)) {
-    //     filters.city = (req.query.city as (string | undefined)[]).filter(
-    //       Boolean
-    //     ) as string[];
-    //   } else {
-    //     filters.city = [req.query.city as string];
-    //   }
-    // }
-    // if (req.query.metroArea) {
-    //   if (Array.isArray(req.query.metroArea)) {
-    //     filters.metroArea = (
-    //       req.query.metroArea as (string | undefined)[]
-    //     ).filter(Boolean) as string[];
-    //   } else {
-    //     filters.metroArea = [req.query.metroArea as string];
-    //   }
-    // }
-    // if (req.query.country) {
-    //   if (Array.isArray(req.query.country)) {
-    //     filters.country = (req.query.country as (string | undefined)[]).filter(
-    //       Boolean
-    //     ) as string[];
-    //   } else {
-    //     filters.country = [req.query.country as string];
-    //   }
-    // }
-    // if (req.query.continent) filters.continent = req.query.continent as string;
-    // if (req.query.buildingType)
-    //   if (Array.isArray(req.query.buildingType)) {
-    //     filters.buildingType = (
-    //       req.query.buildingType as (string | undefined)[]
-    //     ).filter(Boolean) as string[];
-    //   } else {
-    //     filters.buildingType = [req.query.buildingType as string];
-    //   }
-    // if (req.query.minBudget)
-    //   filters.minBudget = parseFloat(req.query.minBudget as string);
-    // if (req.query.maxBudget)
-    //   filters.maxBudget = parseFloat(req.query.maxBudget as string);
-    // if (req.query.minHeightMeters)
-    //   filters.minHeightMeters = parseFloat(req.query.minHeightMeters as string);
-    // if (req.query.maxHeightMeters)
-    //   filters.maxHeightMeters = parseFloat(req.query.maxHeightMeters as string);
-    // if (req.query.buildingUse) {
-    //   // Support multiple buildingUse values (array or string)
-    //   if (Array.isArray(req.query.buildingUse)) {
-    //     filters.buildingUse = (
-    //       req.query.buildingUse as (string | undefined)[]
-    //     ).filter(Boolean) as string[];
-    //   } else {
-    //     filters.buildingUse = [req.query.buildingUse as string];
-    //   }
-    // }
     const parsedFilters = parseFilters(req);
     // Pass filters directly, allowing arrays for IN clause
     const count = await getProjectCount(

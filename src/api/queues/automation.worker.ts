@@ -10,6 +10,7 @@ import { processCompanyExtract } from './processors/companyExtract.processor';
 // } from './processors/enrichment.processor';
 import { getAutomatedMetroAreas } from '../models/metroAreaModel';
 import { getProjectsForBatchEnrichment } from '../models/projectModel';
+import { processProjectEnrichment } from './processors/enrichment.processor';
 const connection = {
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379')
@@ -65,10 +66,10 @@ const scheduleProjectSearch = async () => {
 
   for (const project of batchEnrichmentProjects) {
     await automationQueue.add(
-      'project-enrich',
+      'enrich-project',
       { projectId: project.id },
       {
-        jobId: `project-enrich:${project.id}`
+        jobId: `enrich-project:${project.id}`
       }
     );
   }
@@ -109,8 +110,8 @@ export const automationWorker = new Worker(
       case 'company-extract':
         return processCompanyExtract(job);
 
-      // case 'enrich-project':
-      //   return processProjectEnrichment(job);
+      case 'enrich-project':
+        return processProjectEnrichment(job);
 
       // case 'enrich-batch':
       //   return processBatchEnrichment(job);
