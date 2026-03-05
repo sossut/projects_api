@@ -354,6 +354,16 @@ const applyOrderAndFilters = (
       params.push(filters.maxBudget);
     }
 
+    if (filters.firstDate) {
+      conditions.push('projects.expected_date >= ?');
+      params.push(filters.firstDate);
+    }
+
+    if (filters.lastDate) {
+      conditions.push('projects.expected_date <= ?');
+      params.push(filters.lastDate);
+    }
+
     if (filters.maxHeightMeters) {
       conditions.push('projects.building_height_meters <= ?');
       params.push(filters.maxHeightMeters);
@@ -455,6 +465,14 @@ const parseFilters = (req: any) => {
     filters.minBudget = parseFloat(req.query.minBudget as string);
   if (req.query.maxBudget)
     filters.maxBudget = parseFloat(req.query.maxBudget as string);
+  if (req.query.firstDate)
+    filters.firstDate = parseToStandardDate(
+      req.query.firstDate as string
+    ) as string;
+  if (req.query.lastDate)
+    filters.lastDate = parseToStandardDate(
+      req.query.lastDate as string
+    ) as string;
   if (req.query.minHeightMeters)
     filters.minHeightMeters = parseFloat(req.query.minHeightMeters as string);
   if (req.query.maxHeightMeters)

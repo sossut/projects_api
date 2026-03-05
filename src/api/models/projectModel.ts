@@ -82,13 +82,15 @@ const getProjectCount = async (filters?: {
   const filtered = applyOrderAndFilters('projects.id', 'ASC', filters);
 
   const sql = promisePool.format(
-    `SELECT COUNT(*) AS count FROM projects
+    `SELECT COUNT(DISTINCT projects.id) AS count FROM projects
     JOIN addresses ON projects.address_id = addresses.id
     JOIN cities ON addresses.city_id = cities.id
     JOIN metro_areas ON cities.metro_area_id = metro_areas.id
     JOIN countries ON metro_areas.country_id = countries.id
     JOIN continents ON countries.continent_id = continents.id
     JOIN building_types ON projects.building_type_id = building_types.id
+    LEFT JOIN project_building_uses ON projects.id = project_building_uses.project_id
+    LEFT JOIN building_uses ON project_building_uses.building_use_id = building_uses.id
     ${filtered.whereClause}`,
     filtered.params
   );
