@@ -129,6 +129,7 @@ const projectsQueryString = `SELECT projects.id, projects.name,
     LEFT JOIN consultants ON project_consultants.consultant_id = consultants.id
     LEFT JOIN project_medias ON projects.id = project_medias.project_id
     LEFT JOIN source_links ON projects.id = source_links.project_id
+    LEFT JOIN user_project_favorites ON projects.id = user_project_favorites.project_id
     LEFT JOIN users AS checked_by_user ON projects.checked_by = checked_by_user.id
     LEFT JOIN users AS fav_users ON user_project_favorites.user_id = fav_users.id`;
 
