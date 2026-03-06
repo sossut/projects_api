@@ -7,7 +7,8 @@ import {
   getProjectSimple,
   getProject,
   getProjectCount,
-  getStatuses
+  getStatuses,
+  getProjectsBySearchTerm
 } from '../models/projectModel';
 
 import { Request, Response, NextFunction } from 'express';
@@ -99,6 +100,26 @@ const projectListGetSimple = async (
     res.json(projects);
   } catch (err) {
     next(err);
+  }
+};
+
+const searchProjectsBySearchTerm = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+    const searchTerm = req.query.q as string;
+    if (!searchTerm) {
+      throw new CustomError('Search term is required', 400);
+    }
+    const allProjects = await getProjectsBySearchTerm(searchTerm);
+    const projects = allProjects.map((row) => toCamel(row));
+    res.json(projects);
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -493,6 +514,7 @@ export {
   projectListGet,
   projectListGetSimple,
   projectGetSimple,
+  searchProjectsBySearchTerm,
   projectGet,
   projectGetCount,
   projectStatusesGet,

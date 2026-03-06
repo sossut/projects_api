@@ -10,7 +10,10 @@ import { RowDataPacket } from 'mysql2';
 import CustomError from '../../classes/CustomError';
 import { ResultSetHeader } from 'mysql2';
 import { toSnake, applyOrderAndFilters } from '../../utils/utilities';
-import { projectsQueryString } from '../../database/queryStrings';
+import {
+  projectsQueryString,
+  simpleProjectsQueryString
+} from '../../database/queryStrings';
 
 const parseProjectRows = (rows: GetProject[]): Project[] => {
   return rows.map((row) => ({
@@ -27,6 +30,7 @@ const parseProjectRows = (rows: GetProject[]): Project[] => {
   }));
 };
 const queryBase = projectsQueryString;
+const simpleQueryBase = simpleProjectsQueryString;
 const getAllProjects = async (
   sortBy: string = 'id',
   order: 'ASC' | 'DESC' = 'ASC',
@@ -117,44 +121,13 @@ const getAllProjectsSimple = async (
   limit?: number,
   offset?: number
 ): Promise<Project[]> => {
-  limit = limit ?? 100; // Default limit to 50 if not provided
+  limit = limit ?? 100; // Default limit to 100 if not provided
   offset = offset ?? 0;
 
   const filtered = applyOrderAndFilters(sortBy, order, filters);
 
   const sql = promisePool.format(
-    `SELECT
-    projects.id, projects.name, projects.status,
-    projects.expected_date_text AS expectedDateText,
-    projects.expected_date AS expectedDate, projects.expected_date_text AS expectedDateText,
-    projects.building_height_meters AS buildingHeightMeters,
-    projects.building_height_floors AS buildingHeightFloors,
-    projects.budget_eur AS budgetEur, projects.glass_facade AS glassFacade,
-    projects.facade_basis AS facadeBasis, projects.confidence_score AS confidenceScore,
-    projects.last_verified_date AS lastVerifiedDate, projects.is_active AS isActive,
-    cities.name AS city, countries.name AS country, metro_areas.name AS metroArea,
-    addresses.address AS address,
-    building_types.building_type AS buildingType,
-    CONCAT('[', GROUP_CONCAT(DISTINCT
-      JSON_OBJECT(
-        'id', building_uses.id,
-        'buildingUse', building_uses.building_use
-      )
-    ), ']') AS buildingUses,
-    CONCAT('[', GROUP_CONCAT(DISTINCT
-      JSON_OBJECT(
-        'id', project_medias.id,
-        'url', project_medias.url
-      ) ), ']') AS media
-    FROM projects
-    JOIN addresses ON projects.address_id = addresses.id
-    JOIN cities ON addresses.city_id = cities.id
-    JOIN metro_areas ON cities.metro_area_id = metro_areas.id
-    JOIN countries ON metro_areas.country_id = countries.id
-    JOIN building_types ON projects.building_type_id = building_types.id
-    LEFT JOIN project_building_uses ON projects.id = project_building_uses.project_id
-    LEFT JOIN building_uses ON project_building_uses.building_use_id = building_uses.id
-    LEFT JOIN project_medias ON projects.id = project_medias.project_id
+    `${simpleQueryBase}
     ${filtered.whereClause}
     GROUP BY projects.id
     ORDER BY ${filtered.validSortBy} ${filtered.validOrder}
@@ -177,38 +150,7 @@ const getAllProjectsSimple = async (
 
 const getProjectSimple = async (id: number): Promise<Project> => {
   const [rows] = await promisePool.query<GetProject[]>(
-    `SELECT
-    projects.id, projects.name, projects.status,
-    projects.expected_date_text AS expectedDateText,
-    projects.expected_date AS expectedDate, projects.expected_date_text AS expectedDateText,
-    projects.building_height_meters AS buildingHeightMeters,
-    projects.building_height_floors AS buildingHeightFloors,
-    projects.budget_eur AS budgetEur, projects.glass_facade AS glassFacade,
-    projects.facade_basis AS facadeBasis, projects.confidence_score AS confidenceScore,
-    projects.last_verified_date AS lastVerifiedDate, projects.is_active AS isActive,
-    cities.name AS city, countries.name AS country, metro_areas.name AS metroArea,
-    addresses.address AS address,
-    building_types.building_type AS buildingType,
-    CONCAT('[', GROUP_CONCAT(DISTINCT
-      JSON_OBJECT(
-        'id', building_uses.id,
-        'buildingUse', building_uses.building_use
-      )
-    ), ']') AS buildingUses,
-    CONCAT('[', GROUP_CONCAT(DISTINCT
-      JSON_OBJECT(
-        'id', project_medias.id,
-        'url', project_medias.url
-      ) ), ']') AS media
-    FROM projects
-    JOIN addresses ON projects.address_id = addresses.id
-    JOIN cities ON addresses.city_id = cities.id
-    JOIN metro_areas ON cities.metro_area_id = metro_areas.id
-    JOIN countries ON metro_areas.country_id = countries.id
-    JOIN building_types ON projects.building_type_id = building_types.id
-    LEFT JOIN project_building_uses ON projects.id = project_building_uses.project_id
-    LEFT JOIN building_uses ON project_building_uses.building_use_id = building_uses.id
-    LEFT JOIN project_medias ON projects.id = project_medias.project_id
+    `${simpleQueryBase}
     WHERE projects.id = ?`,
     [id]
   );
@@ -220,6 +162,27 @@ const getProjectSimple = async (id: number): Promise<Project> => {
     buildingUses: JSON.parse(rows[0].buildingUses as unknown as string),
     media: JSON.parse(rows[0].media as unknown as string)
   };
+  return projects;
+};
+
+const getProjectsBySearchTerm = async (
+  searchTerm: string
+): Promise<Project[]> => {
+  const [rows] = await promisePool.query<GetProject[]>(
+    `${simpleQueryBase}
+    WHERE CONCAT_WS(' ', projects.name, building_uses.building_use, building_types.building_type, cities.name, metro_areas.name, countries.name) LIKE ?
+    GROUP BY projects.id`,
+    [`%${searchTerm}%`]
+  );
+  if (rows.length === 0) {
+    throw new CustomError(`Project with name ${searchTerm} not found`, 404);
+  }
+  const projects = rows.map((row) => ({
+    ...row,
+    buildingUses: JSON.parse(row.buildingUses as unknown as string),
+    media: JSON.parse(row.media as unknown as string),
+    favoritedByUsers: JSON.parse(row.favoritedByUsers as unknown as string)
+  }));
   return projects;
 };
 
@@ -340,6 +303,7 @@ export {
   getProjectCount,
   getAllProjectsSimple,
   getProjectSimple,
+  getProjectsBySearchTerm,
   getProject,
   getStatuses,
   getProjectNamesByMetroAreaAndBuildingType,

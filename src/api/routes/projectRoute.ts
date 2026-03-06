@@ -10,7 +10,8 @@ import {
   projectListGetSimple,
   projectStatusesGet,
   projectGetCount,
-  projectGetSimple
+  projectGetSimple,
+  searchProjectsBySearchTerm
 } from '../controllers/projectController';
 import { body, param } from 'express-validator';
 import passport from 'passport';
@@ -170,6 +171,13 @@ router
       .escape(),
     body('projects.*.sources.*.accessedAt').optional().isISO8601().toDate(),
     projectPost
+  );
+
+router
+  .route('/search')
+  .get(
+    passport.authenticate('jwt', { session: false }),
+    searchProjectsBySearchTerm
   );
 
 router

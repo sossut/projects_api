@@ -123,4 +123,47 @@ const projectsQueryString = `SELECT projects.id, projects.name,
     LEFT JOIN project_medias ON projects.id = project_medias.project_id
     LEFT JOIN source_links ON projects.id = source_links.project_id`;
 
-export { projectsQueryString };
+const simpleProjectsQueryString = `SELECT
+    projects.id, projects.name, projects.status,
+    projects.expected_date_text AS expectedDateText,
+    projects.expected_date AS expectedDate, projects.expected_date_text AS expectedDateText,
+    projects.building_height_meters AS buildingHeightMeters,
+    projects.building_height_floors AS buildingHeightFloors,
+    projects.budget_eur AS budgetEur, projects.glass_facade AS glassFacade,
+    projects.facade_basis AS facadeBasis, projects.confidence_score AS confidenceScore,
+    projects.last_verified_date AS lastVerifiedDate, projects.is_active AS isActive,
+    cities.name AS city, countries.name AS country, metro_areas.name AS metroArea,
+    addresses.address AS address,
+    building_types.building_type AS buildingType,
+    CONCAT('[', GROUP_CONCAT(DISTINCT
+      JSON_OBJECT(
+        'id', building_uses.id,
+        'buildingUse', building_uses.building_use
+      )
+    ), ']') AS buildingUses,
+    CONCAT('[', GROUP_CONCAT(DISTINCT
+      JSON_OBJECT(
+        'id', project_medias.id,
+        'url', project_medias.url
+      ) ), ']') AS media,
+    projects.checked_by AS checkedBy, projects.checked_at AS checkedAt, MAX(checked_by_user.username) AS checkedByUsername,
+    CONCAT('[', GROUP_CONCAT(DISTINCT
+      JSON_OBJECT(
+        'id',   fav_users.id,
+        'username', fav_users.username
+      )
+    ), ']') AS favoritedByUsers
+    FROM projects
+    JOIN addresses ON projects.address_id = addresses.id
+    JOIN cities ON addresses.city_id = cities.id
+    JOIN metro_areas ON cities.metro_area_id = metro_areas.id
+    JOIN countries ON metro_areas.country_id = countries.id
+    JOIN building_types ON projects.building_type_id = building_types.id
+    LEFT JOIN project_building_uses ON projects.id = project_building_uses.project_id
+    LEFT JOIN building_uses ON project_building_uses.building_use_id = building_uses.id
+    LEFT JOIN project_medias ON projects.id = project_medias.project_id
+    LEFT JOIN user_project_favorites ON projects.id = user_project_favorites.project_id
+    LEFT JOIN users AS checked_by_user ON projects.checked_by = checked_by_user.id
+    LEFT JOIN users AS fav_users ON user_project_favorites.user_id = fav_users.id`;
+
+export { projectsQueryString, simpleProjectsQueryString };
