@@ -102,7 +102,14 @@ const projectsQueryString = `SELECT projects.id, projects.name,
         'publisher', source_links.publisher,
         'accessedAt', source_links.accessed_at
       )
-    ), ']') AS sourceLinks
+    ), ']') AS sourceLinks,
+    projects.checked_by AS checkedBy, projects.checked_at AS checkedAt, MAX(checked_by_user.username) AS checkedByUsername,
+    CONCAT('[', GROUP_CONCAT(DISTINCT
+      JSON_OBJECT(
+        'id',   fav_users.id,
+        'username', fav_users.username
+      )
+    ), ']') AS favoritedByUsers
     FROM projects
     LEFT JOIN project_websites ON projects.id = project_websites.project_id
     LEFT JOIN addresses ON projects.address_id = addresses.id
@@ -121,7 +128,9 @@ const projectsQueryString = `SELECT projects.id, projects.name,
     LEFT JOIN project_consultants ON projects.id = project_consultants.project_id
     LEFT JOIN consultants ON project_consultants.consultant_id = consultants.id
     LEFT JOIN project_medias ON projects.id = project_medias.project_id
-    LEFT JOIN source_links ON projects.id = source_links.project_id`;
+    LEFT JOIN source_links ON projects.id = source_links.project_id
+    LEFT JOIN users AS checked_by_user ON projects.checked_by = checked_by_user.id
+    LEFT JOIN users AS fav_users ON user_project_favorites.user_id = fav_users.id`;
 
 const simpleProjectsQueryString = `SELECT
     projects.id, projects.name, projects.status,
