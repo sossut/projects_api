@@ -288,6 +288,8 @@ const projectPost = async (
   next: NextFunction
 ) => {
   try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
     const createdProjectIds: number[] = [];
     const skippedProjects: string[] = [];
     console.log(req.body);
