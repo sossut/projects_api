@@ -305,7 +305,6 @@ const projectPost = async (
       const existingProjectId = await findProjectIdByKey(projectKey);
       console.log('Existing project ID:', existingProjectId);
       if (existingProjectId && existingProjectId.score < 0.3) {
-        console.log('kukkuluuruu');
         skippedProjects.push(projectKey);
         const projectDuplicate: ProjectDuplicate = {
           projectDuplicateName: proj.name,
