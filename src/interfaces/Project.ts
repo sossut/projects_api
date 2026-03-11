@@ -23,8 +23,8 @@ interface Project {
     earliest?: string;
     latest?: string;
   };
-  checkedBy?: number;
-  checkedAt?: Date;
+  checkedBy?: number | null;
+  checkedAt?: Date | null;
   buildingHeightMeters?: number | null;
   buildingHeightFloors?: number | null;
   buildingTypeId?: number | BuildingType;

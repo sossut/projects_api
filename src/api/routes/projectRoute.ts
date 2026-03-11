@@ -11,7 +11,9 @@ import {
   projectStatusesGet,
   projectGetCount,
   projectGetSimple,
-  searchProjectsBySearchTerm
+  searchProjectsBySearchTerm,
+  projectFavoritePost,
+  projectFavoriteDelete
 } from '../controllers/projectController';
 import { body, param } from 'express-validator';
 import passport from 'passport';
@@ -195,6 +197,19 @@ router
 router
   .route('/statuses')
   .get(passport.authenticate('jwt', { session: false }), projectStatusesGet);
+
+router
+  .route('/:id/favorite')
+  .post(
+    passport.authenticate('jwt', { session: false }),
+    param('id').isInt({ gt: 0 }).toInt(),
+    projectFavoritePost
+  )
+  .delete(
+    passport.authenticate('jwt', { session: false }),
+    param('id').isInt({ gt: 0 }).toInt(),
+    projectFavoriteDelete
+  );
 
 router.route('/edit').put(
   passport.authenticate('jwt', { session: false }),

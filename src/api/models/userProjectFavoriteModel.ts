@@ -41,7 +41,7 @@ const getUserProjectFavorite = async (
 
 const postUserProjectFavorite = async (
   userProjectFavoriteData: PostUserProjectFavorite
-): Promise<void> => {
+): Promise<boolean> => {
   const { userId, projectId } = userProjectFavoriteData;
   const [result] = await promisePool.query<ResultSetHeader>(
     `INSERT INTO 
@@ -51,12 +51,14 @@ const postUserProjectFavorite = async (
   if (result.affectedRows === 0) {
     throw new CustomError('Failed to create user project favorite', 500);
   }
+  console.log(result);
+  return true;
 };
 
 const deleteUserProjectFavorite = async (
   userId: number,
   projectId: number
-): Promise<void> => {
+): Promise<boolean> => {
   const [result] = await promisePool.query<ResultSetHeader>(
     `DELETE FROM 
     user_project_favorites WHERE user_id = ? AND project_id = ?`,
@@ -68,6 +70,7 @@ const deleteUserProjectFavorite = async (
       500
     );
   }
+  return true;
 };
 
 const getFavoritesByUserId = async (

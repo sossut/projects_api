@@ -26,7 +26,8 @@ const parseProjectRows = (rows: GetProject[]): Project[] => {
     contractors: JSON.parse(row.contractors as unknown as string),
     consultants: JSON.parse(row.consultants as unknown as string),
     projectMedias: JSON.parse(row.projectMedias as unknown as string),
-    sourceLinks: JSON.parse(row.sourceLinks as unknown as string)
+    sourceLinks: JSON.parse(row.sourceLinks as unknown as string),
+    favoritedByUsers: JSON.parse(row.favoritedByUsers as unknown as string)
   }));
 };
 const queryBase = projectsQueryString;
@@ -143,7 +144,8 @@ const getAllProjectsSimple = async (
   const projects = rows.map((row) => ({
     ...row,
     buildingUses: JSON.parse(row.buildingUses as unknown as string),
-    media: JSON.parse(row.media as unknown as string)
+    media: JSON.parse(row.media as unknown as string),
+    favoritedByUsers: JSON.parse(row.favoritedByUsers as unknown as string)
   }));
   return projects;
 };
@@ -160,7 +162,8 @@ const getProjectSimple = async (id: number): Promise<Project> => {
   const projects = {
     ...rows[0],
     buildingUses: JSON.parse(rows[0].buildingUses as unknown as string),
-    media: JSON.parse(rows[0].media as unknown as string)
+    media: JSON.parse(rows[0].media as unknown as string),
+    favoritedByUsers: JSON.parse(rows[0].favoritedByUsers as unknown as string)
   };
   return projects;
 };

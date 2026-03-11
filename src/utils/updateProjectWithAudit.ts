@@ -635,6 +635,15 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
     buildingHeightMeters: req.body.buildingHeightMeters,
     buildingHeightFloors: req.body.buildingHeightFloors
   };
+  if (req.body.checkedBy) {
+    project.checkedBy = req.body.checkedBy;
+    project.checkedAt = new Date(Date.now());
+  }
+  if (req.body.checkedBy === null) {
+    project.checkedBy = null;
+    project.checkedAt = null;
+  }
+  console.log(project.checkedAt);
   for (const architect of req.body.architects || []) {
     const checkedArchitect = await checkArchitectExistsByName(architect.name);
     let architectId = checkedArchitect;

@@ -33,6 +33,10 @@ import { deleteProjectDeveloper } from '../models/projectDeveloperModel';
 import { deleteProjectContractor } from '../models/projectContractorModel';
 import { deleteProjectConsultant } from '../models/projectConstultantModel';
 import { deleteProjectMedia } from '../models/projectMediaModel';
+import {
+  deleteUserProjectFavorite,
+  postUserProjectFavorite
+} from '../models/userProjectFavoriteModel';
 
 const projectListGet = async (
   req: Request,
@@ -229,6 +233,9 @@ const projectGetFormatted = async (
       confidenceScore: project.confidenceScore,
       isActive: project.isActive,
       projectWebsites: project.projectWebsites,
+      checkedAt: project.checkedAt,
+      checkedBy: project.checkedBy,
+      checkedByUsername: project.checkedByUsername,
       developers:
         project.developers?.map((dev: any) => ({
           name: dev.name,
@@ -273,9 +280,10 @@ const projectGetFormatted = async (
           }
         })) || [],
       media: project.projectMedias,
-      sources: project.sourceLinks
+      sources: project.sourceLinks,
+      favoritedByUsers: project.favoritedByUsers
     };
-    console.log(formattedProject.architects);
+
     res.json(formattedProject);
   } catch (err) {
     next(err);
@@ -330,6 +338,53 @@ const projectPost = async (
       skipped: skippedProjects.length > 0 ? skippedProjects : undefined
     };
     res.json(response);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectFavoritePost = async (
+  req: Request<{ id: number }, {}, {}>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = req.user as User;
+    const projectId = req.params.id;
+
+    const success = await postUserProjectFavorite({
+      userId: user.id,
+      projectId: projectId
+    });
+    console.log('POST favorite .', success);
+    if (success) {
+      const response: MessageResponse = {
+        message: 'Project favorited successfully',
+        id: projectId
+      };
+      res.json(response);
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectFavoriteDelete = async (
+  req: Request<{ id: number }, {}, {}>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = req.user as User;
+    const projectId = req.params.id;
+    const success = await deleteUserProjectFavorite(user.id, projectId);
+    if (success) {
+      const response: MessageResponse = {
+        message: 'Project unfavorited successfully',
+        id: projectId
+      };
+      res.json(response);
+    }
   } catch (err) {
     next(err);
   }
@@ -522,5 +577,7 @@ export {
   projectPost,
   projectPut,
   projectPutWithoutIdParam,
-  projectDelete
+  projectDelete,
+  projectFavoritePost,
+  projectFavoriteDelete
 };
