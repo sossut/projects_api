@@ -13,7 +13,8 @@ import {
   projectGetSimple,
   searchProjectsBySearchTerm,
   projectFavoritePost,
-  projectFavoriteDelete
+  projectFavoriteDelete,
+  projectsGetByMetroAreaAndBuildingType
 } from '../controllers/projectController';
 import { body, param } from 'express-validator';
 import passport from 'passport';
@@ -180,6 +181,13 @@ router
   .get(
     passport.authenticate('jwt', { session: false }),
     searchProjectsBySearchTerm
+  );
+
+router
+  .route('/metro/:metroAreaId/building-type/:buildingTypeId')
+  .get(
+    passport.authenticate('jwt', { session: false }),
+    projectsGetByMetroAreaAndBuildingType
   );
 
 router

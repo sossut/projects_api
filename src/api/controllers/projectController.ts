@@ -8,7 +8,8 @@ import {
   getProject,
   getProjectCount,
   getStatuses,
-  getProjectsBySearchTerm
+  getProjectsBySearchTerm,
+  getProjectNamesByMetroAreaAndBuildingType
 } from '../models/projectModel';
 
 import { Request, Response, NextFunction } from 'express';
@@ -104,6 +105,35 @@ const projectListGetSimple = async (
     res.json(projects);
   } catch (err) {
     next(err);
+  }
+};
+
+const projectsGetByMetroAreaAndBuildingType = async (
+  req: Request<{ metroAreaId: number; buildingTypeId: number }, {}, {}>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+
+    const metroAreaId = req.params.metroAreaId;
+    const buildingTypeId = req.params.buildingTypeId;
+
+    if (!metroAreaId || !buildingTypeId) {
+      throw new CustomError(
+        'Metro area ID and building type ID are required',
+        400
+      );
+    }
+
+    const projects = await getProjectNamesByMetroAreaAndBuildingType(
+      metroAreaId,
+      buildingTypeId
+    );
+    res.json(projects);
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -570,6 +600,7 @@ export {
   projectListGet,
   projectListGetSimple,
   projectGetSimple,
+  projectsGetByMetroAreaAndBuildingType,
   searchProjectsBySearchTerm,
   projectGet,
   projectGetCount,
