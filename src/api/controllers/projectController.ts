@@ -296,6 +296,8 @@ const projectPost = async (
   next: NextFunction
 ) => {
   try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
     const createdProjectIds: number[] = [];
     const skippedProjects: string[] = [];
     console.log(req.body);
@@ -311,7 +313,6 @@ const projectPost = async (
       const existingProjectId = await findProjectIdByKey(projectKey);
       console.log('Existing project ID:', existingProjectId);
       if (existingProjectId && existingProjectId.score < 0.3) {
-        console.log('kukkuluuruu');
         skippedProjects.push(projectKey);
         const projectDuplicate: ProjectDuplicate = {
           projectDuplicateName: proj.name,
