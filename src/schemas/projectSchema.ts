@@ -149,7 +149,8 @@ export const ProjectSchema = z.object({
         title: z.string().default(''),
         url: z.string().default(''), // direct image url or ""
         sourcePage: z.string().default(''),
-        mediaType: z.string().default('')
+        mediaType: z.string().default(''),
+        mediaDate: z.string().default('')
       })
     )
     .default([]),

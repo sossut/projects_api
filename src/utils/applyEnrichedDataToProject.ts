@@ -506,7 +506,9 @@ const applyEnrichedDataToProject = async (
             projectId,
             mediaType: med.mediaType || 'other',
             url: med.url,
-            title: med.title || null
+            title: med.title || null,
+            mediaDate: med.mediaDate || null,
+            sourcePage: med.sourcePage || null
           });
           newMedia.push({ id: mediaId, url: med.url });
         }
@@ -946,7 +948,8 @@ const addNewProjectToDB = async (proj: any, changeType?: string) => {
           url: media.url,
           projectId: projectId,
           title: media.title ?? null,
-          mediaType: media.mediaType
+          mediaType: media.mediaType,
+          mediaDate: media.mediaDate ?? null
         };
         //file uploads not yet implemented
         await postProjectMedia(mediaData);

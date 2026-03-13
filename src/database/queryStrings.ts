@@ -91,7 +91,8 @@ const projectsQueryString = `SELECT projects.id, projects.name,
         'url', project_medias.url,
         'title', project_medias.title,
         'filename', project_medias.filename,
-        'sourcePage', project_medias.source_page
+        'sourcePage', project_medias.source_page,
+        'mediaDate', project_medias.media_date
       )
     ), ']') AS projectMedias,
     CONCAT('[', GROUP_CONCAT(DISTINCT

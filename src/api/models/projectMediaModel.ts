@@ -19,7 +19,8 @@ const getAllProjectMedias = async (): Promise<ProjectMedia[]> => {
       url,
       title,
       filename,
-      source_page AS sourcePage
+      source_page AS sourcePage,
+      media_date AS mediaDate
       FROM project_medias`
   );
   if (rows.length === 0) {
@@ -37,7 +38,8 @@ const getProjectMedia = async (id: number): Promise<ProjectMedia> => {
       url,
       title,
       filename,
-      source_page AS sourcePage
+      source_page AS sourcePage,
+      media_date AS mediaDate
       FROM project_medias WHERE id = ?`,
     [id]
   );
@@ -60,14 +62,15 @@ const postProjectMedia = async (
 ): Promise<number> => {
   const [headers] = await promisePool.execute<ResultSetHeader>(
     `INSERT INTO project_medias
-    (project_id, media_type, url, title, source_page )
-    VALUES (?, ?, ?, ?, ?)`,
+    (project_id, media_type, url, title, source_page, media_date)
+    VALUES (?, ?, ?, ?, ?, ?)`,
     [
       projectMediaData.projectId,
       projectMediaData.mediaType,
       projectMediaData.url,
       projectMediaData.title,
-      projectMediaData.sourcePage || null
+      projectMediaData.sourcePage || null,
+      projectMediaData.mediaDate || null
     ]
   );
   if (headers.affectedRows === 0) {
