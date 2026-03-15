@@ -22,7 +22,7 @@ const scheduleProjectSearch = async () => {
     cronEnv !== undefined
       ? cronEnv.trim()
       : process.env.NODE_ENV === 'development'
-        ? '*/5 * * * *'
+        ? '0 0 1 */2 *' // Every 2 months at 1:00 AM in development
         : undefined;
   console.log('PROJECT_SEARCH_CRON:', process.env.PROJECT_SEARCH_CRON);
   if (!cron || cron.toLowerCase() === 'off') {
