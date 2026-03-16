@@ -155,7 +155,8 @@ const simpleProjectsQueryString = `SELECT
     CONCAT('[', GROUP_CONCAT(DISTINCT
       JSON_OBJECT(
         'id', project_medias.id,
-        'url', project_medias.url
+        'url', project_medias.url,
+        'mediaDate', project_medias.media_date
       ) ), ']') AS media,
     projects.checked_by AS checkedBy, projects.checked_at AS checkedAt, MAX(checked_by_user.username) AS checkedByUsername,
     CONCAT('[', GROUP_CONCAT(DISTINCT
