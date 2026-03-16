@@ -49,12 +49,15 @@ const getProjectMedia = async (id: number): Promise<ProjectMedia> => {
   return rows[0];
 };
 
-const checkProjectMediaExistsByUrl = async (url: string): Promise<boolean> => {
+const checkProjectMediaExistsByUrl = async (url: string): Promise<number> => {
   const [rows] = await promisePool.query<GetProjectMedia[]>(
     'SELECT id FROM project_medias WHERE url = ?',
     [url]
   );
-  return rows.length > 0;
+  if (rows.length === 0) {
+    return 0; // No media found with the given URL
+  }
+  return rows[0].id as number; // Return the ID of the existing media
 };
 
 const postProjectMedia = async (

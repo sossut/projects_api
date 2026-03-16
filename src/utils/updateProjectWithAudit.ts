@@ -52,7 +52,8 @@ import { postProjectContractor } from '../api/models/projectContractorModel';
 import { postProjectDeveloper } from '../api/models/projectDeveloperModel';
 import {
   checkProjectMediaExistsByUrl,
-  postProjectMedia
+  postProjectMedia,
+  putProjectMedia
 } from '../api/models/projectMediaModel';
 
 import { getProject, putProject } from '../api/models/projectModel';
@@ -836,13 +837,27 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
   for (const media of req.body.media || []) {
     if (!media.url) continue;
     const checkMedia = await checkProjectMediaExistsByUrl(media.url);
-    if (!checkMedia) {
+    if (checkMedia === 0) {
+      console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!', media);
       await postProjectMedia({
         projectId: projectId as number,
         url: media.url,
         title: media.title,
-        mediaType: media.mediaType
+        mediaType: media.mediaType,
+        mediaDate: media.mediaDate ? new Date(media.mediaDate) : null
       });
+    } else {
+      // Update existing media details
+      await putProjectMedia(
+        {
+          projectId: projectId as number,
+          url: media.url,
+          title: media.title,
+          mediaType: media.mediaType,
+          mediaDate: media.mediaDate ? new Date(media.mediaDate) : null
+        },
+        checkMedia as number
+      );
     }
   }
 

@@ -63,7 +63,8 @@ import {
 } from '../api/models/projectDeveloperModel';
 import {
   checkProjectMediaExistsByUrl,
-  postProjectMedia
+  postProjectMedia,
+  putProjectMedia
 } from '../api/models/projectMediaModel';
 import {
   checkIfProjectExistsByKey,
@@ -501,7 +502,7 @@ const applyEnrichedDataToProject = async (
       if (!med.url) continue;
       try {
         const mediaExists = await checkProjectMediaExistsByUrl(med.url);
-        if (!mediaExists) {
+        if (mediaExists === 0) {
           const mediaId = await postProjectMedia({
             projectId,
             mediaType: med.mediaType || 'other',
@@ -511,6 +512,8 @@ const applyEnrichedDataToProject = async (
             sourcePage: med.sourcePage || null
           });
           newMedia.push({ id: mediaId, url: med.url });
+        } else {
+          await putProjectMedia(med, mediaExists as number);
         }
       } catch (error) {
         console.warn(`Failed to add media ${med.url}:`, error);

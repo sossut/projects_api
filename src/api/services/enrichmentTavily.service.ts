@@ -424,7 +424,7 @@ export const enrichProjectWithTavily = async (projectId: number) => {
         if (!med.url) continue;
         try {
           const mediaExists = await checkProjectMediaExistsByUrl(med.url);
-          if (!mediaExists) {
+          if (mediaExists === 0) {
             const mediaId = await postProjectMedia({
               projectId,
               mediaType: med.mediaType || 'other',
