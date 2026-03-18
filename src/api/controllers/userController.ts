@@ -77,6 +77,10 @@ const userPut = async (
     if (u.id !== req.params.id && u.role !== 'admin') {
       throw new CustomError('Unauthorized', 403);
     }
+    const { password } = req.body;
+    if (password) {
+      req.body.password = bcrypt.hashSync(password, salt);
+    }
     const result = await putUser(req.body, req.params.id as number);
     if (result) {
       const response: MessageResponse = {
