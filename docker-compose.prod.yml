@@ -1,0 +1,53 @@
+services:
+  redis:
+    image: redis:8.4
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - '5000:5000'
+    environment:
+      NODE_ENV: production
+
+  automation-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node dist/src/api/queues/automation.worker.js
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+
+  enrichment-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node dist/src/api/queues/enrichment.worker.js
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+volumes:
+  redis_data:
