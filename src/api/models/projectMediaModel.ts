@@ -9,6 +9,7 @@ import {
 
 import CustomError from '../../classes/CustomError';
 import { ResultSetHeader } from 'mysql2';
+import { toSnake } from '../../utils/utilities';
 
 const getAllProjectMedias = async (): Promise<ProjectMedia[]> => {
   const [rows] = await promisePool.query<GetProjectMedia[]>(
@@ -86,8 +87,9 @@ const putProjectMedia = async (
   projectMediaData: PutProjectMedia,
   id: number
 ): Promise<boolean> => {
+  const snakeCaseData = toSnake(projectMediaData) as PutProjectMedia;
   const sql = promisePool.format('UPDATE project_medias SET ? WHERE id = ?', [
-    projectMediaData,
+    snakeCaseData,
     id
   ]);
   const [headers] = await promisePool.query<ResultSetHeader>(sql);

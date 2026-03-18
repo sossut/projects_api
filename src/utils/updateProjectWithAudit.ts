@@ -850,7 +850,6 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
       // Update existing media details
       await putProjectMedia(
         {
-          projectId: projectId as number,
           url: media.url,
           title: media.title,
           mediaType: media.mediaType,
