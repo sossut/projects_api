@@ -2,6 +2,7 @@ version: '3.9'
 services:
   redis:
     image: redis:8.4
+    restart: unless-stopped
     ports:
       - '6379:6379'
     volumes:
@@ -13,6 +14,7 @@ services:
       dockerfile: Dockerfile
     command: npm run dev
     env_file: .env
+    restart: unless-stopped
     environment:
       CHOKIDAR_USEPOLLING: '1'
       CHOKIDAR_INTERVAL: '1000'
@@ -34,6 +36,7 @@ services:
       CHOKIDAR_USEPOLLING: '1'
       CHOKIDAR_INTERVAL: '1000'
       NODEMON_LEGACY_WATCH: '1'
+    restart: unless-stopped
     depends_on:
       - redis
     volumes:
@@ -51,6 +54,7 @@ services:
       NODEMON_LEGACY_WATCH: '1'
     depends_on:
       - redis
+    restart: unless-stopped
     volumes:
       - .:/app
       - /app/node_modules
