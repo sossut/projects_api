@@ -240,7 +240,7 @@ router.route('/edit').put(
     .isIn(['yes', 'no', 'unknown', null, 'null', true, false, 0, 1]),
   body('facadeBasis').optional().isString().notEmpty().escape(),
   body('status')
-    .optional()
+    .optional({ checkFalsy: true, nullable: true })
     .isIn([
       'planned',
       'approved',
@@ -398,7 +398,7 @@ router
       .isIn(['yes', 'no', 'unknown', null, 'null', true, false, 0, 1]),
     body('facadeBasis').optional().isString().notEmpty().escape(),
     body('status')
-      .optional()
+      .optional({ checkFalsy: true, nullable: true })
       .isIn([
         'planned',
         'approved',
