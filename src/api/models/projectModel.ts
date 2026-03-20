@@ -314,7 +314,14 @@ const putProject = async (
   projectData: PutProject,
   id: number
 ): Promise<boolean> => {
-  const updateData: Record<string, unknown> = { ...projectData };
+  const updateData: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(projectData)) {
+    if (value === undefined) {
+      continue;
+    }
+    updateData[key] = value;
+  }
 
   if (Object.prototype.hasOwnProperty.call(updateData, 'status')) {
     const incomingStatus = updateData.status;
