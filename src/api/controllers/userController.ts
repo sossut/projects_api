@@ -18,6 +18,8 @@ const salt = bcrypt.genSaltSync(12);
 
 const userListGet = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
     const users: User[] = await getAllUsers();
     res.json(users);
   } catch (err) {
@@ -48,7 +50,10 @@ const userPost = async (
   try {
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-
+    const admin = req.user as User;
+    if (admin.role !== 'admin') {
+      throw new CustomError('Unauthorized', 403);
+    }
     const { password } = req.body;
     req.body.password = bcrypt.hashSync(password, salt);
 

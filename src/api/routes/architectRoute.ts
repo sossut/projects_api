@@ -1,5 +1,5 @@
 import express from 'express';
-
+import passport from 'passport';
 import {
   architectListGet,
   architectGet,
@@ -17,10 +17,23 @@ router.get('/country/:countryId', architecstGetByCountryId);
 
 router.get('/:id', architectGet);
 
-router.post('/', architectPost);
+router.post(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  architectPost
+);
 
-router.put('/:id', architectPut);
+router.put(
+  '/:id',
+  passport.authenticate('jwt', { session: false }),
 
-router.delete('/:id', architectDelete);
+  architectPut
+);
+
+router.delete(
+  '/:id',
+  passport.authenticate('jwt', { session: false }),
+  architectDelete
+);
 
 export default router;
