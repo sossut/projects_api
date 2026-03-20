@@ -15,6 +15,45 @@ import {
   simpleProjectsQueryString
 } from '../../database/queryStrings';
 
+const allowedProjectStatuses = new Set([
+  'planned',
+  'approved',
+  'proposed',
+  'on_hold',
+  'under_construction',
+  'completed',
+  'cancelled',
+  'pre_construction'
+]);
+
+const normalizeProjectStatus = (status: unknown): string => {
+  if (typeof status !== 'string') {
+    throw new CustomError('Invalid project status value', 400);
+  }
+
+  const normalized = status
+    .trim()
+    .toLowerCase()
+    .replace(/[-\s]+/g, '_');
+
+  const aliases: Record<string, string> = {
+    underconstruction: 'under_construction',
+    preconstruction: 'pre_construction',
+    onhold: 'on_hold'
+  };
+
+  const mapped = aliases[normalized] ?? normalized;
+
+  if (!allowedProjectStatuses.has(mapped)) {
+    throw new CustomError(
+      `Invalid status '${status}'. Allowed values: ${Array.from(allowedProjectStatuses).join(', ')}`,
+      400
+    );
+  }
+
+  return mapped;
+};
+
 const parseProjectRows = (rows: GetProject[]): Project[] => {
   return rows.map((row) => ({
     ...row,
@@ -99,7 +138,6 @@ const getProjectCount = async (filters?: {
     ${filtered.whereClause}`,
     filtered.params
   );
-  console.log(sql);
 
   const [rows] = await promisePool.query<RowDataPacket[]>(sql);
   return rows[0].count as number;
@@ -276,12 +314,41 @@ const putProject = async (
   projectData: PutProject,
   id: number
 ): Promise<boolean> => {
+  const updateData: Record<string, unknown> = { ...projectData };
+
+  if (Object.prototype.hasOwnProperty.call(updateData, 'status')) {
+    const incomingStatus = updateData.status;
+    if (
+      incomingStatus === null ||
+      incomingStatus === undefined ||
+      incomingStatus === ''
+    ) {
+      updateData.status = null;
+    } else {
+      updateData.status = normalizeProjectStatus(incomingStatus);
+    }
+  }
+
   const sql = promisePool.format('UPDATE projects SET ? WHERE id = ?', [
-    toSnake(projectData),
+    toSnake(updateData),
     id
   ]);
-  console.log(sql);
-  const [headers] = await promisePool.query<ResultSetHeader>(sql);
+
+  let headers: ResultSetHeader;
+  try {
+    const [result] = await promisePool.query<ResultSetHeader>(sql);
+    headers = result;
+  } catch (error: any) {
+    if (
+      error?.code === 'WARN_DATA_TRUNCATED' ||
+      error?.errno === 1265 ||
+      error?.message?.includes("Data truncated for column 'status'")
+    ) {
+      throw new CustomError('Invalid value for project status', 400);
+    }
+    throw error;
+  }
+
   if (headers.affectedRows === 0) {
     throw new CustomError(`Project with id ${id} not found`, 404);
   }
