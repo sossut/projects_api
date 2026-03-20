@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 import ErrorResponse from './interfaces/ErrorResponse';
+import logger from './utils/logger';
 
 export function notFound(req: Request, res: Response, next: NextFunction) {
   res.status(404);
@@ -18,6 +19,15 @@ export function errorHandler(
 ) {
   const statusCode =
     err.status || (res.statusCode !== 200 ? res.statusCode : 500);
+
+  logger.error('Request failed', {
+    method: req.method,
+    path: req.originalUrl,
+    statusCode,
+    message: err.message,
+    stack: err.stack
+  });
+
   res.status(statusCode);
   res.json({
     message: err.message,

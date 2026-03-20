@@ -73,11 +73,11 @@ import { Project } from '../interfaces/Project';
 import { ProjectBuildingUse } from '../interfaces/ProjectBuildingUse';
 
 import { parseToStandardDate, toCamel } from './utilities';
+import logger from './logger';
 //Helper function to update project with audit logging
 const updateProjectWithAudit = async (projectId: number, req: any) => {
   const p = toCamel(await getProject(projectId as number));
-  //formatted response
-  console.log(p);
+  logger.debug('Loaded project for update', { projectId, name: p?.name });
   const formattedProjectOld = {
     id: p.id,
     name: p.name,
@@ -256,7 +256,12 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
   ];
   for (const f of auditFields) {
     if (f.old !== f.new && f.new) {
-      console.log({ f });
+      logger.info('Project field changed', {
+        projectId,
+        field: f.field,
+        oldValue: f.old,
+        newValue: f.new
+      });
       await postProjectAudit({
         projectId: projectId as number,
         fieldName: f.field,
@@ -644,13 +649,20 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
     project.checkedBy = null;
     project.checkedAt = null;
   }
-  console.log(project.checkedAt);
+  logger.debug('Project check metadata updated', {
+    projectId,
+    checkedBy: project.checkedBy,
+    checkedAt: project.checkedAt
+  });
   for (const architect of req.body.architects || []) {
     const checkedArchitect = await checkArchitectExistsByName(architect.name);
     let architectId = checkedArchitect;
     if (checkedArchitect === 0) {
       if (architect.name) {
-        console.log(architect);
+        logger.info('Creating architect and linking to project', {
+          projectId,
+          architectName: architect.name
+        });
         architectId = await postArchitect({
           name: architect.name,
           website: architect.website,
@@ -838,7 +850,11 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
     if (!media.url) continue;
     const checkMedia = await checkProjectMediaExistsByUrl(media.url);
     if (checkMedia === 0) {
-      console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!', media);
+      logger.info('Creating new media for project', {
+        projectId,
+        url: media.url,
+        mediaType: media.mediaType
+      });
       await postProjectMedia({
         projectId: projectId as number,
         url: media.url,
@@ -871,7 +887,6 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
     if (buildingUseId === 0) {
       throw new CustomError('Failed to create building use', 500);
     }
-    console.log('test2');
     const checkProjectBuildingUse = await checkProjectBuildingUseExists(
       projectId as number,
       buildingUseId
@@ -881,7 +896,6 @@ const updateProjectWithAudit = async (projectId: number, req: any) => {
         projectId: projectId as number,
         buildingUseId: buildingUseId
       };
-      console.log('test');
       await postProjectBuildingUse(projectBuildingUse);
     }
   }
