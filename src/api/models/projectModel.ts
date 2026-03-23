@@ -162,29 +162,42 @@ const getFavoritedProjects = async (): Promise<Project[]> => {
   }));
 };
 
-const getAllProjectCoordinates = async (): Promise<GetProject[]> => {
-  const [rows] = await promisePool.query<RowDataPacket[]>(
+const getAllProjectCoordinates = async (): Promise<Project[]> => {
+  const [rows] = await promisePool.query<GetProject[]>(
     `SELECT
       projects.id,
+      projects.name,
+      building_types.building_type AS buildingType,
+      CONCAT('[', GROUP_CONCAT(DISTINCT
+        JSON_OBJECT(
+          'buildingUse', building_uses.building_use
+        )
+      ), ']') AS buildingUses,
+      projects.building_height_meters AS buildingHeightMeters,
       JSON_OBJECT(
         'latitude', ST_Y(addresses.location),
         'longitude', ST_X(addresses.location)
       ) AS location
     FROM projects
     JOIN addresses ON projects.address_id = addresses.id
+    JOIN building_types ON projects.building_type_id = building_types.id
+    LEFT JOIN project_building_uses ON projects.id = project_building_uses.project_id
+    LEFT JOIN building_uses ON project_building_uses.building_use_id = building_uses.id
     WHERE addresses.location IS NOT NULL
       AND NOT (
         ST_Y(addresses.location) = 0
         AND ST_X(addresses.location) = 0
-      )`
+      )
+        GROUP BY projects.id`
   );
   if (rows.length === 0) {
     throw new CustomError('No project coordinates found', 404);
   }
   return rows.map((row) => ({
-    id: row.id,
+    ...row,
+    buildingUses: JSON.parse(row.buildingUses as unknown as string),
     location: JSON.parse(row.location as unknown as string)
-  })) as GetProject[];
+  })) as Project[];
 };
 
 const getProjectKeys = async (): Promise<Project[]> => {
