@@ -145,7 +145,7 @@ const getProjectCount = async (filters?: {
 
 const getFavoritedProjects = async () => {
   const [rows] = await promisePool.query<GetProject[]>(
-    `${queryBase}
+    `${simpleQueryBase}
     WHERE user_project_favorites.user_id IS NOT NULL
     GROUP BY projects.id
     ORDER BY projects.name ASC`
