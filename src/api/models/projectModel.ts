@@ -181,7 +181,10 @@ const getAllProjectCoordinates = async (): Promise<GetProject[]> => {
   if (rows.length === 0) {
     throw new CustomError('No project coordinates found', 404);
   }
-  return rows as GetProject[];
+  return rows.map((row) => ({
+    id: row.id,
+    location: JSON.parse(row.location as unknown as string)
+  })) as GetProject[];
 };
 
 const getProjectKeys = async (): Promise<Project[]> => {
