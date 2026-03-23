@@ -143,7 +143,7 @@ const getProjectCount = async (filters?: {
   return rows[0].count as number;
 };
 
-const getFavoritedProjects = async () => {
+const getFavoritedProjects = async (): Promise<Project[]> => {
   const [rows] = await promisePool.query<GetProject[]>(
     `${simpleQueryBase}
     WHERE user_project_favorites.user_id IS NOT NULL
@@ -153,7 +153,13 @@ const getFavoritedProjects = async () => {
   if (rows.length === 0) {
     throw new CustomError('No favorited projects found', 404);
   }
-  return parseProjectRows(rows);
+
+  return rows.map((row) => ({
+    ...row,
+    buildingUses: JSON.parse(row.buildingUses as unknown as string),
+    media: JSON.parse(row.media as unknown as string),
+    favoritedByUsers: JSON.parse(row.favoritedByUsers as unknown as string)
+  }));
 };
 
 const getProjectKeys = async (): Promise<Project[]> => {
