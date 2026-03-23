@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import {
   deleteProject,
   getAllProjects,
+  getFavoritedProjects,
   getAllProjectsSimple,
   getProjectSimple,
   getProject,
@@ -101,6 +102,20 @@ const projectListGetSimple = async (
       limit,
       offset
     );
+    const projects = rows.map((row) => toCamel(row));
+    res.json(projects);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectFavoritedListGet = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const rows = await getFavoritedProjects();
     const projects = rows.map((row) => toCamel(row));
     res.json(projects);
   } catch (err) {
@@ -598,6 +613,7 @@ const projectDelete = async (
 
 export {
   projectListGet,
+  projectFavoritedListGet,
   projectListGetSimple,
   projectGetSimple,
   projectsGetByMetroAreaAndBuildingType,

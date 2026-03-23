@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   projectListGet,
+  projectFavoritedListGet,
   projectGet,
   projectPost,
   projectPut,
@@ -197,6 +198,13 @@ router
 router
   .route('/simple/:id')
   .get(passport.authenticate('jwt', { session: false }), projectGetSimple);
+
+router
+  .route('/favorites')
+  .get(
+    passport.authenticate('jwt', { session: false }),
+    projectFavoritedListGet
+  );
 
 router
   .route('/count')
