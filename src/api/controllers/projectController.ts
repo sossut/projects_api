@@ -10,7 +10,8 @@ import {
   getProjectCount,
   getStatuses,
   getProjectsBySearchTerm,
-  getProjectNamesByMetroAreaAndBuildingType
+  getProjectNamesByMetroAreaAndBuildingType,
+  getAllProjectCoordinates
 } from '../models/projectModel';
 
 import { Request, Response, NextFunction } from 'express';
@@ -230,6 +231,19 @@ const projectStatusesGet = async (
   try {
     const statuses = await getStatuses();
     res.json(statuses);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectsListGetCoordinates = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const coordinates = await getAllProjectCoordinates();
+    res.json(coordinates);
   } catch (err) {
     next(err);
   }
@@ -621,6 +635,7 @@ export {
   projectGet,
   projectGetCount,
   projectStatusesGet,
+  projectsListGetCoordinates,
   projectGetFormatted,
   projectPost,
   projectPut,

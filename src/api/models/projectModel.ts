@@ -162,6 +162,28 @@ const getFavoritedProjects = async (): Promise<Project[]> => {
   }));
 };
 
+const getAllProjectCoordinates = async (): Promise<GetProject[]> => {
+  const [rows] = await promisePool.query<RowDataPacket[]>(
+    `SELECT
+      projects.id,
+      JSON_OBJECT(
+        'latitude', ST_Y(addresses.location),
+        'longitude', ST_X(addresses.location)
+      ) AS location
+    FROM projects
+    JOIN addresses ON projects.address_id = addresses.id
+    WHERE addresses.location IS NOT NULL
+      AND NOT (
+        ST_Y(addresses.location) = 0
+        AND ST_X(addresses.location) = 0
+      )`
+  );
+  if (rows.length === 0) {
+    throw new CustomError('No project coordinates found', 404);
+  }
+  return rows as GetProject[];
+};
+
 const getProjectKeys = async (): Promise<Project[]> => {
   const [rows] = await promisePool.query<GetProject[]>(
     'SELECT id, project_key AS projectKey FROM projects'
@@ -398,6 +420,7 @@ export {
   getProjectKeys,
   getProjectsForBatchEnrichment,
   getProjectCount,
+  getAllProjectCoordinates,
   getAllProjectsSimple,
   getProjectSimple,
   getProjectsBySearchTerm,

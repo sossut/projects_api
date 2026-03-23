@@ -15,7 +15,8 @@ import {
   searchProjectsBySearchTerm,
   projectFavoritePost,
   projectFavoriteDelete,
-  projectsGetByMetroAreaAndBuildingType
+  projectsGetByMetroAreaAndBuildingType,
+  projectsListGetCoordinates
 } from '../controllers/projectController';
 import { body, param } from 'express-validator';
 import passport from 'passport';
@@ -204,6 +205,13 @@ router
   .get(
     passport.authenticate('jwt', { session: false }),
     projectFavoritedListGet
+  );
+
+router
+  .route('/coordinates')
+  .get(
+    passport.authenticate('jwt', { session: false }),
+    projectsListGetCoordinates
   );
 
 router
