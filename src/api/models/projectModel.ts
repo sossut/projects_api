@@ -268,7 +268,7 @@ const getProjectsBySearchTerm = async (
 ): Promise<Project[]> => {
   const [rows] = await promisePool.query<GetProject[]>(
     `${simpleQueryBase}
-    WHERE CONCAT_WS(' ', projects.name, building_uses.building_use, building_types.building_type, cities.name, metro_areas.name, countries.name) LIKE ?
+    WHERE CONCAT_WS(' ', projects.name, building_uses.building_use, building_types.building_type, addresses.address, cities.name, metro_areas.name, countries.name) LIKE ?
     GROUP BY projects.id`,
     [`%${searchTerm}%`]
   );
