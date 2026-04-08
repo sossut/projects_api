@@ -1,4 +1,5 @@
 const projectsQueryString = `SELECT projects.id, projects.name, 
+    projects.created_at AS createdAt, projects.updated_at AS updatedAt,
     JSON_OBJECT(
       'id', addresses.id,
       'address', addresses.address,
@@ -143,6 +144,7 @@ const simpleProjectsQueryString = `SELECT
     projects.budget_eur AS budgetEur, projects.glass_facade AS glassFacade,
     projects.facade_basis AS facadeBasis, projects.confidence_score AS confidenceScore,
     projects.last_verified_date AS lastVerifiedDate, projects.is_active AS isActive,
+    projects.created_at AS createdAt, projects.updated_at AS updatedAt,
     cities.name AS city, countries.name AS country, metro_areas.name AS metroArea,
     addresses.address AS address,
     building_types.building_type AS buildingType,

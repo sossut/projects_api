@@ -265,6 +265,8 @@ const projectGetFormatted = async (
       name: project.name,
       buildingHeightMeters: project.buildingHeightMeters,
       buildingHeightFloors: project.buildingHeightFloors,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
       location: {
         addressId: project.addressId,
         address: project.address.address,

@@ -25,6 +25,8 @@ interface Project {
   };
   checkedBy?: number | null;
   checkedAt?: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
   buildingHeightMeters?: number | null;
   buildingHeightFloors?: number | null;
   buildingTypeId?: number | BuildingType;
