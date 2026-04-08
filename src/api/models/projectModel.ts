@@ -54,6 +54,14 @@ const normalizeProjectStatus = (status: unknown): string => {
   return mapped;
 };
 
+const isBudgetOutOfRangeError = (error: any): boolean => {
+  return (
+    error?.code === 'ER_WARN_DATA_OUT_OF_RANGE' ||
+    error?.errno === 1264 ||
+    error?.message?.includes("Out of range value for column 'budget_eur'")
+  );
+};
+
 const parseProjectRows = (rows: GetProject[]): Project[] => {
   return rows.map((row) => ({
     ...row,
@@ -336,32 +344,42 @@ const checkIfProjectExistsByKey = async (
 };
 
 const postProject = async (projectData: PostProject): Promise<number> => {
-  const [headers] = await promisePool.execute<ResultSetHeader>(
-    `INSERT INTO projects
-    (name, address_id, expected_date_text, earliest_date_text, latest_date_text, expected_date, building_height_meters,
-    building_height_floors, building_type_id, budget_eur, glass_facade,
-    facade_basis, status, last_verified_date, confidence_score, is_active, project_key)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      projectData.name,
-      projectData.addressId,
-      projectData.expectedDateText ?? null,
-      projectData.earliestDateText ?? null,
-      projectData.latestDateText ?? null,
-      projectData.expectedDate ?? null,
-      projectData.buildingHeightMeters ?? null,
-      projectData.buildingHeightFloors ?? null,
-      projectData.buildingTypeId ?? null,
-      projectData.budgetEur ?? null,
-      projectData.glassFacade ?? null,
-      projectData.facadeBasis ?? null,
-      projectData.status ?? null,
-      projectData.lastVerifiedDate ?? null,
-      projectData.confidenceScore ?? null,
-      projectData.isActive ?? null,
-      projectData.projectKey ?? null
-    ]
-  );
+  let headers: ResultSetHeader;
+  try {
+    const [result] = await promisePool.execute<ResultSetHeader>(
+      `INSERT INTO projects
+      (name, address_id, expected_date_text, earliest_date_text, latest_date_text, expected_date, building_height_meters,
+      building_height_floors, building_type_id, budget_eur, glass_facade,
+      facade_basis, status, last_verified_date, confidence_score, is_active, project_key)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        projectData.name,
+        projectData.addressId,
+        projectData.expectedDateText ?? null,
+        projectData.earliestDateText ?? null,
+        projectData.latestDateText ?? null,
+        projectData.expectedDate ?? null,
+        projectData.buildingHeightMeters ?? null,
+        projectData.buildingHeightFloors ?? null,
+        projectData.buildingTypeId ?? null,
+        projectData.budgetEur ?? null,
+        projectData.glassFacade ?? null,
+        projectData.facadeBasis ?? null,
+        projectData.status ?? null,
+        projectData.lastVerifiedDate ?? null,
+        projectData.confidenceScore ?? null,
+        projectData.isActive ?? null,
+        projectData.projectKey ?? null
+      ]
+    );
+    headers = result;
+  } catch (error: any) {
+    if (isBudgetOutOfRangeError(error)) {
+      throw new CustomError('Invalid budgetEur: value is out of range', 400);
+    }
+    throw error;
+  }
+
   if (headers.affectedRows === 0) {
     throw new CustomError('Failed to create project', 500);
   }
@@ -403,6 +421,10 @@ const putProject = async (
     const [result] = await promisePool.query<ResultSetHeader>(sql);
     headers = result;
   } catch (error: any) {
+    if (isBudgetOutOfRangeError(error)) {
+      throw new CustomError('Invalid budgetEur: value is out of range', 400);
+    }
+
     if (
       error?.code === 'WARN_DATA_TRUNCATED' ||
       error?.errno === 1265 ||
