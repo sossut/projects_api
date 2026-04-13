@@ -259,7 +259,6 @@ const projectGetFormatted = async (
     throwIfValidationErrors(errors);
     const project = toCamel(await getProject(req.params.id as number));
     //formatted response
-    console.log(project);
     const formattedProject = {
       id: project.id,
       name: project.name,
@@ -361,9 +360,7 @@ const projectPost = async (
     throwIfValidationErrors(errors);
     const createdProjectIds: number[] = [];
     const skippedProjects: string[] = [];
-    console.log(req.body);
     for (const proj of req.body.projects || []) {
-      console.log(proj);
       const projectKey: string =
         proj.name.trim().toLowerCase() +
         '|' +
@@ -458,8 +455,6 @@ const projectPut = async (
   next: NextFunction
 ) => {
   try {
-    console.log('fasdkljflasödkfjlökjasdlöfkasdklfjasdlöfjklödfjköslakdfjlök');
-    console.log('Request body:', req.body);
     // const user = req.user as User;
     // if (user.role !== 'admin') {
     //   throw new CustomError('Unauthorized', 401);
