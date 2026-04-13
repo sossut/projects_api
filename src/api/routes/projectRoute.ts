@@ -58,7 +58,10 @@ router
         'cancelled',
         'pre_construction'
       ]),
-    body('projects.*.budgetEur').optional().isFloat({ gt: 0 }).toFloat(),
+    body('projects.*.budgetEur')
+      .optional({ nullable: true })
+      .isFloat({ gt: 0 })
+      .toFloat(),
     body('projects.*.expectedCompletionWindow').optional().isObject(),
     body('projects.*.expectedCompletionWindow.expected')
       .if((value) => value !== null && value !== undefined && value !== '')
