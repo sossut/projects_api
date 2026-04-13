@@ -23,7 +23,11 @@ services:
       - '5000:5000'
     environment:
       NODE_ENV: production
-
+    logging:
+      driver: json-file
+      options:
+        max-size: '20m'
+        max-file: '10'
   automation-worker:
     build:
       context: .

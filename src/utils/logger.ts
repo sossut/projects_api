@@ -5,41 +5,20 @@ const isProduction = process.env.NODE_ENV === 'production';
 const level =
   process.env.LOG_LEVEL?.toLowerCase() || (isProduction ? 'info' : 'debug');
 
-const transport = pino.transport({
-  targets: [
-    ...(isProduction
-      ? []
-      : [
-          {
-            target: 'pino-pretty',
-            level,
-            options: {
-              colorize: true,
-              translateTime: 'SYS:standard',
-              ignore: 'pid,hostname'
-            }
-          }
-        ]),
-    {
-      target: 'pino/file',
-      level,
+const transport = isProduction
+  ? undefined
+  : pino.transport({
+      target: 'pino-pretty',
       options: {
-        destination: './logs/app.log',
-        mkdir: true
+        colorize: true,
+        translateTime: 'SYS:standard',
+        ignore: 'pid,hostname'
       }
-    },
-    {
-      target: 'pino/file',
-      level: 'error',
-      options: {
-        destination: './logs/error.log',
-        mkdir: true
-      }
-    }
-  ]
-});
+    });
 
-const baseLogger = pino({ level, base: { service: 'express-api' } }, transport);
+const baseLogger = transport
+  ? pino({ level, base: { service: 'express-api' } }, transport)
+  : pino({ level, base: { service: 'express-api' } });
 
 const logger = {
   debug: (message: string, meta?: unknown) => {

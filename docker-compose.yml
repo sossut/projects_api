@@ -26,6 +26,11 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    logging:
+      driver: json-file
+      options:
+        max-size: '20m'
+        max-file: '10'
   automation-worker:
     build:
       context: .
