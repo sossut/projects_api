@@ -186,9 +186,7 @@ export const findProjectsWithGPT5 = async (
     );
 
     const results = JSON.parse(resultsText.output_text || '{}');
-    console.log(results);
     for (const project of results.projects || []) {
-      console.log(project);
       const p = {
         name: project.name,
 

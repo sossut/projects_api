@@ -552,7 +552,6 @@ const projectPut = async (
           i < ((req.body.removals.media ?? []) as unknown[]).length;
           i++
         ) {
-          console.log(i);
           try {
             const mediaId = (req.body.removals.media as unknown[])[i] as number;
             console.log('mediaId to be removed', mediaId);

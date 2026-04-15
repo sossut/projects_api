@@ -51,7 +51,7 @@ const postUserProjectFavorite = async (
   if (result.affectedRows === 0) {
     throw new CustomError('Failed to create user project favorite', 500);
   }
-  console.log(result);
+
   return true;
 };
 

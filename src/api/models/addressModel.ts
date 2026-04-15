@@ -93,7 +93,7 @@ const putAddress = async (
     `UPDATE addresses SET ${fields} WHERE id = ?`,
     values
   );
-  console.log(sql);
+
   const [headers] = await promisePool.query<ResultSetHeader>(sql);
   if (headers.affectedRows === 0) {
     throw new CustomError(`Address with id ${id} not found`, 404);

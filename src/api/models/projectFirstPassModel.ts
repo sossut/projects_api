@@ -66,7 +66,6 @@ const getProjectFirstPassNamesByMetroAreaAndBuildingType = async (
 const postProjectFirstPass = async (
   projectFirstPassData: PostProjectFirstPass
 ): Promise<number> => {
-  console.log(JSON.stringify(projectFirstPassData.sources));
   const sql = promisePool.format(
     `INSERT INTO project_first_passes (
       name, address, metro_area, city, country, continent, building_height_meters,
@@ -89,7 +88,7 @@ const postProjectFirstPass = async (
       JSON.stringify(projectFirstPassData.sources || [])
     ]
   );
-  console.log(sql);
+
   const [headers] = await promisePool.execute<ResultSetHeader>(
     `INSERT INTO project_first_passes (
       name, address, metro_area, city, country, continent, building_height_meters, 

@@ -71,7 +71,7 @@ const putSearch = async (
     snakeCaseData,
     id
   ]);
-  console.log(sql);
+
   const [headers] = await promisePool.query<ResultSetHeader>(sql);
   if (headers.affectedRows === 0) {
     throw new CustomError(`Search with id ${id} not found`, 404);

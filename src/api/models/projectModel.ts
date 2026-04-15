@@ -238,7 +238,6 @@ const getAllProjectsSimple = async (
     LIMIT ? OFFSET ?`,
     [...filtered.params, limit, offset]
   );
-  console.log(sql);
 
   const [rows] = await promisePool.query<GetProject[]>(sql);
   if (rows.length === 0) {

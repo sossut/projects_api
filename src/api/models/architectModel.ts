@@ -56,7 +56,6 @@ const checkArchitectExistsByName = async (name: string): Promise<number> => {
 };
 
 const postArchitect = async (architectData: PostArchitect): Promise<number> => {
-  console.log(architectData);
   const [headers] = await promisePool.execute<ResultSetHeader>(
     'INSERT INTO architects (name, website, phone, email, hq_country_id) VALUES (?, ?, ?, ?, ?)',
     [
