@@ -1,12 +1,14 @@
 require('dotenv').config();
 import express from 'express';
-import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
+import pinoHttp from 'pino-http';
+import { randomUUID } from 'crypto';
 
 import * as middlewares from './middlewares';
 import api from './api';
 import MessageResponse from './interfaces/MessageResponse';
+import logger from './utils/logger';
 
 const app = express();
 const corsOptions = {
@@ -16,7 +18,30 @@ const corsOptions = {
   accessControlAllowCredentials: true
 };
 
-app.use(morgan('dev'));
+app.use(
+  pinoHttp({
+    logger: logger.raw,
+    genReqId(req, res) {
+      const incomingRequestId = req.headers['x-request-id'];
+      const requestId =
+        typeof incomingRequestId === 'string'
+          ? incomingRequestId
+          : Array.isArray(incomingRequestId)
+            ? incomingRequestId[0]
+            : randomUUID();
+
+      res.setHeader('x-request-id', requestId);
+      return requestId;
+    },
+    customLogLevel(req, res, err) {
+      if (err || res.statusCode >= 500) return 'error';
+      if (res.statusCode >= 400) return 'warn';
+      if (res.statusCode >= 300) return 'silent';
+      if (req.url === '/') return 'silent';
+      return 'info';
+    }
+  })
+);
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());

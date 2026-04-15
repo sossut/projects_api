@@ -21,6 +21,7 @@ export function errorHandler(
     err.status || (res.statusCode !== 200 ? res.statusCode : 500);
 
   logger.error('Request failed', {
+    requestId: (req as Request & { id?: string }).id,
     method: req.method,
     path: req.originalUrl,
     statusCode,
