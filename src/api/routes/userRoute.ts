@@ -16,6 +16,7 @@ router
   .route('/')
   .get(passport.authenticate('jwt', { session: false }), userListGet)
   .post(
+    passport.authenticate('jwt', { session: false }),
     body('username').isString().notEmpty().escape(),
     body('email').isEmail().normalizeEmail().escape(),
     body('password').isString().isLength({ min: 4 }).escape(),

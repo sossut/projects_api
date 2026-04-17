@@ -50,7 +50,10 @@ const userPost = async (
   try {
     const errors = validationResult(req);
     throwIfValidationErrors(errors);
-    const admin = req.user as User;
+    const admin = req.user as User | undefined;
+    if (!admin) {
+      throw new CustomError('Unauthorized', 401);
+    }
     if (admin.role !== 'admin') {
       throw new CustomError('Unauthorized', 403);
     }
