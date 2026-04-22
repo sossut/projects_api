@@ -15,6 +15,8 @@ import { findMetroAreaIdByName } from '../../utils/utilities';
 import { postMetroArea } from '../models/metroAreaModel';
 import { enrichmentQueue } from '../queues/enrichment.queue';
 import { getProjectFirstPass } from '../models/projectFirstPassModel';
+import { User } from '../../interfaces/User';
+import CustomError from '../../classes/CustomError';
 
 // Trigger project enrichment job
 const projectEnrich = async (
@@ -201,6 +203,10 @@ const projectsFindGPT5Queued = async (
   next: NextFunction
 ) => {
   try {
+    const admin = req.user as User;
+    if (admin.role !== 'admin') {
+      throw new CustomError('Unauthorized', 403);
+    }
     const { location, buildingTypes, country } = req.body;
 
     if (!location || !buildingTypes || !country) {

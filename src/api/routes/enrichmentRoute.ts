@@ -38,11 +38,11 @@ router.post(
 // // Test Tavily enrichment
 // router.post('/enrich/:id/tavily', projectEnrichTavily);
 // Find Projects no worker
-router.post(
-  '/find-projects/gpt5',
-  passport.authenticate('jwt', { session: false }),
-  projectsFindGPT5
-);
+// router.post(
+//   '/find-projects/gpt5',
+//   passport.authenticate('jwt', { session: false }),
+//   projectsFindGPT5
+// );
 // Queue GPT-5 project search
 router.post(
   '/find-projects/gpt5/queue',
@@ -50,11 +50,11 @@ router.post(
   projectsFindGPT5Queued
 );
 // Enrich projects no worker
-router.post(
-  '/enrich-batch/gpt5',
-  passport.authenticate('jwt', { session: false }),
-  projectEnrichBatchGPT5
-);
+// router.post(
+//   '/enrich-batch/gpt5',
+//   passport.authenticate('jwt', { session: false }),
+//   projectEnrichBatchGPT5
+// );
 
 // Batch enrich projects
 router.post(
