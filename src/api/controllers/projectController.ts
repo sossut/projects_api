@@ -11,7 +11,8 @@ import {
   getStatuses,
   getProjectsBySearchTerm,
   getProjectNamesByMetroAreaAndBuildingType,
-  getAllProjectCoordinates
+  getAllProjectCoordinates,
+  getProjectNamesByCountry
 } from '../models/projectModel';
 
 import { Request, Response, NextFunction } from 'express';
@@ -147,6 +148,25 @@ const projectsGetByMetroAreaAndBuildingType = async (
       metroAreaId,
       buildingTypeId
     );
+    res.json(projects);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const projectsGetByCountry = async (
+  req: Request<{ countryId: number }, {}, {}>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+    const countryId = req.params.countryId;
+    if (!countryId) {
+      throw new CustomError('Country ID is required', 400);
+    }
+    const projects = await getProjectNamesByCountry(countryId);
     res.json(projects);
   } catch (error) {
     next(error);
@@ -627,6 +647,7 @@ export {
   projectListGetSimple,
   projectGetSimple,
   projectsGetByMetroAreaAndBuildingType,
+  projectsGetByCountry,
   searchProjectsBySearchTerm,
   projectGet,
   projectGetCount,

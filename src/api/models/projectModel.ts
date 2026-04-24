@@ -325,6 +325,25 @@ const getProjectNamesByMetroAreaAndBuildingType = async (
   return rows.map((row) => row.name);
 };
 
+const getProjectNamesByCountry = async (
+  countryId: number
+): Promise<string[]> => {
+  const [rows] = await promisePool.query<GetProject[]>(
+    `SELECT projects.name
+    FROM projects
+    JOIN addresses ON projects.address_id = addresses.id
+    JOIN cities ON addresses.city_id = cities.id
+    JOIN metro_areas ON cities.metro_area_id = metro_areas.id
+    JOIN countries ON metro_areas.country_id = countries.id
+    WHERE countries.id = ?`,
+    [countryId]
+  );
+  if (rows.length === 0) {
+    return [];
+  }
+  return rows.map((row) => row.name);
+};
+
 const getStatuses = async (): Promise<string[]> => {
   const [rows] = await promisePool.query<RowDataPacket[]>(
     'SELECT DISTINCT status FROM projects'
@@ -464,6 +483,7 @@ export {
   getProject,
   getStatuses,
   getProjectNamesByMetroAreaAndBuildingType,
+  getProjectNamesByCountry,
   checkIfProjectExistsByKey,
   postProject,
   putProject,

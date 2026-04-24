@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { countryListGet } from '../controllers/coutnryController';
+import { countryListGet } from '../controllers/countryController';
 
 const router = express.Router();
 
