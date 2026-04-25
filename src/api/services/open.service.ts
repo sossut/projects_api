@@ -194,7 +194,7 @@ export const openAIWebSearchList = async (
     input: [
       {
         role: 'system',
-        content: `You enrich a list of building projects JSON.
+        content: `
 Return ONLY valid JSON that matches the provided schema. Do not add extra keys.
 TASK
 Using public web sources and reputable construction/real-estate databases, identify projects in [LOCATION] matching [TYPE] that are ongoing or upcoming.
