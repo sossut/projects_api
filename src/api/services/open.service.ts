@@ -333,7 +333,9 @@ export const openAIWebSearch = async (projectJSON: any) => {
           - Images: media.url must be a direct image URL ending .jpg/.png/.webp if reliably found.
             If not, set media.url to "" and put the page URL into projectWebsites or sources instead.
             Try to find the date for the media if possible and set mediaDate. If you can't find a date, leave mediaDate null.
-          - Add contact info for developers/architects/contractors/consultants if you can find it (email or phone).
+          - Add contact info for developers/architects/contractors/consultants if you can find it (email and phone).
+            Do not fabricate contact info. If you can't find it, set email and phone to null.
+            Do not put "email redacted" or similar text in those fields — use null if not found.
 
           Project JSON:
           ${JSON.stringify(projectJSON)}
