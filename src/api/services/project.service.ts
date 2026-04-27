@@ -2,6 +2,18 @@
 import ExcelJS from 'exceljs';
 import { Project } from '../../interfaces/Project';
 
+const getMediaUrls = (project: any): string[] => {
+  if (!Array.isArray(project.media)) {
+    return [];
+  }
+
+  return project.media
+    .map((m: any) => (typeof m === 'string' ? m : m?.url))
+    .filter(
+      (url: unknown): url is string => Boolean(url) && typeof url === 'string'
+    );
+};
+
 /**
  * Flatten nested project data for export
  */
@@ -32,12 +44,7 @@ const flattenProjectForExport = (project: any) => {
     createdAt: project.createdAt || '',
     updatedAt: project.updatedAt || '',
     lastVerifiedDate: project.lastVerifiedDate || '',
-    media: Array.isArray(project.media)
-      ? project.media
-          .map((m: any) => (typeof m === 'string' ? m : m?.url))
-          .filter(Boolean)
-          .join('; ')
-      : '',
+    media: getMediaUrls(project).join('\n'),
     favoritedByUsers: Array.isArray(project.favoritedByUsers)
       ? project.favoritedByUsers.map((u: any) => u.username).join(', ')
       : ''
@@ -52,6 +59,11 @@ export const generateExcelBuffer = async (
 ): Promise<Buffer> => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Projects');
+
+  const maxMediaUrls = projects.reduce(
+    (max, project) => Math.max(max, getMediaUrls(project).length),
+    0
+  );
 
   // Define columns
   const columns = [
@@ -76,9 +88,22 @@ export const generateExcelBuffer = async (
     { header: 'Created', key: 'createdAt', width: 15 },
     { header: 'Updated', key: 'updatedAt', width: 15 },
     { header: 'Last Verified', key: 'lastVerifiedDate', width: 15 },
-    { header: 'Media URLs', key: 'media', width: 30 },
     { header: 'Favorited By', key: 'favoritedByUsers', width: 20 }
   ];
+
+  const mediaColumns = Array.from(
+    { length: maxMediaUrls || 1 },
+    (_, index) => ({
+      header: maxMediaUrls > 1 ? `Media URL ${index + 1}` : 'Media URL',
+      key: `mediaUrl${index + 1}`,
+      width: 70
+    })
+  );
+
+  const favoriteColumn = columns.pop();
+  if (favoriteColumn) {
+    columns.push(...mediaColumns, favoriteColumn);
+  }
 
   worksheet.columns = columns;
 
@@ -91,8 +116,53 @@ export const generateExcelBuffer = async (
   };
 
   // Add data rows
-  const flattenedProjects = projects.map(flattenProjectForExport);
+  const flattenedProjects = projects.map((project) => {
+    const flatProject = flattenProjectForExport(project);
+    const mediaUrls = getMediaUrls(project);
+
+    const mediaCells = Array.from({ length: maxMediaUrls || 1 }, (_, index) => {
+      return [`mediaUrl${index + 1}`, mediaUrls[index] ?? ''] as const;
+    });
+
+    return {
+      ...flatProject,
+      ...Object.fromEntries(mediaCells)
+    };
+  });
   worksheet.addRows(flattenedProjects);
+
+  // Convert media URL cell values into clickable hyperlinks.
+  for (let i = 0; i < projects.length; i += 1) {
+    const rowNumber = i + 2;
+    const row = worksheet.getRow(rowNumber);
+    const urls = getMediaUrls(projects[i]);
+
+    for (
+      let mediaIndex = 0;
+      mediaIndex < (maxMediaUrls || 1);
+      mediaIndex += 1
+    ) {
+      const cell = row.getCell(`mediaUrl${mediaIndex + 1}`);
+      const url = urls[mediaIndex];
+
+      if (!url) {
+        continue;
+      }
+
+      cell.value = {
+        text: url,
+        hyperlink: url
+      };
+      cell.font = {
+        color: { argb: 'FF0563C1' },
+        underline: true
+      };
+      cell.alignment = {
+        wrapText: true,
+        vertical: 'top'
+      };
+    }
+  }
 
   // Auto-fit columns (approximate)
   worksheet.columns.forEach((col) => {
