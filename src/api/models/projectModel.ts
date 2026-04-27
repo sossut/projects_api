@@ -128,6 +128,32 @@ const getProjectsForBatchEnrichment = async (
   return parseProjectRows(rows);
 };
 
+const getProjectsForExport = async (
+  sortBy: string = 'id',
+  order: 'ASC' | 'DESC' = 'ASC',
+  filters?: { [key: string]: string | number | string[] }
+): Promise<Project[]> => {
+  const filtered = applyOrderAndFilters(sortBy, order, filters);
+  const sql = promisePool.format(
+    `${simpleQueryBase}
+    ${filtered.whereClause}
+    GROUP BY projects.id
+    ORDER BY ${filtered.validSortBy} ${filtered.validOrder}`,
+    filtered.params
+  );
+
+  const [rows] = await promisePool.query<GetProject[]>(sql);
+  if (rows.length === 0) {
+    throw new CustomError('No projects found', 404);
+  }
+  return rows.map((row) => ({
+    ...row,
+    buildingUses: JSON.parse(row.buildingUses as unknown as string),
+    media: JSON.parse(row.media as unknown as string),
+    favoritedByUsers: JSON.parse(row.favoritedByUsers as unknown as string)
+  }));
+};
+
 const getProjectCount = async (filters?: {
   [key: string]: string | number | string[];
 }): Promise<number> => {
@@ -478,6 +504,7 @@ export {
   getProjectCount,
   getAllProjectCoordinates,
   getAllProjectsSimple,
+  getProjectsForExport,
   getProjectSimple,
   getProjectsBySearchTerm,
   getProject,

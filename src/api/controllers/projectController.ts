@@ -5,6 +5,7 @@ import {
   getAllProjects,
   getFavoritedProjects,
   getAllProjectsSimple,
+  getProjectsForExport,
   getProjectSimple,
   getProject,
   getProjectCount,
@@ -17,6 +18,10 @@ import {
 
 import { Request, Response, NextFunction } from 'express';
 import { PostProject, Project } from '../../interfaces/Project';
+import {
+  generateExcelBuffer,
+  generatePdfBuffer
+} from '../services/project.service';
 
 import CustomError from '../../classes/CustomError';
 import MessageResponse from '../../interfaces/MessageResponse';
@@ -106,6 +111,95 @@ const projectListGetSimple = async (
     );
     const projects = rows.map((row) => toCamel(row));
     res.json(projects);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectListGetSimpleExport = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+
+    const parsedFilters = parseFilters(req);
+
+    const rows = await getProjectsForExport(
+      parsedFilters.sortBy,
+      parsedFilters.order === 'desc' ? 'DESC' : 'ASC',
+      Object.keys(parsedFilters.filters).length > 0
+        ? parsedFilters.filters
+        : undefined
+    );
+
+    const projects = rows.map((row) => toCamel(row));
+    res.json(projects);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectListGetSimpleExportExcel = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+
+    const parsedFilters = parseFilters(req);
+
+    const rows = await getProjectsForExport(
+      parsedFilters.sortBy,
+      parsedFilters.order === 'desc' ? 'DESC' : 'ASC',
+      Object.keys(parsedFilters.filters).length > 0
+        ? parsedFilters.filters
+        : undefined
+    );
+
+    const projects = rows.map((row) => toCamel(row));
+    const buffer = await generateExcelBuffer(projects as any);
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', 'attachment; filename=projects.xlsx');
+    res.send(buffer);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const projectListGetSimpleExportPdf = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const errors = validationResult(req);
+    throwIfValidationErrors(errors);
+
+    const parsedFilters = parseFilters(req);
+
+    const rows = await getProjectsForExport(
+      parsedFilters.sortBy,
+      parsedFilters.order === 'desc' ? 'DESC' : 'ASC',
+      Object.keys(parsedFilters.filters).length > 0
+        ? parsedFilters.filters
+        : undefined
+    );
+
+    const projects = rows.map((row) => toCamel(row));
+    const buffer = await generatePdfBuffer(projects as any);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=projects.pdf');
+    res.send(buffer);
   } catch (err) {
     next(err);
   }
@@ -645,6 +739,9 @@ export {
   projectListGet,
   projectFavoritedListGet,
   projectListGetSimple,
+  projectListGetSimpleExport,
+  projectListGetSimpleExportExcel,
+  projectListGetSimpleExportPdf,
   projectGetSimple,
   projectsGetByMetroAreaAndBuildingType,
   projectsGetByCountry,

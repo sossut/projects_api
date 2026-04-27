@@ -9,6 +9,9 @@ import {
   projectGetFormatted,
   projectPutWithoutIdParam,
   projectListGetSimple,
+  projectListGetSimpleExport,
+  projectListGetSimpleExportExcel,
+  projectListGetSimpleExportPdf,
   projectStatusesGet,
   projectGetCount,
   projectGetSimple,
@@ -203,6 +206,27 @@ router
 router
   .route('/simple')
   .get(passport.authenticate('jwt', { session: false }), projectListGetSimple);
+
+router
+  .route('/simple/export')
+  .get(
+    passport.authenticate('jwt', { session: false }),
+    projectListGetSimpleExport
+  );
+
+router
+  .route('/simple/export/excel')
+  .get(
+    passport.authenticate('jwt', { session: false }),
+    projectListGetSimpleExportExcel
+  );
+
+router
+  .route('/simple/export/pdf')
+  .get(
+    passport.authenticate('jwt', { session: false }),
+    projectListGetSimpleExportPdf
+  );
 
 router
   .route('/simple/:id')

@@ -278,6 +278,7 @@ const applyOrderAndFilters = (
     'id',
     'expected_date',
     'name',
+    'city',
     'budget_eur',
     'status',
     'confidence_score',
