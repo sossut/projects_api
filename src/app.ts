@@ -1,21 +1,14 @@
 require('dotenv').config();
-import { readFileSync } from 'fs';
-import path from 'path';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import pinoHttp from 'pino-http';
 import { randomUUID } from 'crypto';
-import swaggerUi from 'swagger-ui-express';
-import YAML from 'yaml';
 
 import * as middlewares from './middlewares';
 import api from './api';
 import MessageResponse from './interfaces/MessageResponse';
 import logger from './utils/logger';
-
-const openApiPath = path.join(process.cwd(), 'docs', 'openapi.yaml');
-const openApiDocument = YAML.parse(readFileSync(openApiPath, 'utf8'));
 
 const app = express();
 const corsOptions = {
@@ -52,19 +45,6 @@ app.use(
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
-
-app.get('/docs/openapi.yaml', (req, res) => {
-  res.sendFile(openApiPath);
-});
-
-app.use(
-  '/docs',
-  swaggerUi.serve,
-  swaggerUi.setup(openApiDocument, {
-    explorer: true,
-    customSiteTitle: 'Buildings API Docs'
-  })
-);
 
 app.get<{}, MessageResponse>('/', (req, res) => {
   res.json({
