@@ -2,6 +2,14 @@
 
 Backend API for projects/buildings data, user auth, enrichment, and automation workers.
 
+## Documentation
+
+- [OpenAPI spec](docs/openapi.yaml)
+- [Architecture and runtime guide](docs/architecture.md)
+- [API reference](docs/api-reference.md)
+
+Use this README for setup and operations, and the docs folder for the deeper system reference.
+
 ## 1) Quick Start (Docker, development)
 
 This is the easiest way to run locally.
