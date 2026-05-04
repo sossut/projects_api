@@ -278,7 +278,7 @@ JSON OUTPUT SCHEMA (MUST MATCH EXACTLY)
 "metroArea": "",
 "country": "",
 "continent": "",
-"status": "planned" | "approved" | "proposed" | "under_construction" | "on_hold" | "completed",
+"status": "planned" | "approved" | "proposed" | "under_construction" | "on_hold" | "completed" | "cancelled",
 "expectedDateText": "",
 "lastVerifiedDate": "YYYY-MM-DD"
 }
