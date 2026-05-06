@@ -26,7 +26,7 @@ API runs on: `http://localhost:5000`
 
 - `docker compose down`
 
-### Rebuild from clean state
+API runs on: `http://localhost:5001`
 
 - `docker compose down -v && docker compose up --build`
 
@@ -102,6 +102,7 @@ Use `.env.sample` as the template.
 | `PROJECT_SEARCH_CRON`          | Optional               | `off` / cron-like value      | Automation scheduling switch              |
 | `PROJECT_SEARCH_LOCATION`      | Optional               | `Hanoi`                      | Default automation search location        |
 | `PROJECT_SEARCH_BUILDING_TYPE` | Optional               | `A`                          | Default automation building type selector |
+| `HOST_PORT`                    | No                     | `5001`                       | Host port exposed by Docker Compose       |
 
 Security notes:
 

@@ -14,7 +14,6 @@ services:
       dockerfile: Dockerfile
     command: npm run dev
     env_file: .env
-    restart: unless-stopped
     environment:
       CHOKIDAR_USEPOLLING: '1'
       CHOKIDAR_INTERVAL: '1000'
@@ -22,7 +21,7 @@ services:
     depends_on:
       - redis
     ports:
-      - '5000:5000'
+      - '5001:5000'
     volumes:
       - .:/app
       - /app/node_modules
