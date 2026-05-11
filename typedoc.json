@@ -1,0 +1,12 @@
+{
+  "entryPoints": ["src"],
+  "out": "docs",
+  "tsconfig": "tsconfig.json",
+  "exclude": ["**/*.test.ts", "test/**", "dist/**", "node_modules/**"],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "highlightLanguages": ["ts", "typescript", "js", "javascript", "json", "http"],
+  "includeVersion": true,
+  "hideGenerator": false
+}
