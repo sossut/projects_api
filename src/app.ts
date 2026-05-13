@@ -11,6 +11,7 @@ import MessageResponse from './interfaces/MessageResponse';
 import logger from './utils/logger';
 
 const app = express();
+const requestBodyLimit = process.env.REQUEST_BODY_LIMIT || '10mb';
 const corsOptions = {
   origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -44,7 +45,8 @@ app.use(
 );
 app.use(helmet());
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: requestBodyLimit }));
+app.use(express.urlencoded({ extended: true, limit: requestBodyLimit }));
 
 app.get<{}, MessageResponse>('/', (req, res) => {
   res.json({
